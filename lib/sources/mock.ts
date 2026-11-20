@@ -31,7 +31,6 @@ const PRICES: Record<string, [number, number]> = {
   "claude-sonnet-5-5": [2, 10],
   "claude-haiku-5-5": [0.1, 0.5],
 };
-const MODELS = Object.keys(PRICES);
 
 interface Persona {
   email: string;

@@ -41,8 +41,8 @@ describe("AnthropicSource", () => {
 
   it("maps members to the dashboard shape", async () => {
     const f = fakeClient();
-    expect(await new AnthropicSource("k", f.client).members()).toEqual([
-      { id: "u1", email: "a@x.com", name: "A", role: "developer", added_at: "t" },
+    expect(await new AnthropicSource("k", f.client, new Map([["a@x.com", "Platform"]])).members()).toEqual([
+      { id: "u1", email: "a@x.com", name: "A", role: "developer", added_at: "t", department: "Platform" },
     ]);
   });
 });

@@ -16,6 +16,8 @@ const shortDay = (d: string) => d.slice(5);
 export interface SeriesDef {
   key: string;
   label: string;
+  /** Override the categorical slot, e.g. a neutral gray for "inactive". */
+  color?: string;
 }
 
 /** Daily line chart; one shared y-axis, so only plot series of the same unit together. */
@@ -27,9 +29,9 @@ export function TrendChart<T extends { day: string }>({ data, series, format = (
         <XAxis dataKey="day" tickFormatter={shortDay} {...axis} minTickGap={24} />
         <YAxis tickFormatter={format} {...axis} width={56} />
         <Tooltip {...tooltipStyle} formatter={(v) => (typeof v === "number" ? format(v) : String(v ?? "—"))} />
-        {series.length > 1 && <Legend wrapperStyle={{ fontSize: 12, color: "var(--text-secondary)" }} iconType="plainline" />}
+        {series.length > 1 && <Legend wrapperStyle={{ fontSize: 12, color: "var(--text-secondary)" }} iconType="plainline" itemSorter={null} />}
         {series.map((s, i) => (
-          <Line key={s.key} type="monotone" dataKey={s.key} name={s.label} stroke={SERIES[i]} strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--surface-1)" }} connectNulls={false} isAnimationActive={false} />
+          <Line key={s.key} type="monotone" dataKey={s.key} name={s.label} stroke={s.color ?? SERIES[i]} strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--surface-1)" }} connectNulls={false} isAnimationActive={false} />
         ))}
       </LineChart>
     </ResponsiveContainer>
@@ -55,18 +57,30 @@ export function HBar({ data, format = (v: number) => String(v), max = 8 }: { dat
 }
 
 /** Stacked vertical bars (e.g. accepted vs rejected per tool). 2px surface gap between segments. */
-export function StackedBar<T>({ data, xKey, series, format = (v: number) => String(v) }: { data: T[]; xKey: string; series: SeriesDef[]; format?: (v: number) => string }) {
+export function StackedBar<T>({ data, xKey, series, format = (v: number) => String(v), layout = "horizontal" }: {
+  data: T[]; xKey: string; series: SeriesDef[]; format?: (v: number) => string; layout?: "horizontal" | "vertical";
+}) {
+  const vertical = layout === "vertical"; // categories down the side, bars grow right
   return (
-    <ResponsiveContainer width="100%" height={240}>
-      <BarChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
-        <CartesianGrid stroke="var(--grid)" vertical={false} />
-        <XAxis dataKey={xKey} {...axis} />
-        <YAxis tickFormatter={format} {...axis} width={56} />
+    <ResponsiveContainer width="100%" height={vertical ? Math.max(120, data.length * 30 + 60) : 240}>
+      <BarChart data={data} layout={layout} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
+        <CartesianGrid stroke="var(--grid)" vertical={vertical} horizontal={!vertical} />
+        {vertical ? (
+          <>
+            <XAxis type="number" tickFormatter={format} {...axis} />
+            <YAxis type="category" dataKey={xKey} {...axis} width={110} tick={{ fill: "var(--text-secondary)", fontSize: 12 }} />
+          </>
+        ) : (
+          <>
+            <XAxis dataKey={xKey} {...axis} />
+            <YAxis tickFormatter={format} {...axis} width={56} />
+          </>
+        )}
         <Tooltip {...tooltipStyle} formatter={(v) => (typeof v === "number" ? format(v) : String(v))} />
-        <Legend wrapperStyle={{ fontSize: 12, color: "var(--text-secondary)" }} />
+        <Legend wrapperStyle={{ fontSize: 12, color: "var(--text-secondary)" }} itemSorter={null} />
         {series.map((s, i) => (
-          <Bar key={s.key} dataKey={s.key} name={s.label} stackId="a" fill={SERIES[i]} stroke="var(--surface-1)" strokeWidth={2}
-            radius={i === series.length - 1 ? [4, 4, 0, 0] : 0} isAnimationActive={false} />
+          <Bar key={s.key} dataKey={s.key} name={s.label} stackId="a" fill={s.color ?? SERIES[i]} stroke="var(--surface-1)" strokeWidth={2}
+            radius={i === series.length - 1 ? (vertical ? [0, 4, 4, 0] : [4, 4, 0, 0]) : 0} isAnimationActive={false} />
         ))}
       </BarChart>
     </ResponsiveContainer>

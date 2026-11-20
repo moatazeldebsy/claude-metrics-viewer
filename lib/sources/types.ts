@@ -13,6 +13,8 @@ export interface Member {
   name: string;
   role: string;
   added_at: string;
+  /** From the mock org, or the DEPARTMENTS_FILE mapping for real data. null = unassigned. */
+  department: string | null;
 }
 
 export interface CostQuery {

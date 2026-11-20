@@ -23,7 +23,14 @@ function rng(seed: string) {
 
 const ORG_ID = "00000000-0000-4000-8000-000000000001";
 const FIRST = ["Ada", "Ben", "Chen", "Dara", "Eli", "Fatima", "Goran", "Hana", "Ivan", "Jade", "Kofi", "Lena", "Mateo", "Nia", "Omar", "Priya", "Quinn", "Rosa", "Sami", "Tara", "Uma", "Viktor", "Wen", "Yara", "Zane", "Aiko", "Bruno", "Carla", "Dev", "Esme"];
+const LAST = ["Abara", "Berg", "Costa", "Dahl", "Eze", "Fischer", "Garcia", "Hall", "Ito", "Jensen", "Khan", "Lund", "Moreau", "Nakamura", "Okafor", "Park", "Quist", "Rossi", "Silva", "Tanaka", "Ueda", "Varga", "Weber", "Xu", "Yilmaz", "Zhang", "Adler", "Brandt", "Cho", "Diaz", "Engel", "Ford", "Gupta", "Haas", "Iqbal", "Janssen", "Kowalski", "Lopez", "Meyer", "Novak"];
 const TERMINALS = ["vscode", "iTerm.app", "tmux", "ghostty", "jetbrains"];
+
+// Department → share of members who use Claude Code. Spread wide so adoption gaps are visible.
+const DEPARTMENTS: [string, number][] = [
+  ["Platform", 0.92], ["Backend", 0.81], ["Frontend", 0.74], ["Mobile", 0.63], ["Data", 0.7], ["ML Research", 0.88],
+  ["Security", 0.55], ["QA", 0.48], ["SRE", 0.77], ["Product", 0.22], ["Design", 0.12], ["Support Eng", 0.35],
+];
 
 // $ per million tokens: [input, output]; cache read 0.1x input, cache write 1.25x input.
 const PRICES: Record<string, [number, number]> = {
@@ -41,28 +48,40 @@ interface Persona {
   model: string;
 }
 
-const MEMBERS: Member[] = FIRST.map((first, i) => ({
-  id: `user_${String(i + 1).padStart(4, "0")}`,
-  email: `${first.toLowerCase()}@example.com`,
-  name: `${first} Example`,
-  role: i === 0 ? "admin" : i < 4 ? "developer" : "claude_code_user",
-  added_at: `2026-0${1 + (i % 9)}-15T09:00:00Z`,
-}));
+// 30 x 40 = 1,200 members with unique first.last emails.
+const MEMBERS: Member[] = LAST.flatMap((last, li) =>
+  FIRST.map((first, fi) => {
+    const i = li * FIRST.length + fi;
+    const r = rng(`member|${i}`);
+    return {
+      id: `user_${String(i + 1).padStart(4, "0")}`,
+      email: `${first.toLowerCase()}.${last.toLowerCase()}@example.com`,
+      name: `${first} ${last}`,
+      role: i === 0 ? "admin" : i < 20 ? "developer" : "claude_code_user",
+      added_at: `2026-0${1 + (i % 9)}-15T09:00:00Z`,
+      department: DEPARTMENTS[Math.floor(r() * DEPARTMENTS.length)][0],
+    };
+  }),
+);
 
-// The first 24 members use Claude Code; the remaining 6 are idle seats.
-const PERSONAS: Persona[] = MEMBERS.slice(0, 24).map((m, i) => {
+const ADOPTION = new Map(DEPARTMENTS);
+
+// A member uses Claude Code with their department's adoption probability.
+const PERSONAS: Persona[] = MEMBERS.flatMap((m, i) => {
   const r = rng(m.email);
-  return {
+  if (r() > (ADOPTION.get(m.department!) ?? 0.5)) return [];
+  return [{
     email: m.email,
     name: m.name,
     intensity: 0.2 + r() * 0.8,
-    activeChance: 0.45 + r() * 0.5,
+    activeChance: 0.15 + r() * 0.75,
     terminal: TERMINALS[i % TERMINALS.length],
     model: i % 4 === 0 ? "claude-sonnet-5-5" : "claude-opus-5-5",
-  };
+  }];
 });
 
-const userId = (email: string) => MEMBERS.find((m) => m.email === email)?.id ?? email;
+const USER_IDS = new Map(MEMBERS.map((m) => [m.email, m.id]));
+const userId = (email: string) => USER_IDS.get(email) ?? email;
 
 const BOTS = ["ci-review-bot", "release-notes-bot"];
 

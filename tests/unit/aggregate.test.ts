@@ -98,8 +98,8 @@ describe("aggregateCost", () => {
 describe("idleSeats", () => {
   it("lists members with no Claude Code activity, case-insensitive", () => {
     const members = [
-      { id: "1", email: "A@x.com", name: "A", role: "developer", added_at: "" },
-      { id: "2", email: "z@x.com", name: "Z", role: "developer", added_at: "" },
+      { id: "1", email: "A@x.com", name: "A", role: "developer", added_at: "", department: null },
+      { id: "2", email: "z@x.com", name: "Z", role: "developer", added_at: "", department: null },
     ];
     expect(idleSeats(members, ["a@x.com"]).map((m) => m.id)).toEqual(["2"]);
   });

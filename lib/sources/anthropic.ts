@@ -9,8 +9,13 @@ const MAX_COST_RANGE_DAYS = 31; // Usage & Cost Analytics API limit per request
 export class AnthropicSource implements MetricsSource {
   private client: Anthropic;
   private dayCache = new Map<string, ClaudeCodeRecord[]>();
+  private membersCache?: { at: number; members: Promise<Member[]> };
 
-  constructor(apiKey: string, client?: Anthropic) {
+  constructor(
+    apiKey: string,
+    client?: Anthropic,
+    private departments: Map<string, string> = new Map(),
+  ) {
     this.client = client ?? new Anthropic({ apiKey });
   }
 
@@ -49,10 +54,23 @@ export class AnthropicSource implements MetricsSource {
     return out;
   }
 
-  async members(): Promise<Member[]> {
+  /** Org members, cached for 10 minutes: large orgs take many pages and every tab needs them. */
+  members(): Promise<Member[]> {
+    if (!this.membersCache || Date.now() - this.membersCache.at > 10 * 60_000) {
+      const members = this.fetchMembers();
+      members.catch(() => (this.membersCache = undefined));
+      this.membersCache = { at: Date.now(), members };
+    }
+    return this.membersCache.members;
+  }
+
+  private async fetchMembers(): Promise<Member[]> {
     const out: Member[] = [];
     for await (const u of this.client.beta.organization.users.list({ limit: 100 })) {
-      out.push({ id: u.id, email: u.email, name: u.name, role: u.role, added_at: u.added_at });
+      out.push({
+        id: u.id, email: u.email, name: u.name, role: u.role, added_at: u.added_at,
+        department: this.departments.get(u.email.toLowerCase()) ?? null,
+      });
     }
     return out;
   }

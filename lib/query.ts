@@ -7,6 +7,7 @@ export interface DashboardQuery {
   excludeWeekends: boolean;
   excludeHolidays: boolean;
   user: string | null;
+  department: string | null;
 }
 
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -28,6 +29,7 @@ export function parseQuery(sp: URLSearchParams, today = toDay(new Date())): Dash
     excludeWeekends: sp.get("excludeWeekends") === "true",
     excludeHolidays: sp.get("excludeHolidays") === "true",
     user: sp.get("user") || null,
+    department: sp.get("department") || null,
   };
 }
 

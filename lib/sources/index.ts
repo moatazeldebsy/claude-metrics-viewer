@@ -1,3 +1,4 @@
+import { loadDepartmentsFile } from "@/lib/departments";
 import { AnthropicSource } from "./anthropic";
 import { MockSource } from "./mock";
 import type { MetricsSource } from "./types";
@@ -10,7 +11,7 @@ export function getSource(): MetricsSource {
   if (process.env.DATA_SOURCE === "anthropic") {
     const apiKey = process.env.ANTHROPIC_ADMIN_KEY;
     if (!apiKey) throw new Error("DATA_SOURCE=anthropic requires ANTHROPIC_ADMIN_KEY");
-    cached = new AnthropicSource(apiKey);
+    cached = new AnthropicSource(apiKey, undefined, loadDepartmentsFile(process.env.DEPARTMENTS_FILE));
   } else {
     cached = new MockSource();
   }

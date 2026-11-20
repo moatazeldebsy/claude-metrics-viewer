@@ -40,16 +40,49 @@ test("excluding weekends keeps the filter in the URL", async ({ page }) => {
   await expect(page.getByLabel("Exclude weekends")).toBeChecked();
 });
 
-test("the user filter narrows to one user", async ({ page }) => {
+test("the user picker searches on the server and narrows to one user", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByLabel("User filter").locator("option")).not.toHaveCount(1);
-  await page.getByLabel("User filter").selectOption("ada@example.com");
-  await expect(kpi(page, "Active users")).toHaveText("1");
+  await page.getByRole("combobox", { name: "User filter" }).fill("ada.x");
+  await page.getByRole("option", { name: /ada\.xu@example\.com/ }).click();
+  await expect(page).toHaveURL(/user=ada\.xu%40example\.com/);
+  await expect(page.getByTestId("user-chip")).toContainText("ada.xu@example.com");
+  await expect(kpi(page, "Active users")).toHaveText(/^[01]$/);
+  await page.getByRole("button", { name: "Clear user filter" }).click();
+  await expect(page.getByRole("combobox", { name: "User filter" })).toBeVisible();
 });
 
-test("seats lists members without activity", async ({ page }) => {
+test("departments tab ranks adoption and drills into a department", async ({ page }) => {
+  await page.goto("/?tab=departments");
+  await expect(kpi(page, "Org adoption")).toHaveText(/%$/);
+  const rows = page.getByTestId("departments-table").locator("tbody tr");
+  await expect(rows).toHaveCount(12);
+  await rows.filter({ hasText: "Design" }).click();
+  await expect(page).toHaveURL(/department=Design/);
+  await expect(page.getByLabel("Department filter")).toHaveValue("Design");
+  await expect(page.getByRole("tab", { name: "Overview" })).toHaveAttribute("aria-selected", "true");
+});
+
+test("users table pages and searches on the server", async ({ page }) => {
+  await page.goto("/?tab=users");
+  await expect(page.getByTestId("page-info")).toContainText("page 1 of");
+  await expect(page.getByTestId("users-table").locator("tbody tr")).toHaveCount(25);
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await expect(page.getByTestId("page-info")).toContainText("page 2 of");
+  await page.getByLabel("Search users").fill("ada.");
+  await expect(page.getByTestId("page-info")).toContainText("page 1 of 1");
+  for (const cell of await page.getByTestId("users-table").locator("tbody tr td:first-child").allInnerTexts()) expect(cell).toContain("ada.");
+});
+
+test("cost tab explains that department filters don't apply", async ({ page }) => {
+  await page.goto("/?tab=cost&department=Design");
+  await expect(page.getByTestId("cost-filter-note")).toBeVisible();
+});
+
+test("seats lists idle members a page at a time", async ({ page }) => {
   await page.goto("/?tab=seats");
-  await expect(page.getByTestId("idle-table").locator("tbody tr")).not.toHaveCount(0);
+  await expect(page.getByTestId("idle-table").locator("tbody tr")).toHaveCount(25);
+  await page.getByLabel("Search idle members").fill("Design");
+  await expect(page.getByTestId("idle-table").locator("tbody tr").first()).toContainText("Design");
 });
 
 test("API response tab shows raw upstream JSON", async ({ page }) => {

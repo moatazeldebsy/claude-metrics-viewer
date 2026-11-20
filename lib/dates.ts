@@ -42,3 +42,9 @@ export function filterDays(days: string[], f: DayFilter): string[] {
   const hol = new Set(f.excludeHolidays ? (f.holidays ?? []) : []);
   return days.filter((d) => !(f.excludeWeekends && isWeekend(d)) && !hol.has(d));
 }
+
+/** Monday of the UTC week containing `day`. */
+export function weekStart(day: string): string {
+  const dow = new Date(`${day}T00:00:00Z`).getUTCDay(); // 0 = Sunday
+  return addDays(day, -((dow + 6) % 7));
+}

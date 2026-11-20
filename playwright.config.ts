@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = 3211;
+// Next 16 allows one dev server per project, so reuse the usual port (and a running server) locally.
+const PORT = Number(process.env.E2E_PORT ?? 3000);
 
 export default defineConfig({
   testDir: "./e2e",

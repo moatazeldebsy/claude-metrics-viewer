@@ -40,8 +40,10 @@ export interface Column<T> {
   numeric?: boolean;
 }
 
-export function DataTable<T>({ rows, columns, initialSort, testId }: { rows: T[]; columns: Column<T>[]; initialSort?: string; testId?: string }) {
-  const [sort, setSort] = useState<{ key: string; desc: boolean }>({ key: initialSort ?? columns[0].key, desc: true });
+export function DataTable<T>({ rows, columns, initialSort, initialDesc = true, testId, onRowClick }: {
+  rows: T[]; columns: Column<T>[]; initialSort?: string; initialDesc?: boolean; testId?: string; onRowClick?: (row: T) => void;
+}) {
+  const [sort, setSort] = useState<{ key: string; desc: boolean }>({ key: initialSort ?? columns[0].key, desc: initialDesc });
   const sorted = useMemo(() => {
     const col = columns.find((c) => c.key === sort.key) ?? columns[0];
     return [...rows].sort((a, b) => {
@@ -70,7 +72,8 @@ export function DataTable<T>({ rows, columns, initialSort, testId }: { rows: T[]
         </thead>
         <tbody>
           {sorted.map((r, i) => (
-            <tr key={i} className="border-b border-line last:border-0">
+            <tr key={i} className={`border-b border-line last:border-0 ${onRowClick ? "cursor-pointer hover:bg-surface-0" : ""}`}
+              onClick={onRowClick ? () => onRowClick(r) : undefined}>
               {columns.map((c) => {
                 const v = c.value(r);
                 return (

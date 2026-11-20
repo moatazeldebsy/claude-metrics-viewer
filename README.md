@@ -9,16 +9,40 @@ It runs on deterministic mock data out of the box. Point it at a real organizati
 | Tab | What it shows | Source |
 |---|---|---|
 | Overview | Active users, sessions, lines added/removed, accept rate, commits, PRs, estimated cost, daily trends | Claude Code Analytics |
+| Departments | Adoption % per department (lowest first), engagement mix (power / regular / light / inactive), weekly adoption trend, cost per active user. Click a row to filter the whole dashboard | Claude Code Analytics + members + department mapping |
 | Tool acceptance | Accept rate and volume for Edit, MultiEdit, Write, NotebookEdit | Claude Code Analytics |
 | Environments | Sessions and users by terminal; local vs remote | Claude Code Analytics |
 | Commits & PRs | Daily commits and PRs by Claude Code, top contributors | Claude Code Analytics |
 | Models | Tokens and estimated cost per model | Claude Code Analytics |
 | Cost & usage | Org-wide cost by model, workspace, API key, product, service tier, cost type | Usage & Cost Analytics (beta) |
-| Users | Sortable per-user table | Claude Code Analytics |
-| Seats | Members with no Claude Code activity in the range | Admin API: members |
+| Users | Per-user table with department, sorted, searched and paged on the server | Claude Code Analytics |
+| Seats | Members with no Claude Code activity in the range, searchable and paged | Admin API: members |
 | API response | Raw upstream rows for one day | Both |
 
-Filters: date range, 7/28/90-day presets, exclude weekends, exclude holidays (edit `config/holidays.ts`), and a single-user filter. Filters live in the URL, so views can be shared.
+Filters: date range, 7/28/90-day presets, exclude weekends, exclude holidays (edit `config/holidays.ts`), department, and user. Filters live in the URL, so views can be shared. The department and user filters apply to every Claude Code tab; the Cost tab stays organization-wide because the cost API has no department dimension.
+
+### Built for large organizations
+
+- The user filter is a typeahead: the server returns at most 20 matches per keystroke, so the browser never loads the full member list.
+- The Users and Seats tables are sorted, searched and paged on the server (25 rows per page).
+- Org members are cached for 10 minutes; completed days of Claude Code data are cached in memory.
+- The mock org has 1,200 members across 12 departments, so you can see how this behaves at scale.
+
+### Departments
+
+The Console Admin API has no team concept, so departments come from a CSV you export from your HR system or IdP:
+
+```csv
+email,department
+ada@example.com,Platform
+ben@example.com,Data
+```
+
+Set `DEPARTMENTS_FILE=/path/to/departments.csv`. Members missing from the file, and active users missing from the member list, show up as **Unassigned**.
+
+Engagement tiers are relative to the selected days: **power** = active on at least 60% of them, **regular** = 25–60%, **light** = under 25%, **inactive** = a seat with no activity. The weekly trend shows complete weeks only, so a partial first or last week doesn't look like a dip.
+
+Claude Enterprise organizations have teams built in (RBAC groups), and their Enterprise Analytics API reports DAU/WAU/MAU, seat counts and activity across chat, Claude Code, Cowork and more. That would be a third data source; it isn't wired in yet.
 
 ## Run it
 
@@ -30,7 +54,7 @@ npm run dev          # http://localhost:3000, mock data
 ### Real data
 
 ```bash
-DATA_SOURCE=anthropic ANTHROPIC_ADMIN_KEY=sk-ant-admin... npm run dev
+DATA_SOURCE=anthropic ANTHROPIC_ADMIN_KEY=sk-ant-admin... DEPARTMENTS_FILE=./departments.csv npm run dev
 ```
 
 - The key must be an **Admin API key** from a Claude Console organization (Console → Settings → Admin keys). Workspace API keys are rejected.
@@ -46,7 +70,7 @@ Things to know about the upstream data:
 
 ```bash
 npm test             # unit tests (Vitest): aggregation, dates, query parsing, mock + real source
-npm run test:e2e     # Playwright on mock data (first time: npx playwright install chromium)
+npm run test:e2e     # Playwright on mock data; reuses a dev server on :3000 if one is running (first time: npx playwright install chromium)
 npm run lint
 ```
 
@@ -62,9 +86,11 @@ docker run -p 3000:3000 -e DATA_SOURCE=anthropic -e ANTHROPIC_ADMIN_KEY=sk-ant-a
 ```
 lib/sources/        MetricsSource interface; mock.ts (seeded fake org) and anthropic.ts (Admin API)
 lib/aggregate.ts    raw records → dashboard view models (pure, unit-tested)
+lib/departments*.ts department CSV parsing and per-department rollups
+lib/users.ts        user typeahead and server-side paging
 lib/service.ts      loads data for a query and aggregates it
-app/api/*           server routes: claude-code, cost, seats, raw
-components/         Dashboard (tabs + filters), charts (Recharts), ui (tiles, tables)
+app/api/*           server routes: claude-code, departments, users, user-search, seats, cost, meta, raw
+components/         Dashboard (tabs + filters), scale (departments, user picker, paged tables), charts, ui
 ```
 
 There is no auth on the dashboard itself. Put it behind your SSO or ingress auth before exposing it, since it shows per-user activity and cost.

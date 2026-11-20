@@ -1,21 +1,22 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { ClaudeCodeSummary, UserRow } from "@/lib/aggregate";
 import { TOOL_NAMES, type ToolName } from "@/lib/anthropic-types";
 import { addDays, toDay } from "@/lib/dates";
-import type { costSummary, seatSummary } from "@/lib/service";
-import type { Member } from "@/lib/sources/types";
+import type { costSummary } from "@/lib/service";
 import { HBar, StackedBar, TrendChart } from "./charts";
-import { Card, DataTable, fmtCompact, fmtInt, fmtPct, fmtUsd, KpiGrid, KpiTile, type Column } from "./ui";
+import { DepartmentsTab, SeatsTab, UserPicker, UsersTab } from "./scale";
+import { Card, DataTable, fmtCompact, fmtInt, fmtPct, fmtUsd, KpiGrid, KpiTile } from "./ui";
+import { useJson } from "./useJson";
 
-type CC = ClaudeCodeSummary & { allUsers: string[] };
+type CC = Omit<ClaudeCodeSummary, "users"> & { topContributors: UserRow[] };
 type Cost = Awaited<ReturnType<typeof costSummary>>;
-type Seats = Awaited<ReturnType<typeof seatSummary>>;
 
 const TABS = [
   { id: "overview", label: "Overview" },
+  { id: "departments", label: "Departments" },
   { id: "tools", label: "Tool acceptance" },
   { id: "environments", label: "Environments" },
   { id: "commits", label: "Commits & PRs" },
@@ -28,27 +29,7 @@ const TABS = [
 type TabId = (typeof TABS)[number]["id"];
 
 const TOOL_LABELS: Record<ToolName, string> = { edit_tool: "Edit", multi_edit_tool: "MultiEdit", write_tool: "Write", notebook_edit_tool: "NotebookEdit" };
-const FILTER_KEYS = ["from", "to", "excludeWeekends", "excludeHolidays", "user"];
-
-function useJson<T>(url: string | null) {
-  const [state, setState] = useState<{ url: string | null; data?: T; error?: string }>({ url: null });
-  useEffect(() => {
-    if (!url) return;
-    let alive = true;
-    fetch(url)
-      .then(async (r) => {
-        const body = await r.json();
-        if (!r.ok) throw new Error(body.error ?? r.statusText);
-        if (alive) setState({ url, data: body });
-      })
-      .catch((e: Error) => alive && setState({ url, error: e.message }));
-    return () => {
-      alive = false;
-    };
-  }, [url]);
-  const loading = url !== null && state.url !== url;
-  return { data: loading ? undefined : state.data, error: loading ? undefined : state.error, loading };
-}
+const FILTER_KEYS = ["from", "to", "excludeWeekends", "excludeHolidays", "user", "department"];
 
 export function Dashboard({ dataSource }: { dataSource: string }) {
   const sp = useSearchParams();
@@ -73,16 +54,12 @@ export function Dashboard({ dataSource }: { dataSource: string }) {
   for (const k of FILTER_KEYS.slice(2)) if (sp.get(k)) filterQs.set(k, sp.get(k)!);
   const qs = filterQs.toString();
 
-  const needsCC = ["overview", "tools", "environments", "commits", "models", "users"].includes(tab);
+  const needsCC = ["overview", "tools", "environments", "commits", "models"].includes(tab);
   const cc = useJson<CC>(needsCC ? `/api/claude-code?${qs}` : null);
   const cost = useJson<Cost>(tab === "cost" ? `/api/cost?${qs}` : null);
-  const seats = useJson<Seats>(tab === "seats" ? `/api/seats?${qs}` : null);
+  const meta = useJson<{ departments: string[] }>("/api/meta");
 
-  // Keep the user list from the last Claude Code response so the filter survives tab switches.
-  const [allUsers, setAllUsers] = useState<string[]>([]);
-  if (cc.data && cc.data.allUsers !== allUsers) setAllUsers(cc.data.allUsers);
-
-  const active = needsCC ? cc : tab === "cost" ? cost : tab === "seats" ? seats : null;
+  const active = needsCC ? cc : tab === "cost" ? cost : null;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
@@ -98,7 +75,7 @@ export function Dashboard({ dataSource }: { dataSource: string }) {
         )}
       </header>
 
-      <FilterBar from={from} to={to} yesterday={yesterday} sp={sp} users={allUsers} onChange={setParams} />
+      <FilterBar from={from} to={to} yesterday={yesterday} sp={sp} qs={qs} departments={meta.data?.departments ?? []} onChange={setParams} />
 
       <nav className="mt-4 flex gap-1 overflow-x-auto border-b border-line" role="tablist">
         {TABS.map((t) => (
@@ -117,16 +94,19 @@ export function Dashboard({ dataSource }: { dataSource: string }) {
         {cc.data && tab === "environments" && <Environments d={cc.data} />}
         {cc.data && tab === "commits" && <Commits d={cc.data} />}
         {cc.data && tab === "models" && <Models d={cc.data} />}
-        {cc.data && tab === "users" && <Users d={cc.data} />}
-        {cost.data && tab === "cost" && <CostTab d={cost.data} />}
-        {seats.data && tab === "seats" && <SeatsTab d={seats.data} />}
+        {tab === "departments" && <DepartmentsTab qs={qs} onDrill={(department) => setParams({ department, tab: null })} />}
+        {tab === "users" && <UsersTab key={qs} qs={qs} />}
+        {cost.data && tab === "cost" && <CostTab d={cost.data} filtered={Boolean(sp.get("user") || sp.get("department"))} />}
+        {tab === "seats" && <SeatsTab key={qs} qs={qs} />}
         {tab === "api" && <RawTab day={to} />}
       </main>
     </div>
   );
 }
 
-function FilterBar({ from, to, yesterday, sp, users, onChange }: { from: string; to: string; yesterday: string; sp: URLSearchParams; users: string[]; onChange: (p: Record<string, string | null>) => void }) {
+function FilterBar({ from, to, yesterday, sp, qs, departments, onChange }: {
+  from: string; to: string; yesterday: string; sp: URLSearchParams; qs: string; departments: string[]; onChange: (p: Record<string, string | null>) => void;
+}) {
   const preset = (days: number) => onChange({ from: addDays(yesterday, -(days - 1)), to: yesterday });
   const input = "rounded-md border border-line bg-surface-1 px-2 py-1 text-sm";
   return (
@@ -150,12 +130,15 @@ function FilterBar({ from, to, yesterday, sp, users, onChange }: { from: string;
         <input type="checkbox" checked={sp.get("excludeHolidays") === "true"} onChange={(e) => onChange({ excludeHolidays: e.target.checked ? "true" : null })} />
         Exclude holidays
       </label>
-      <label className="ml-auto flex items-center gap-1.5 text-ink-2">User
-        <select className={input} value={sp.get("user") ?? ""} onChange={(e) => onChange({ user: e.target.value || null })} aria-label="User filter">
-          <option value="">All users</option>
-          {users.map((u) => <option key={u} value={u}>{u}</option>)}
-        </select>
-      </label>
+      <div className="ml-auto flex flex-wrap items-center gap-3">
+        <label className="flex items-center gap-1.5 text-ink-2">Department
+          <select className={input} value={sp.get("department") ?? ""} onChange={(e) => onChange({ department: e.target.value || null })} aria-label="Department filter">
+            <option value="">All departments</option>
+            {departments.map((d) => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </label>
+        <UserPicker value={sp.get("user")} qs={qs} onChange={(user) => onChange({ user })} />
+      </div>
     </div>
   );
 }
@@ -252,7 +235,7 @@ function Commits({ d }: { d: CC }) {
         <TrendChart data={d.daily} series={[{ key: "commits", label: "Commits" }, { key: "prs", label: "Pull requests" }]} />
       </Card>
       <Card title="Top contributors">
-        <DataTable rows={d.users.slice().sort((a, b) => b.commits - a.commits).slice(0, 10)} initialSort="commits" columns={[
+        <DataTable rows={d.topContributors} initialSort="commits" columns={[
           { key: "label", label: "User", value: (u) => u.label },
           { key: "commits", label: "Commits", value: (u) => u.commits, numeric: true },
           { key: "prs", label: "PRs", value: (u) => u.prs, numeric: true },
@@ -289,10 +272,15 @@ const DIM_LABELS: Record<keyof Cost["by"], string> = {
   model: "Model", workspace_id: "Workspace", api_key_id: "API key", product: "Product", service_tier: "Service tier", cost_type: "Cost type",
 };
 
-function CostTab({ d }: { d: Cost }) {
+function CostTab({ d, filtered }: { d: Cost; filtered: boolean }) {
   const days = d.daily.filter((x) => x.cents > 0).length || 1;
   return (
     <>
+      {filtered && (
+        <p className="rounded-lg border border-line bg-surface-1 p-3 text-sm text-ink-2" data-testid="cost-filter-note">
+          Organization-wide figures: the department and user filters don’t apply here, because the cost API has no department dimension.
+        </p>
+      )}
       <KpiGrid>
         <KpiTile label="Total cost" value={fmtUsd(d.totalCents)} hint="After discounts, before credits" />
         <KpiTile label="List price" value={fmtUsd(d.listCents)} />
@@ -309,42 +297,6 @@ function CostTab({ d }: { d: Cost }) {
           </Card>
         ))}
       </div>
-    </>
-  );
-}
-
-function Users({ d }: { d: CC }) {
-  const cols: Column<UserRow>[] = [
-    { key: "label", label: "User", value: (u) => u.label },
-    { key: "activeDays", label: "Active days", value: (u) => u.activeDays, numeric: true },
-    { key: "sessions", label: "Sessions", value: (u) => u.sessions, numeric: true },
-    { key: "linesAdded", label: "Lines +", value: (u) => u.linesAdded, numeric: true },
-    { key: "linesRemoved", label: "Lines −", value: (u) => u.linesRemoved, numeric: true },
-    { key: "commits", label: "Commits", value: (u) => u.commits, numeric: true },
-    { key: "prs", label: "PRs", value: (u) => u.prs, numeric: true },
-    { key: "acceptRate", label: "Accept rate", value: (u) => u.acceptRate, numeric: true, format: fmtPct as (v: never) => string },
-    { key: "costCents", label: "Est. cost", value: (u) => u.costCents, numeric: true, format: fmtUsd as (v: never) => string },
-    { key: "lastActive", label: "Last active", value: (u) => u.lastActive },
-  ];
-  return <Card title={`${d.users.length} actors`}><DataTable rows={d.users} columns={cols} initialSort="sessions" testId="users-table" /></Card>;
-}
-
-function SeatsTab({ d }: { d: Seats }) {
-  return (
-    <>
-      <KpiGrid>
-        <KpiTile label="Organization members" value={fmtInt(d.totalSeats)} />
-        <KpiTile label="Used Claude Code" value={fmtInt(d.activeSeats)} hint={d.totalSeats ? fmtPct(d.activeSeats / d.totalSeats) : undefined} />
-        <KpiTile label="No activity" value={fmtInt(d.idle.length)} />
-      </KpiGrid>
-      <Card title="Members with no Claude Code activity in this range">
-        <DataTable<Member> rows={d.idle} initialSort="name" testId="idle-table" columns={[
-          { key: "name", label: "Name", value: (m) => m.name },
-          { key: "email", label: "Email", value: (m) => m.email },
-          { key: "role", label: "Role", value: (m) => m.role },
-          { key: "added", label: "Member since", value: (m) => m.added_at.slice(0, 10) },
-        ]} />
-      </Card>
     </>
   );
 }

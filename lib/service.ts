@@ -1,9 +1,12 @@
 import { aggregateClaudeCode, aggregateCost, idleSeats, type DayRecords } from "@/lib/aggregate";
 import { actorLabel } from "@/lib/aggregate";
+import type { ClaudeCodeRecord } from "@/lib/anthropic-types";
+import { aggregateDepartments, UNASSIGNED } from "@/lib/departments-agg";
 import type { DashboardQuery } from "@/lib/query";
 import { selectedDays } from "@/lib/query";
 import { getSource } from "@/lib/sources";
-import type { CostGroupBy } from "@/lib/sources/types";
+import type { CostGroupBy, Member } from "@/lib/sources/types";
+import { pageUsers, searchUsers, type UserPageQuery } from "@/lib/users";
 
 /** Run async work over items with at most `limit` in flight, keeping order. */
 async function mapLimit<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R>): Promise<R[]> {
@@ -24,13 +27,76 @@ async function loadDays(q: DashboardQuery): Promise<DayRecords[]> {
   return mapLimit(selectedDays(q), 5, async (day) => ({ day, records: await src.claudeCodeDay(day) }));
 }
 
+/**
+ * Load the selected days and members, then apply the department and user filters.
+ * With a department filter, API-key actors drop out (they belong to no department) and
+ * users missing from the member list count as Unassigned.
+ */
+async function loadFiltered(q: DashboardQuery) {
+  const [allMembers, days] = await Promise.all([getSource().members(), loadDays(q)]);
+  const deptOf = new Map(allMembers.map((m) => [m.email.toLowerCase(), m.department ?? UNASSIGNED]));
+  const keep = (r: ClaudeCodeRecord) => {
+    if (q.user && actorLabel(r.actor) !== q.user) return false;
+    if (!q.department) return true;
+    return r.actor.type === "user_actor" && (deptOf.get(r.actor.email_address.toLowerCase()) ?? UNASSIGNED) === q.department;
+  };
+  const members: Member[] = q.department ? allMembers.filter((m) => (m.department ?? UNASSIGNED) === q.department) : allMembers;
+  return {
+    members,
+    allMembers,
+    days: q.user || q.department ? days.map((d) => ({ ...d, records: d.records.filter(keep) })) : days,
+  };
+}
+
 export async function claudeCodeSummary(q: DashboardQuery) {
-  const days = await loadDays(q);
-  const allUsers = [...new Set(days.flatMap((d) => d.records.map((r) => actorLabel(r.actor))))].sort();
-  const filtered = q.user
-    ? days.map((d) => ({ ...d, records: d.records.filter((r) => actorLabel(r.actor) === q.user) }))
-    : days;
-  return { ...aggregateClaudeCode(filtered), allUsers };
+  const { days } = await loadFiltered(q);
+  const { users, ...summary } = aggregateClaudeCode(days);
+  // The full user list can be thousands of rows; the Users tab pages it via usersPage().
+  return { ...summary, topContributors: [...users].sort((a, b) => b.commits - a.commits).slice(0, 10) };
+}
+
+export async function usersPage(q: DashboardQuery, pq: UserPageQuery) {
+  const { days, allMembers } = await loadFiltered(q);
+  const deptOf = new Map(allMembers.map((m) => [m.email.toLowerCase(), m.department]));
+  const page = pageUsers(aggregateClaudeCode(days).users, pq);
+  return { ...page, rows: page.rows.map((u) => ({ ...u, department: u.type === "user_actor" ? (deptOf.get(u.label.toLowerCase()) ?? UNASSIGNED) : null })) };
+}
+
+export async function departmentSummary(q: DashboardQuery) {
+  const { days, members } = await loadFiltered(q);
+  const activeByDay = new Map(
+    days.map((d) => [d.day, new Set(d.records.flatMap((r) => (r.actor.type === "user_actor" ? [r.actor.email_address] : [])))]),
+  );
+  return aggregateDepartments(members, aggregateClaudeCode(days).users, days.map((d) => d.day), activeByDay, days.length, { from: q.from, to: q.to });
+}
+
+export async function seatSummary(q: DashboardQuery, { text = "", page = 1, pageSize = 25 } = {}) {
+  const { members, days } = await loadFiltered(q);
+  const active = days.flatMap((d) => d.records.flatMap((r) => (r.actor.type === "user_actor" ? [r.actor.email_address] : [])));
+  const idle = idleSeats(members, active);
+  const needle = text.trim().toLowerCase();
+  const matches = (needle ? idle.filter((m) => `${m.name} ${m.email} ${m.department ?? ""}`.toLowerCase().includes(needle)) : idle)
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const pages = Math.max(1, Math.ceil(matches.length / pageSize));
+  const p = Math.min(Math.max(1, page), pages);
+  return {
+    totalSeats: members.length,
+    activeSeats: members.length - idle.length,
+    idleCount: idle.length,
+    idle: { rows: matches.slice((p - 1) * pageSize, p * pageSize), total: matches.length, page: p, pages },
+  };
+}
+
+/** Typeahead for the user filter: at most 20 matches, never the full list. */
+export async function userSearch(q: DashboardQuery, text: string) {
+  const [members, days] = await Promise.all([getSource().members(), loadDays(q)]);
+  const apiActors = [...new Set(days.flatMap((d) => d.records.flatMap((r) => (r.actor.type === "api_actor" ? [actorLabel(r.actor)] : []))))];
+  return searchUsers(members, apiActors, text, 20);
+}
+
+export async function departmentList() {
+  const members = await getSource().members();
+  return [...new Set(members.map((m) => m.department ?? UNASSIGNED))].sort();
 }
 
 export const COST_DIMENSIONS = ["model", "workspace_id", "api_key_id", "product", "service_tier", "cost_type"] as const satisfies readonly CostGroupBy[];
@@ -50,11 +116,4 @@ export async function costSummary(q: DashboardQuery) {
     daily: [...daily.entries()].sort().map(([day, cents]) => ({ day, cents })),
     by: Object.fromEntries(COST_DIMENSIONS.map((d) => [d, aggregateCost(rows, d)])) as Record<(typeof COST_DIMENSIONS)[number], { key: string; cents: number }[]>,
   };
-}
-
-export async function seatSummary(q: DashboardQuery) {
-  const [members, days] = await Promise.all([getSource().members(), loadDays(q)]);
-  const active = days.flatMap((d) => d.records.flatMap((r) => (r.actor.type === "user_actor" ? [r.actor.email_address] : [])));
-  const idle = idleSeats(members, active);
-  return { totalSeats: members.length, activeSeats: members.length - idle.length, idle };
 }

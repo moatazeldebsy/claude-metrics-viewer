@@ -6,6 +6,45 @@ It runs on deterministic mock data out of the box. Point it at a real organizati
 
 Built with the same stack as the Copilot Metrics Viewer: **Nuxt 4** (Vue 3), **Vuetify 3**, **Chart.js** via `vue-chartjs`, and `date-holidays`.
 
+## Screenshots
+
+All screenshots use the built-in mock data (a 1,200-person org).
+
+| Light | Dark |
+|---|---|
+| ![Overview tab, light theme](docs/screenshots/overview-light.png) | ![Overview tab, dark theme](docs/screenshots/overview-dark.png) |
+
+The header button switches between system, light and dark themes.
+
+<details>
+<summary><strong>Departments</strong>: adoption, engagement mix, weekly trend and a drill-down table</summary>
+
+![Departments tab](docs/screenshots/departments.png)
+</details>
+
+<details>
+<summary><strong>Cost &amp; usage</strong>: org-wide cost by model, workspace, API key, product, tier and type</summary>
+
+![Cost & usage tab](docs/screenshots/cost.png)
+</details>
+
+<details>
+<summary><strong>Users</strong>: per-user table, sorted, searched and paged on the server</summary>
+
+![Users tab, dark theme](docs/screenshots/users.png)
+</details>
+
+### Widgets
+
+| | |
+|---|---|
+| **KPI tiles**<br>![KPI tiles](docs/screenshots/widget-kpis.png) | **Trend chart**<br>![Daily active users trend chart](docs/screenshots/widget-trend.png) |
+| **Ranked bar chart**<br>![Adoption by department bar chart](docs/screenshots/widget-hbar.png) | **Stacked bar chart**<br>![Engagement mix stacked bar chart](docs/screenshots/widget-stacked.png) |
+
+**Filter bar** (date range, presets, weekends and holidays, department, user):
+
+![Filter bar](docs/screenshots/widget-filters.png)
+
 ## Tabs
 
 | Tab | What it shows | Source |
@@ -102,7 +141,7 @@ app/
   components/tabs/  one component per tab
   components/       KpiTile, DataGrid (v-data-table), UserPicker (v-autocomplete), charts/ (Chart.js)
   utils/palette.ts  validated light/dark chart palette shared by Chart.js and the Vuetify theme
-vuetify.config.ts   theme (follows the system light/dark setting) and component defaults
+vuetify.config.ts   light/dark themes (system by default, switchable in the header) and component defaults
 ```
 
 The app renders in the browser (`ssr: false`): it's an internal dashboard, so server rendering would add nothing and would risk date mismatches between server and browser.

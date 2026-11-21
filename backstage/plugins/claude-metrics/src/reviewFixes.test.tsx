@@ -1,5 +1,4 @@
 import { ResponseError } from '@backstage/errors';
-import { coreApis } from '@backstage/frontend-plugin-api';
 import { renderInTestApp } from '@backstage/frontend-test-utils';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -8,6 +7,7 @@ import seats from './__fixtures__/seats.json';
 import { ClaudeMetricsPage } from './components/ClaudeMetricsPage';
 import { FilterBar } from './components/FilterBar';
 import { fakeApi, META } from './testUtils';
+import { router, RouterSpy } from './testRouter';
 import { SeatsTab } from './tabs/SeatsTab';
 import { UsersTab } from './tabs/UsersTab';
 
@@ -81,17 +81,17 @@ describe('review fixes', () => {
 
   it('clearing the user field removes the user filter (#3)', async () => {
     const fake = fakeApi({ 'user-search': { options: [] } });
-    const app = await renderInTestApp(
-      <FilterBar departments={META.departments} holidayCountry="US" />,
+    await renderInTestApp(
+      <>
+        <FilterBar departments={META.departments} holidayCountry="US" />
+        <RouterSpy />
+      </>,
       {
         apis: [[claudeMetricsApiRef, fake.api]],
         initialRouteEntries: ['/?user=ada@example.com'],
       },
     );
-    const search = () =>
-      new URLSearchParams(
-        app.apis.get(coreApis.appHistory)!.getSnapshot().location.search,
-      );
+    const search = () => router.search();
     await userEvent.clear(screen.getByRole('combobox', { name: 'User' }));
     await waitFor(() => expect(search().has('user')).toBe(false));
   });
@@ -128,16 +128,18 @@ describe('review fixes', () => {
             })
           : { ...seats, totalSeats: 999 },
     });
-    const app = await renderInTestApp(<SeatsTab />, {
-      apis: [[claudeMetricsApiRef, fake.api]],
-      initialRouteEntries: ['/?from=2026-01-01&to=2026-01-28'],
-    });
-    await waitFor(() => expect(fake.last('seats')?.from).toBe('2026-01-01'));
-    await act(async () =>
-      app.apis
-        .get(coreApis.appHistory)!
-        .navigate('/?from=2026-02-01&to=2026-02-28', { replace: true }),
+    await renderInTestApp(
+      <>
+        <SeatsTab />
+        <RouterSpy />
+      </>,
+      {
+        apis: [[claudeMetricsApiRef, fake.api]],
+        initialRouteEntries: ['/?from=2026-01-01&to=2026-01-28'],
+      },
     );
+    await waitFor(() => expect(fake.last('seats')?.from).toBe('2026-01-01'));
+    await act(async () => router.navigate('/?from=2026-02-01&to=2026-02-28'));
     expect(await screen.findByText('999')).toBeInTheDocument();
     await act(async () => releaseOld());
     await new Promise(r => setTimeout(r, 20));

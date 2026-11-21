@@ -1,7 +1,7 @@
-import { coreApis } from '@backstage/frontend-plugin-api';
 import { renderInTestApp } from '@backstage/frontend-test-utils';
 import { act, screen } from '@testing-library/react';
 import { addDays, toDay } from '@internal/claude-metrics-lib';
+import { router, RouterSpy } from '../testRouter';
 import { useFilters } from './useFilters';
 
 let filters: ReturnType<typeof useFilters>;
@@ -11,12 +11,15 @@ const Probe = () => {
 };
 
 const render = async (url = '/') => {
-  const app = await renderInTestApp(<Probe />, { initialRouteEntries: [url] });
+  await renderInTestApp(
+    <>
+      <Probe />
+      <RouterSpy />
+    </>,
+    { initialRouteEntries: [url] },
+  );
   await screen.findByText('probe');
-  const search = () =>
-    new URLSearchParams(
-      app.apis.get(coreApis.appHistory)!.getSnapshot().location.search,
-    );
+  const search = () => router.search();
   return { search };
 };
 

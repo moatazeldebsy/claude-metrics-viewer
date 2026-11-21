@@ -19,7 +19,7 @@ The plugins store nothing: no database tables, no migrations. Data comes from An
 
 **Backstage**
 
-- **New frontend system and new backend system.** The plugins were built and tested against Backstage **1.57** (`@backstage/cli` 0.36, `@backstage/frontend-plugin-api` 1.x, `@backstage/backend-plugin-api` 1.12). Apps created with `@backstage/create-app` from 1.57 on use both systems by default.
+- **Backstage 1.56.2 or newer, on the new frontend system and new backend system.** The plugins are built against the 1.56.2 release (`@backstage/frontend-plugin-api` 0.18, `@backstage/ui` 0.19, `@backstage/backend-plugin-api` 1.11) and tested in a 1.56.2 app and a 1.57 app. Newer apps accept plugins built for older releases, but not the other way round, so building against 1.57 would break 1.56 apps (`createApp` rejects the plugin: *Property 'id' is missing*). On 1.57 and later, yarn installs the plugin's own copies of `frontend-plugin-api` 0.18 and `ui` 0.19 next to the app's; that's expected.
 - **Legacy frontend system isn't supported.** If your app still builds routes in `App.tsx` with `<Route>` elements and `<FlatRoutes>`, the frontend plugin won't mount. The backend plugin works on any new-backend-system backend.
 - Older Backstage versions haven't been tested. If you're behind, upgrade first (`yarn backstage-cli versions:bump`) or test in a branch.
 - **A sign-in provider.** Every route requires a signed-in user (or a service token), using Backstage's default auth policy. Guest sign-in works for trying it out.
@@ -27,7 +27,7 @@ The plugins store nothing: no database tables, no migrations. Data comes from An
 
 **Toolchain**
 
-- Node.js 24 and Yarn 4, the same as current Backstage apps.
+- Node.js 22 or 24 and Yarn 4. The platform template's image runs the plugins on Node 22.
 
 **Anthropic**
 
@@ -253,9 +253,9 @@ if (isPermission(request.permission, claudeMetricsReadPermission)) {
 }
 ```
 
-The template's groups are synced from GitHub teams (`catalog.providers.githubOrg`, ADR-0004). Create an `engineering-managers` team in the identity org. Within the 30-minute sync it appears as `group:default/engineering-managers`, and its members get access. The template's `app.packages` isn't `all`: add `claudeMetricsPlugin` to `createApp({ features })` in `packages/app/src/App.tsx`. The template is on Backstage 1.56.2; the plugins were tested on 1.57, so try them in a branch first.
+The template's groups are synced from GitHub teams (`catalog.providers.githubOrg`, ADR-0004). Create an `engineering-managers` team in the identity org. Within the 30-minute sync it appears as `group:default/engineering-managers`, and its members get access. The template's `app.packages` isn't `all`: add `claudeMetricsPlugin` to `createApp({ features })` in `packages/app/src/App.tsx`. The template is on Backstage 1.56.2, the release the plugins are built against.
 
-This clause was tested in a fresh Backstage 1.57 app with the packed tarballs. A user outside the group got the no-access page and `403` from the API with the same token that read the catalog; a user in the allow-list got the dashboard and `200`.
+This clause was tested in a fresh Backstage 1.57 app with the packed tarballs, and with unit tests in the template's own policy test suite. A user outside the group got the no-access page and `403` from the API with the same token that read the catalog; a user in the allow-list got the dashboard and `200`.
 
 ## Troubleshooting
 

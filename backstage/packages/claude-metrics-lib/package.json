@@ -41,7 +41,7 @@
     "date-holidays": "3.38.0"
   },
   "devDependencies": {
-    "@backstage/cli": "^0.36.8"
+    "@backstage/cli": "^0.36.7"
   },
   "files": [
     "dist"

@@ -63,6 +63,6 @@ In the preview the filter bar is visual only; search, sorting and paging work on
 
 ## Known limits
 
-- The frontend plugin needs Backstage's new frontend system (1.57 apps use it by default).
+- Needs Backstage 1.56.2 or newer on the new frontend system. The workspace is pinned to the 1.56.2 release on purpose: newer apps accept plugins built for older releases, not the reverse. Don't bump it past the oldest Backstage you need to support.
 - Access is only limited if the permission framework is on and your policy handles `claude-metrics.dashboard.read`; with it off, every signed-in user can open the dashboard.
 - The cost tab stays organization-wide: the cost API has no department or user dimension.

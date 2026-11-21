@@ -35,9 +35,12 @@ const active = computed(() => TABS.find((t) => t.id === f.tab.value) ?? TABS[0]!
         <h1 class="text-h5 font-serif">Claude Metrics Viewer</h1>
         <p class="text-body-2 text-medium-emphasis">Claude Code adoption and Claude API usage &amp; cost</p>
       </div>
-      <v-chip v-if="meta?.dataSource === 'mock'" size="small" color="primary" data-testid="mock-badge">
-        Mock data, set DATA_SOURCE=anthropic for real data
-      </v-chip>
+      <div class="d-flex align-center ga-2">
+        <v-chip v-if="meta?.dataSource === 'mock'" size="small" color="primary" data-testid="mock-badge">
+          Mock data, set DATA_SOURCE=anthropic for real data
+        </v-chip>
+        <ThemeToggle />
+      </div>
     </header>
 
     <FilterBar :departments="meta?.departments ?? []" :holiday-country="meta?.holidayCountry" />

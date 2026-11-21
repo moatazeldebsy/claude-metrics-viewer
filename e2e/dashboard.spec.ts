@@ -103,3 +103,21 @@ test("API response tab shows raw upstream JSON", async ({ page }) => {
   await chooseOption(page, "analytics/cost");
   await expect(page.getByTestId("raw-json")).toContainText('"list_amount"');
 });
+
+test("theme toggle cycles system → light → dark and persists", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.goto("/");
+  const app = page.locator(".v-application");
+  const toggle = page.getByTestId("theme-toggle");
+  await expect(app).toHaveClass(/v-theme--dark/); // follows the OS by default
+
+  await toggle.click();
+  await expect(app).toHaveClass(/v-theme--light/);
+  await page.reload();
+  await expect(app).toHaveClass(/v-theme--light/);
+
+  await toggle.click();
+  await expect(app).toHaveClass(/v-theme--dark/);
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("title", "System theme");
+});

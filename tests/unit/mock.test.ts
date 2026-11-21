@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MockSource } from "@/lib/sources/mock";
+import { MockSource } from "#lib/sources/mock";
 
 const src = new MockSource();
 

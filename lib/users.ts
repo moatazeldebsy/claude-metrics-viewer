@@ -1,5 +1,5 @@
-import type { UserRow } from "@/lib/aggregate";
-import type { Member } from "@/lib/sources/types";
+import type { UserRow } from "#lib/aggregate";
+import type { Member } from "#lib/sources/types";
 
 export interface UserOption {
   value: string; // filter value: email for members, actor label for API keys

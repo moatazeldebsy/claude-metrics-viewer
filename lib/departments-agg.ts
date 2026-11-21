@@ -1,7 +1,7 @@
-import type { UserRow } from "@/lib/aggregate";
-import { acceptRate } from "@/lib/aggregate";
-import { addDays, weekStart } from "@/lib/dates";
-import type { Member } from "@/lib/sources/types";
+import type { UserRow } from "#lib/aggregate";
+import { acceptRate } from "#lib/aggregate";
+import { addDays, weekStart } from "#lib/dates";
+import type { Member } from "#lib/sources/types";
 
 export const UNASSIGNED = "Unassigned";
 export type Tier = "power" | "regular" | "light";

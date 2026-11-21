@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import type { UserRow } from "@/lib/aggregate";
-import { weekStart } from "@/lib/dates";
-import { aggregateDepartments, engagementTier } from "@/lib/departments-agg";
-import type { Member } from "@/lib/sources/types";
-import { pageUsers, searchUsers } from "@/lib/users";
+import type { UserRow } from "#lib/aggregate";
+import { weekStart } from "#lib/dates";
+import { aggregateDepartments, engagementTier } from "#lib/departments-agg";
+import type { Member } from "#lib/sources/types";
+import { pageUsers, searchUsers } from "#lib/users";
 
 const member = (email: string, department: string | null): Member => ({ id: email, email, name: email.split("@")[0], role: "developer", added_at: "", department });
 const user = (label: string, activeDays: number, over: Partial<UserRow> = {}): UserRow => ({

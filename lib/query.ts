@@ -1,5 +1,5 @@
-import { HOLIDAYS } from "@/config/holidays";
-import { addDays, eachDay, filterDays, toDay } from "@/lib/dates";
+import { addDays, eachDay, filterDays, toDay } from "#lib/dates";
+import { holidayCountry, holidaysFor } from "#lib/holidays";
 
 export interface DashboardQuery {
   from: string;
@@ -33,6 +33,8 @@ export function parseQuery(sp: URLSearchParams, today = toDay(new Date())): Dash
   };
 }
 
-export function selectedDays(q: DashboardQuery): string[] {
-  return filterDays(eachDay(q.from, q.to), { ...q, holidays: HOLIDAYS });
+export function selectedDays(q: DashboardQuery, country = holidayCountry()): string[] {
+  const days = eachDay(q.from, q.to);
+  const years = [...new Set(days.map((d) => Number(d.slice(0, 4))))];
+  return filterDays(days, { ...q, holidays: q.excludeHolidays ? [...holidaysFor(country, years)] : [] });
 }

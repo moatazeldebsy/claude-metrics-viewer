@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type Anthropic from "@anthropic-ai/sdk";
-import { AnthropicSource } from "@/lib/sources/anthropic";
+import { AnthropicSource } from "#lib/sources/anthropic";
 
 async function* iter<T>(items: T[]) {
   yield* items;

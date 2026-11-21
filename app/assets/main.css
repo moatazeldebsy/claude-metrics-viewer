@@ -1,0 +1,30 @@
+/* Claude-style type: serif for headings, clean sans for UI. System stacks, so it works offline. */
+:root {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", sans-serif;
+  --font-serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+}
+.v-application, .v-application *:not(.font-serif) { font-family: var(--font-sans); }
+.v-application .font-serif { font-family: var(--font-serif); letter-spacing: -0.01em; }
+
+/* Flat cards with a thin warm border instead of Material elevation. */
+.v-application .v-card { border: 1px solid rgb(var(--v-theme-border)); }
+
+/* Sentence case instead of Material's all-caps buttons and tabs (Vuetify styles load after this file). */
+.v-btn { text-transform: none !important; letter-spacing: normal !important; }
+
+.tabular { font-variant-numeric: tabular-nums; }
+/* At most 4 tiles per row, at least 220px wide. */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(max(220px, calc((100% - 36px) / 4)), 1fr)); gap: 12px; }
+.chart-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 1024px) { .chart-grid { grid-template-columns: 1fr 1fr; } }
+.stack > * + * { margin-top: 16px; }
+.text-muted { color: rgba(var(--v-theme-on-surface), 0.62); }
+.cursor-pointer tbody tr { cursor: pointer; }
+
+/* Code block: subtle panel with full-contrast text in both themes. */
+.raw-json {
+  max-height: 600px;
+  background: rgb(var(--v-theme-surface-variant));
+  color: rgb(var(--v-theme-on-surface));
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace !important;
+}

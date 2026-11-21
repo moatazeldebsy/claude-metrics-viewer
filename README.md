@@ -4,6 +4,8 @@ A dashboard for your Anthropic organization's **Claude Code adoption** and **Cla
 
 It runs on deterministic mock data out of the box. Point it at a real organization by setting two environment variables.
 
+Built with the same stack as the Copilot Metrics Viewer: **Nuxt 4** (Vue 3), **Vuetify 3**, **Chart.js** via `vue-chartjs`, and `date-holidays`.
+
 ## Tabs
 
 | Tab | What it shows | Source |
@@ -19,7 +21,7 @@ It runs on deterministic mock data out of the box. Point it at a real organizati
 | Seats | Members with no Claude Code activity in the range, searchable and paged | Admin API: members |
 | API response | Raw upstream rows for one day | Both |
 
-Filters: date range, 7/28/90-day presets, exclude weekends, exclude holidays (edit `config/holidays.ts`), department, and user. Filters live in the URL, so views can be shared. The department and user filters apply to every Claude Code tab; the Cost tab stays organization-wide because the cost API has no department dimension.
+Filters: date range, 7/28/90-day presets, exclude weekends, exclude holidays (public and bank holidays for `HOLIDAY_COUNTRY`, default `US`; accepts states like `US-CA`), department, and user. Filters live in the URL, so views can be shared. The department and user filters apply to every Claude Code tab; the Cost tab stays organization-wide because the cost API has no department dimension.
 
 ### Built for large organizations
 
@@ -69,9 +71,10 @@ Things to know about the upstream data:
 ## Test
 
 ```bash
-npm test             # unit tests (Vitest): aggregation, dates, query parsing, mock + real source
+npm test             # unit tests (Vitest): aggregation, dates, holidays, query parsing, mock + real source
 npm run test:e2e     # Playwright on mock data; reuses a dev server on :3000 if one is running (first time: npx playwright install chromium)
-npm run lint
+npm run lint         # @nuxt/eslint
+npm run typecheck    # vue-tsc
 ```
 
 ## Docker
@@ -81,16 +84,27 @@ docker build -t claude-metrics-viewer .
 docker run -p 3000:3000 -e DATA_SOURCE=anthropic -e ANTHROPIC_ADMIN_KEY=sk-ant-admin... claude-metrics-viewer
 ```
 
+Without Docker: `npm run build && node .output/server/index.mjs`.
+
 ## Layout
 
 ```
-lib/sources/        MetricsSource interface; mock.ts (seeded fake org) and anthropic.ts (Admin API)
-lib/aggregate.ts    raw records → dashboard view models (pure, unit-tested)
-lib/departments*.ts department CSV parsing and per-department rollups
-lib/users.ts        user typeahead and server-side paging
-lib/service.ts      loads data for a query and aggregates it
-app/api/*           server routes: claude-code, departments, users, user-search, seats, cost, meta, raw
-components/         Dashboard (tabs + filters), scale (departments, user picker, paged tables), charts, ui
+lib/                framework-free data layer (imported as #lib), shared by server routes and unit tests
+  sources/          MetricsSource interface; mock.ts (seeded 1,200-person org) and anthropic.ts (Admin API)
+  aggregate.ts      raw records → dashboard view models
+  departments*.ts   department CSV parsing and per-department rollups
+  users.ts          user typeahead and server-side paging
+  holidays.ts       date-holidays wrapper
+  service.ts        loads data for a query and aggregates it
+server/api/         Nitro routes: claude-code, departments, users, user-search, seats, cost, meta, raw
+app/
+  pages/index.vue   tabs + filter bar; filters live in the URL
+  components/tabs/  one component per tab
+  components/       KpiTile, DataGrid (v-data-table), UserPicker (v-autocomplete), charts/ (Chart.js)
+  utils/palette.ts  validated light/dark chart palette shared by Chart.js and the Vuetify theme
+vuetify.config.ts   theme (follows the system light/dark setting) and component defaults
 ```
+
+The app renders in the browser (`ssr: false`): it's an internal dashboard, so server rendering would add nothing and would risk date mismatches between server and browser.
 
 There is no auth on the dashboard itself. Put it behind your SSO or ingress auth before exposing it, since it shows per-user activity and cost.

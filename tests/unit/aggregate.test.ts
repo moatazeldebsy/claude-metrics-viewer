@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { ClaudeCodeRecord } from "@/lib/anthropic-types";
-import { acceptRate, actorLabel, aggregateClaudeCode, aggregateCost, idleSeats } from "@/lib/aggregate";
-import type { CostItem } from "@/lib/sources/types";
+import type { ClaudeCodeRecord } from "#lib/anthropic-types";
+import { acceptRate, actorLabel, aggregateClaudeCode, aggregateCost, idleSeats } from "#lib/aggregate";
+import type { CostItem } from "#lib/sources/types";
 
 function rec(day: string, email: string, over: Partial<{ sessions: number; added: number; edit: [number, number]; terminal: string; remote: boolean; cents: number; model: string }> = {}): ClaudeCodeRecord {
   const o = { sessions: 1, added: 10, edit: [4, 1] as [number, number], terminal: "vscode", remote: false, cents: 100, model: "claude-opus-5-5", ...over };

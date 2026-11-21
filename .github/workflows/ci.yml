@@ -47,3 +47,29 @@ jobs:
           name: playwright-traces
           path: test-results/
           retention-days: 7
+
+  backstage:
+    name: Backstage plugins
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      # The plugins load lib/ and its npm dependencies from the repo root.
+      - run: npm ci
+      - run: corepack enable
+      - name: Install, typecheck, lint, test
+        working-directory: backstage
+        run: |
+          yarn install --immutable
+          yarn tsc
+          yarn lint
+          yarn test
+      - name: Preview page is up to date
+        run: |
+          npx tsx backstage/scripts/build-preview.ts
+          git diff --exit-code backstage/preview/index.html
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test -c backstage/preview/playwright.config.ts

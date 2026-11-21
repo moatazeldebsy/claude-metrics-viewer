@@ -85,6 +85,12 @@ Engagement tiers are relative to the selected days: **power** = active on at lea
 
 Claude Enterprise organizations have teams built in (RBAC groups), and their Enterprise Analytics API reports DAU/WAU/MAU, seat counts and activity across chat, Claude Code, Cowork and more. That would be a third data source; it isn't wired in yet.
 
+## Backstage plugin
+
+The dashboard also ships as a Backstage frontend and backend plugin pair in [`backstage/`](backstage/README.md): a **Claude Metrics** sidebar page with the same tabs, served by a backend plugin that reuses `lib/`. Open [`backstage/preview/index.html`](backstage/preview/index.html) to see how it looks inside Backstage.
+
+![Departments tab inside Backstage, dark theme](docs/screenshots/backstage-departments-dark.png)
+
 ## Run it
 
 ```bash

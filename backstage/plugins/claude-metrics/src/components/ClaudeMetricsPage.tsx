@@ -7,7 +7,9 @@ import {
   TabPanel,
   Tabs,
 } from '@backstage/ui';
-import { useDashboard } from '../hooks/useDashboard';
+import { useApi } from '@backstage/frontend-plugin-api';
+import useAsync from 'react-use/esm/useAsync';
+import { claudeMetricsApiRef } from '../api';
 import { useFilters } from '../hooks/useFilters';
 import { TABS } from '../tabs';
 import { FilterBar } from './FilterBar';
@@ -20,7 +22,9 @@ interface Meta {
 
 export const ClaudeMetricsPage = () => {
   const f = useFilters();
-  const { value: meta } = useDashboard<Meta>('meta');
+  const api = useApi(claudeMetricsApiRef);
+  // Metadata doesn't depend on the filters (as in the Nuxt app): load it once, without them.
+  const { value: meta } = useAsync(() => api.get<Meta>('meta', {}), [api]);
   const active = TABS.find(t => t.id === f.tab) ?? TABS[0];
 
   return (

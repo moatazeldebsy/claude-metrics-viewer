@@ -58,12 +58,21 @@ export function UserPicker({
       search={{
         mode: 'client',
         inputValue: input,
-        onInputChange: setInput,
+        // Both the text and the selection are controlled, so clearing the text has to clear
+        // the filter here (the combobox only does it for uncontrolled state).
+        onInputChange: next => {
+          setInput(next);
+          if (next === '' && value) onChange(null);
+        },
         filter: () => true,
       }}
       loading={loading ? { state: 'loading' } : undefined}
       selectedKey={value}
-      onSelectionChange={key => onChange(key === null ? null : String(key))}
+      onSelectionChange={key => {
+        const user = key === null ? null : String(key);
+        if (user) setInput(listed.find(o => o.value === user)?.label ?? user);
+        onChange(user);
+      }}
     />
   );
 }

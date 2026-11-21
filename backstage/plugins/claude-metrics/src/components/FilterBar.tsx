@@ -1,4 +1,3 @@
-import { parseDate } from '@internationalized/date';
 import {
   Button,
   Card,
@@ -8,6 +7,7 @@ import {
   Select,
   Switch,
 } from '@backstage/ui';
+import { parseDay } from '../dates';
 import { useFilters } from '../hooks/useFilters';
 import { addDays } from '../lib';
 import { UserPicker } from './UserPicker';
@@ -22,6 +22,8 @@ export function FilterBar({
   holidayCountry?: string;
 }) {
   const f = useFilters();
+  const start = parseDay(f.from);
+  const end = parseDay(f.to);
   const preset = (days: number) =>
     f.set({ from: addDays(f.yesterday, -(days - 1)), to: f.yesterday });
 
@@ -31,8 +33,8 @@ export function FilterBar({
         <Flex align="end" gap="3" style={{ flexWrap: 'wrap' }}>
           <DateRangePicker
             label="Date range"
-            value={{ start: parseDate(f.from), end: parseDate(f.to) }}
-            maxValue={parseDate(f.yesterday)}
+            value={start && end ? { start, end } : null}
+            maxValue={parseDay(f.yesterday) ?? undefined}
             onChange={range =>
               range &&
               f.set({ from: range.start.toString(), to: range.end.toString() })

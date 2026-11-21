@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useAppSearchParams } from '@backstage/frontend-plugin-api';
+import { parseDay } from '../dates';
 import { addDays, toDay } from '../lib';
 
 const FILTER_KEYS = [
@@ -16,7 +17,8 @@ export function useFilters() {
   const param = useCallback((k: string) => params.get(k) || null, [params]);
 
   const to = param('to') ?? yesterday;
-  const from = param('from') ?? addDays(to, -27);
+  // A malformed `to` from a shared link is left for the server to reject with a clear message.
+  const from = param('from') ?? (parseDay(to) ? addDays(to, -27) : to);
   const tab = param('tab') ?? 'overview';
 
   /** Query sent to every backend route. */

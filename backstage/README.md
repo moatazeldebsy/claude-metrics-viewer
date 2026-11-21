@@ -32,7 +32,12 @@ The dev harness uses port 3001 so it can run next to the Nuxt app on 3000.
 
 ## Install into a Backstage app
 
-These packages are consumed from source (they are `private` and not published). Copy `plugins/claude-metrics*` into your app's `plugins/` folder, with `lib/` and `app/utils/` at the same relative path (`../../../../lib`), or keep this repo as a git submodule at that location.
+These packages run from source (they are `private`, not published, and `backstage-cli package build` isn't supported). The backend plugin loads the repo-root `lib/`, which needs two things from this repo:
+
+- the `"imports"` map in the repo-root `package.json`, which resolves `lib/`'s own `#lib/*` imports;
+- `lib/`'s npm dependencies (`date-holidays`, `@anthropic-ai/sdk`) installed in the repo-root `node_modules` (`npm install` at the root).
+
+So keep this whole repository together: add it to your Backstage repo (for example as a git submodule), run `npm install` at its root, and point your app's workspaces at its `backstage/plugins/*`. Copying only the plugin folders into another app won't work.
 
 **Frontend** (new frontend system, `app.packages: all`):
 

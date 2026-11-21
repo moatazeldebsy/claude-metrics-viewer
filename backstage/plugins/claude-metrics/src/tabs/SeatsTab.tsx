@@ -1,5 +1,5 @@
 import { useApi } from '@backstage/frontend-plugin-api';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { claudeMetricsApiRef } from '../api';
 import { ChartCard } from '../components/ChartCard';
 import { ServerGrid, type PageRequest } from '../components/DataGrid';
@@ -35,6 +35,12 @@ export const SeatsTab = () => {
   const api = useApi(claudeMetricsApiRef);
   const { query } = useFilters();
   const [summary, setSummary] = useState<SeatSummary>();
+  // The KPIs come from the paged response; drop them when the filters change, and ignore a
+  // response that arrives after newer filters were applied.
+  const queryKey = JSON.stringify(query);
+  const latestKey = useRef(queryKey);
+  latestKey.current = queryKey;
+  useEffect(() => setSummary(undefined), [queryKey]);
   const fetchPage = useCallback(
     async (r: PageRequest) => {
       const res = await api.get<SeatSummary>('seats', {
@@ -43,10 +49,10 @@ export const SeatsTab = () => {
         page: String(r.page),
         pageSize: String(r.pageSize),
       });
-      setSummary(res);
+      if (latestKey.current === queryKey) setSummary(res);
       return res.idle;
     },
-    [api, query],
+    [api, query, queryKey],
   );
   return (
     <Stack>

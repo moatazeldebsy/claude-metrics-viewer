@@ -9,7 +9,7 @@ export interface AsyncState<T> {
 }
 
 /** The backend's own message (e.g. "from must be on or before to") rather than "Request failed with 400". */
-const errorMessage = (e: Error) =>
+export const errorMessage = (e: Error) =>
   e instanceof ResponseError ? e.body.error.message || e.message : e.message;
 
 /** Loading skeleton, error alert, or the content for a loaded value. */

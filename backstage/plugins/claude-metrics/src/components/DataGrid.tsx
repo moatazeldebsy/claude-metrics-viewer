@@ -8,6 +8,7 @@ import {
 } from '@backstage/ui';
 import { useCallback, useMemo } from 'react';
 import { fmtInt, type GridColumn } from '../lib';
+import { errorMessage } from './ApiState';
 
 type Item<R> = { id: string; row: R };
 
@@ -137,13 +138,19 @@ export function ServerGrid<R>({
       : undefined,
     paginationOptions: { pageSize: 25, pageSizeOptions: [25, 50, 100] },
     getData: async ({ offset, pageSize, sort, search: q }) => {
-      const res = await fetchPage({
-        page: Math.floor(offset / pageSize) + 1,
-        pageSize,
-        sort: String(sort?.column ?? initialSort ?? ''),
-        desc: (sort?.direction ?? 'descending') === 'descending',
-        q,
-      });
+      let res: { rows: R[]; total: number };
+      try {
+        res = await fetchPage({
+          page: Math.floor(offset / pageSize) + 1,
+          pageSize,
+          sort: String(sort?.column ?? initialSort ?? ''),
+          desc: (sort?.direction ?? 'descending') === 'descending',
+          q,
+        });
+      } catch (e) {
+        // The table shows error.message: use the backend's own text, not "Request failed with 400".
+        throw new Error(errorMessage(e as Error));
+      }
       return {
         data: res.rows.map(row => ({ id: rowKey(row), row })),
         totalCount: res.total,

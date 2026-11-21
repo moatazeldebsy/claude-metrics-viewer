@@ -43,4 +43,11 @@ describe('applyConfig', () => {
     applyConfig(new ConfigReader({}), env);
     expect(env).toEqual({ DATA_SOURCE: 'anthropic', ANTHROPIC_ADMIN_KEY: 'x' });
   });
+
+  it('refuses to start when env selects anthropic without a key (#7)', () => {
+    const env: NodeJS.ProcessEnv = { DATA_SOURCE: 'anthropic' };
+    expect(() => applyConfig(new ConfigReader({}), env)).toThrow(
+      /adminKey is required/,
+    );
+  });
 });

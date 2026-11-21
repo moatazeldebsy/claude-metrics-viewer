@@ -1,9 +1,9 @@
-import { parseDate } from '@internationalized/date';
 import { DatePicker, Flex, Select } from '@backstage/ui';
 import { useState } from 'react';
 import { ApiState } from '../components/ApiState';
 import { ChartCard } from '../components/ChartCard';
 import { useDashboard } from '../hooks/useDashboard';
+import { parseDay } from '../dates';
 import { useFilters } from '../hooks/useFilters';
 
 type Source = 'claude_code' | 'cost';
@@ -36,8 +36,8 @@ export const RawTab = () => {
         />
         <DatePicker
           label="Day"
-          value={parseDate(day)}
-          maxValue={parseDate(f.yesterday)}
+          value={parseDay(day)}
+          maxValue={parseDay(f.yesterday) ?? undefined}
           onChange={v => v && setDay(v.toString())}
         />
       </Flex>

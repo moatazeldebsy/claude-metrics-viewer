@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useAppSearchParams } from '@backstage/frontend-plugin-api';
 import { addDays, toDay } from '../lib';
 
 const FILTER_KEYS = [
@@ -11,7 +11,7 @@ const FILTER_KEYS = [
 
 /** Dashboard filters live in the URL so any view can be shared (same keys as the Nuxt app). */
 export function useFilters() {
-  const [params, setParams] = useSearchParams();
+  const [params, setParams] = useAppSearchParams();
   const yesterday = addDays(toDay(new Date()), -1);
   const param = useCallback((k: string) => params.get(k) || null, [params]);
 

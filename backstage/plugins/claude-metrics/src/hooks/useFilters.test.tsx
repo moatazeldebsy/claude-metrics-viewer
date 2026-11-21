@@ -1,54 +1,54 @@
-import { act, renderHook } from '@testing-library/react';
-import { ReactNode } from 'react';
-import { MemoryRouter, useLocation } from 'react-router-dom';
+import { coreApis } from '@backstage/frontend-plugin-api';
+import { renderInTestApp } from '@backstage/frontend-test-utils';
+import { act, screen } from '@testing-library/react';
 import { addDays, toDay } from '../lib';
 import { useFilters } from './useFilters';
 
-function setup(initial = '/') {
-  let location: ReturnType<typeof useLocation> | undefined;
-  const Spy = () => {
-    location = useLocation();
-    return null;
-  };
-  const wrapper = ({ children }: { children: ReactNode }) => (
-    <MemoryRouter initialEntries={[initial]}>
-      {children}
-      <Spy />
-    </MemoryRouter>
-  );
-  const hook = renderHook(() => useFilters(), { wrapper });
-  return { hook, search: () => new URLSearchParams(location!.search) };
-}
+let filters: ReturnType<typeof useFilters>;
+const Probe = () => {
+  filters = useFilters();
+  return <span>probe</span>;
+};
+
+const render = async (url = '/') => {
+  const app = await renderInTestApp(<Probe />, { initialRouteEntries: [url] });
+  await screen.findByText('probe');
+  const search = () =>
+    new URLSearchParams(
+      app.apis.get(coreApis.appHistory)!.getSnapshot().location.search,
+    );
+  return { search };
+};
 
 describe('useFilters', () => {
-  it('defaults to the 28 days ending yesterday on the overview tab', () => {
+  it('defaults to the 28 days ending yesterday on the overview tab', async () => {
     const yesterday = addDays(toDay(new Date()), -1);
-    const { hook } = setup();
-    expect(hook.result.current.to).toBe(yesterday);
-    expect(hook.result.current.from).toBe(addDays(yesterday, -27));
-    expect(hook.result.current.tab).toBe('overview');
-    expect(hook.result.current.query).toEqual({
+    await render();
+    expect(filters.to).toBe(yesterday);
+    expect(filters.from).toBe(addDays(yesterday, -27));
+    expect(filters.tab).toBe('overview');
+    expect(filters.query).toEqual({
       from: addDays(yesterday, -27),
       to: yesterday,
     });
   });
 
-  it('passes filter params through to the query', () => {
-    const { hook } = setup(
+  it('passes filter params through to the query', async () => {
+    await render(
       '/?from=2026-01-01&to=2026-01-31&excludeWeekends=true&department=Data&tab=cost',
     );
-    expect(hook.result.current.query).toEqual({
+    expect(filters.query).toEqual({
       from: '2026-01-01',
       to: '2026-01-31',
       excludeWeekends: 'true',
       department: 'Data',
     });
-    expect(hook.result.current.tab).toBe('cost');
+    expect(filters.tab).toBe('cost');
   });
 
-  it('set() merges into the URL and drops null values', () => {
-    const { hook, search } = setup('/?user=a@x.com&tab=users');
-    act(() => hook.result.current.set({ department: 'Data', user: null }));
+  it('set() merges into the URL and drops null values', async () => {
+    const { search } = await render('/?user=a@x.com&tab=users');
+    await act(async () => filters.set({ department: 'Data', user: null }));
     expect(search().get('department')).toBe('Data');
     expect(search().has('user')).toBe(false);
     expect(search().get('tab')).toBe('users');

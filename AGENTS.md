@@ -41,6 +41,7 @@ Run the checks for every part you touched and quote their real output. CI (`.git
 ### Data layer (`@internal/claude-metrics-lib`)
 - No framework imports. `.` (`src/index.ts`) must stay browser-safe; anything using the network, `fs` or env vars belongs behind `./server` (`src/server.ts`).
 - Use **relative** imports inside the package. A `#lib/...` import would be left unresolved in the built `dist/`. The Nuxt app and the root tests import the package as `#lib` through aliases in `nuxt.config.ts` and `vitest.config.mts`.
+- The package has its own self-contained `tsconfig.json`. Don't make it extend `@backstage/cli/config/tsconfig.json`: Vite compiles these files for the Nuxt app using the nearest tsconfig, and CI's root job has no `backstage/node_modules`.
 - `@anthropic-ai/sdk` and `date-holidays` are pinned to the same exact versions as the root lockfile. The mock source's types follow the SDK, so bump both places together.
 - Mock data is seeded and deterministic. Tests, fixtures (`backstage/plugins/claude-metrics/src/__fixtures__/`, saved backend responses for 2026-10-24 to 2026-11-20) and the preview depend on it.
 

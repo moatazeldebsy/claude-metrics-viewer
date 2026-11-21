@@ -1,0 +1,17 @@
+{
+  // Self-contained on purpose. The Nuxt app compiles these files too (Vite/Vitest read the
+  // nearest tsconfig), and must not depend on backstage/node_modules for
+  // @backstage/cli/config/tsconfig.json. Type-checking in the Backstage workspace still uses
+  // backstage/tsconfig.json.
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM"],
+    "strict": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["src"]
+}

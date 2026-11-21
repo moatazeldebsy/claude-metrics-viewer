@@ -4,7 +4,7 @@ A dashboard for your Anthropic organization's **Claude Code adoption** and **Cla
 
 It runs on deterministic mock data out of the box. Point it at a real organization by setting two environment variables.
 
-Built with the same stack as the Copilot Metrics Viewer: **Nuxt 4** (Vue 3), **Vuetify 3**, **Chart.js** via `vue-chartjs`, and `date-holidays`.
+Built with **Nuxt 4** (Vue 3), **Vuetify 3**, **Chart.js** via `vue-chartjs`, and `date-holidays`.
 
 ## Screenshots
 

@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// Next 16 allows one dev server per project, so reuse the usual port (and a running server) locally.
+// Nuxt allows one dev server per project, so reuse the usual port (and a running server) locally.
 const PORT = Number(process.env.E2E_PORT ?? 3000);
 
 export default defineConfig({
@@ -11,7 +11,7 @@ export default defineConfig({
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
     command: `npm run dev -- --port ${PORT}`,
-    url: `http://localhost:${PORT}/api/seats`,
+    url: `http://localhost:${PORT}/api/meta`,
     reuseExistingServer: !process.env.CI,
     env: { DATA_SOURCE: "mock" },
     timeout: 120_000,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, eachDay, filterDays, isWeekend, splitRange } from "@/lib/dates";
+import { addDays, eachDay, filterDays, isWeekend, splitRange } from "#lib/dates";
 
 describe("dates", () => {
   it("addDays crosses month and year boundaries", () => {

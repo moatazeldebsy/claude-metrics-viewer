@@ -1,0 +1,53 @@
+<script setup lang="ts">
+import CommitsTab from "~/components/tabs/CommitsTab.vue";
+import CostTab from "~/components/tabs/CostTab.vue";
+import DepartmentsTab from "~/components/tabs/DepartmentsTab.vue";
+import EnvironmentsTab from "~/components/tabs/EnvironmentsTab.vue";
+import ModelsTab from "~/components/tabs/ModelsTab.vue";
+import OverviewTab from "~/components/tabs/OverviewTab.vue";
+import RawTab from "~/components/tabs/RawTab.vue";
+import SeatsTab from "~/components/tabs/SeatsTab.vue";
+import ToolsTab from "~/components/tabs/ToolsTab.vue";
+import UsersTab from "~/components/tabs/UsersTab.vue";
+
+const TABS = [
+  { id: "overview", label: "Overview", component: OverviewTab },
+  { id: "departments", label: "Departments", component: DepartmentsTab },
+  { id: "tools", label: "Tool acceptance", component: ToolsTab },
+  { id: "environments", label: "Environments", component: EnvironmentsTab },
+  { id: "commits", label: "Commits & PRs", component: CommitsTab },
+  { id: "models", label: "Models", component: ModelsTab },
+  { id: "cost", label: "Cost & usage", component: CostTab },
+  { id: "users", label: "Users", component: UsersTab },
+  { id: "seats", label: "Seats", component: SeatsTab },
+  { id: "api", label: "API response", component: RawTab },
+];
+
+const f = useFilters();
+const { data: meta } = useFetch("/api/meta");
+const active = computed(() => TABS.find((t) => t.id === f.tab.value) ?? TABS[0]!);
+</script>
+
+<template>
+  <v-container max-width="1400" class="py-6">
+    <header class="d-flex flex-wrap align-baseline justify-space-between ga-2 mb-4">
+      <div>
+        <h1 class="text-h6 font-weight-medium">Claude Metrics Viewer</h1>
+        <p class="text-body-2 text-medium-emphasis">Claude Code adoption and Claude API usage &amp; cost</p>
+      </div>
+      <v-chip v-if="meta?.dataSource === 'mock'" size="small" variant="outlined" data-testid="mock-badge">
+        Mock data, set DATA_SOURCE=anthropic for real data
+      </v-chip>
+    </header>
+
+    <FilterBar :departments="meta?.departments ?? []" :holiday-country="meta?.holidayCountry" />
+
+    <v-tabs :model-value="active.id" color="primary" show-arrows class="mt-4 border-b" @update:model-value="(t) => f.set({ tab: t === 'overview' ? null : String(t) })">
+      <v-tab v-for="t in TABS" :key="t.id" :value="t.id">{{ t.label }}</v-tab>
+    </v-tabs>
+
+    <main class="mt-4">
+      <component :is="active.component" :key="active.id" />
+    </main>
+  </v-container>
+</template>

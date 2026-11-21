@@ -1,12 +1,12 @@
-import { aggregateClaudeCode, aggregateCost, idleSeats, type DayRecords } from "@/lib/aggregate";
-import { actorLabel } from "@/lib/aggregate";
-import type { ClaudeCodeRecord } from "@/lib/anthropic-types";
-import { aggregateDepartments, UNASSIGNED } from "@/lib/departments-agg";
-import type { DashboardQuery } from "@/lib/query";
-import { selectedDays } from "@/lib/query";
-import { getSource } from "@/lib/sources";
-import type { CostGroupBy, Member } from "@/lib/sources/types";
-import { pageUsers, searchUsers, type UserPageQuery } from "@/lib/users";
+import { aggregateClaudeCode, aggregateCost, idleSeats, type DayRecords } from "#lib/aggregate";
+import { actorLabel } from "#lib/aggregate";
+import type { ClaudeCodeRecord } from "#lib/anthropic-types";
+import { aggregateDepartments, UNASSIGNED } from "#lib/departments-agg";
+import type { DashboardQuery } from "#lib/query";
+import { selectedDays } from "#lib/query";
+import { getSource } from "#lib/sources";
+import type { CostGroupBy, Member } from "#lib/sources/types";
+import { pageUsers, searchUsers, type UserPageQuery } from "#lib/users";
 
 /** Run async work over items with at most `limit` in flight, keeping order. */
 async function mapLimit<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R>): Promise<R[]> {
@@ -15,7 +15,7 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R
   const worker = async () => {
     while (next < items.length) {
       const i = next++;
-      out[i] = await fn(items[i]);
+      out[i] = await fn(items[i]!);
     }
   };
   await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));

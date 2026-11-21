@@ -1,5 +1,5 @@
-import type { ClaudeCodeModelBreakdown, ClaudeCodeRecord } from "@/lib/anthropic-types";
-import { eachDay, isWeekend } from "@/lib/dates";
+import type { ClaudeCodeModelBreakdown, ClaudeCodeRecord } from "#lib/anthropic-types";
+import { eachDay, isWeekend } from "#lib/dates";
 import type { CostItem, CostGroupBy, CostQuery, Member, MetricsSource } from "./types";
 
 // Deterministic fake organization. Every value is derived from a seed so the
@@ -59,7 +59,7 @@ const MEMBERS: Member[] = LAST.flatMap((last, li) =>
       name: `${first} ${last}`,
       role: i === 0 ? "admin" : i < 20 ? "developer" : "claude_code_user",
       added_at: `2026-0${1 + (i % 9)}-15T09:00:00Z`,
-      department: DEPARTMENTS[Math.floor(r() * DEPARTMENTS.length)][0],
+      department: DEPARTMENTS[Math.floor(r() * DEPARTMENTS.length)]![0],
     };
   }),
 );
@@ -75,7 +75,7 @@ const PERSONAS: Persona[] = MEMBERS.flatMap((m, i) => {
     name: m.name,
     intensity: 0.2 + r() * 0.8,
     activeChance: 0.15 + r() * 0.75,
-    terminal: TERMINALS[i % TERMINALS.length],
+    terminal: TERMINALS[i % TERMINALS.length]!,
     model: i % 4 === 0 ? "claude-sonnet-5-5" : "claude-opus-5-5",
   }];
 });
@@ -100,7 +100,7 @@ function modelBreakdown(r: () => number, primary: string, scale: number): Claude
     const output = Math.round(input * (0.15 + r() * 0.2));
     const cache_read = Math.round(input * (2 + r() * 4));
     const cache_creation = Math.round(input * (0.1 + r() * 0.2));
-    const [pi, po] = PRICES[model];
+    const [pi, po] = PRICES[model]!;
     const dollars = (input * pi + output * po + cache_read * pi * 0.1 + cache_creation * pi * 1.25) / 1e6;
     return {
       model,

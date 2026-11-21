@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseDepartmentsCsv } from "@/lib/departments";
+import { parseDepartmentsCsv } from "#lib/departments";
 
 describe("parseDepartmentsCsv", () => {
   it("skips the header and blanks, lowercases emails, keeps commas in quoted names", () => {

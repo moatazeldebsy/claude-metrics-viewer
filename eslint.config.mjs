@@ -1,9 +1,8 @@
-import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
-import nextTs from "eslint-config-next/typescript";
+// @ts-check
+import withNuxt from "./.nuxt/eslint.config.mjs";
 
-export default defineConfig([
-  ...nextVitals,
-  ...nextTs,
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "playwright-report/**", "test-results/**"]),
-]);
+export default withNuxt(
+  { ignores: ["playwright-report/**", "test-results/**", ".playwright-mcp/**"] },
+  // Vuetify table slots are named like `#item.sessions`; the dot is not a v-slot modifier.
+  { rules: { "vue/valid-v-slot": ["error", { allowModifiers: true }] } },
+);

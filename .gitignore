@@ -13,9 +13,6 @@
 # testing
 /coverage
 
-# next.js
-/.next/
-/out/
 
 # production
 /build
@@ -42,3 +39,8 @@ next-env.d.ts
 .playwright-mcp/
 /test-results/
 /playwright-report/
+
+# nuxt
+.nuxt/
+.output/
+.data/

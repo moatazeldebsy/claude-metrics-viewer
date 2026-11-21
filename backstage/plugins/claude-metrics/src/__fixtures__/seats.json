@@ -1,0 +1,212 @@
+{
+  "totalSeats": 1200,
+  "activeSeats": 726,
+  "idleCount": 474,
+  "idle": {
+    "rows": [
+      {
+        "id": "user_0001",
+        "email": "ada.abara@example.com",
+        "name": "Ada Abara",
+        "role": "admin",
+        "added_at": "2026-01-15T09:00:00Z",
+        "department": "Security"
+      },
+      {
+        "id": "user_0031",
+        "email": "ada.berg@example.com",
+        "name": "Ada Berg",
+        "role": "claude_code_user",
+        "added_at": "2026-04-15T09:00:00Z",
+        "department": "Support Eng"
+      },
+      {
+        "id": "user_0811",
+        "email": "ada.brandt@example.com",
+        "name": "Ada Brandt",
+        "role": "claude_code_user",
+        "added_at": "2026-01-15T09:00:00Z",
+        "department": "Backend"
+      },
+      {
+        "id": "user_0841",
+        "email": "ada.cho@example.com",
+        "name": "Ada Cho",
+        "role": "claude_code_user",
+        "added_at": "2026-04-15T09:00:00Z",
+        "department": "Support Eng"
+      },
+      {
+        "id": "user_0901",
+        "email": "ada.engel@example.com",
+        "name": "Ada Engel",
+        "role": "claude_code_user",
+        "added_at": "2026-01-15T09:00:00Z",
+        "department": "Frontend"
+      },
+      {
+        "id": "user_0151",
+        "email": "ada.fischer@example.com",
+        "name": "Ada Fischer",
+        "role": "claude_code_user",
+        "added_at": "2026-07-15T09:00:00Z",
+        "department": "Support Eng"
+      },
+      {
+        "id": "user_0931",
+        "email": "ada.ford@example.com",
+        "name": "Ada Ford",
+        "role": "claude_code_user",
+        "added_at": "2026-04-15T09:00:00Z",
+        "department": "Frontend"
+      },
+      {
+        "id": "user_0181",
+        "email": "ada.garcia@example.com",
+        "name": "Ada Garcia",
+        "role": "claude_code_user",
+        "added_at": "2026-01-15T09:00:00Z",
+        "department": "Product"
+      },
+      {
+        "id": "user_0961",
+        "email": "ada.gupta@example.com",
+        "name": "Ada Gupta",
+        "role": "claude_code_user",
+        "added_at": "2026-07-15T09:00:00Z",
+        "department": "Design"
+      },
+      {
+        "id": "user_0241",
+        "email": "ada.ito@example.com",
+        "name": "Ada Ito",
+        "role": "claude_code_user",
+        "added_at": "2026-07-15T09:00:00Z",
+        "department": "Data"
+      },
+      {
+        "id": "user_0271",
+        "email": "ada.jensen@example.com",
+        "name": "Ada Jensen",
+        "role": "claude_code_user",
+        "added_at": "2026-01-15T09:00:00Z",
+        "department": "Frontend"
+      },
+      {
+        "id": "user_0301",
+        "email": "ada.khan@example.com",
+        "name": "Ada Khan",
+        "role": "claude_code_user",
+        "added_at": "2026-04-15T09:00:00Z",
+        "department": "SRE"
+      },
+      {
+        "id": "user_1081",
+        "email": "ada.kowalski@example.com",
+        "name": "Ada Kowalski",
+        "role": "claude_code_user",
+        "added_at": "2026-01-15T09:00:00Z",
+        "department": "Mobile"
+      },
+      {
+        "id": "user_0331",
+        "email": "ada.lund@example.com",
+        "name": "Ada Lund",
+        "role": "claude_code_user",
+        "added_at": "2026-07-15T09:00:00Z",
+        "department": "Product"
+      },
+      {
+        "id": "user_1171",
+        "email": "ada.novak@example.com",
+        "name": "Ada Novak",
+        "role": "claude_code_user",
+        "added_at": "2026-01-15T09:00:00Z",
+        "department": "QA"
+      },
+      {
+        "id": "user_0451",
+        "email": "ada.park@example.com",
+        "name": "Ada Park",
+        "role": "claude_code_user",
+        "added_at": "2026-01-15T09:00:00Z",
+        "department": "QA"
+      },
+      {
+        "id": "user_0631",
+        "email": "ada.varga@example.com",
+        "name": "Ada Varga",
+        "role": "claude_code_user",
+        "added_at": "2026-01-15T09:00:00Z",
+        "department": "Backend"
+      },
+      {
+        "id": "user_0661",
+        "email": "ada.weber@example.com",
+        "name": "Ada Weber",
+        "role": "claude_code_user",
+        "added_at": "2026-04-15T09:00:00Z",
+        "department": "Security"
+      },
+      {
+        "id": "user_0806",
+        "email": "aiko.adler@example.com",
+        "name": "Aiko Adler",
+        "role": "claude_code_user",
+        "added_at": "2026-05-15T09:00:00Z",
+        "department": "Security"
+      },
+      {
+        "id": "user_0836",
+        "email": "aiko.brandt@example.com",
+        "name": "Aiko Brandt",
+        "role": "claude_code_user",
+        "added_at": "2026-08-15T09:00:00Z",
+        "department": "Design"
+      },
+      {
+        "id": "user_0956",
+        "email": "aiko.ford@example.com",
+        "name": "Aiko Ford",
+        "role": "claude_code_user",
+        "added_at": "2026-02-15T09:00:00Z",
+        "department": "Design"
+      },
+      {
+        "id": "user_1016",
+        "email": "aiko.haas@example.com",
+        "name": "Aiko Haas",
+        "role": "claude_code_user",
+        "added_at": "2026-08-15T09:00:00Z",
+        "department": "Frontend"
+      },
+      {
+        "id": "user_0236",
+        "email": "aiko.hall@example.com",
+        "name": "Aiko Hall",
+        "role": "claude_code_user",
+        "added_at": "2026-02-15T09:00:00Z",
+        "department": "Design"
+      },
+      {
+        "id": "user_1046",
+        "email": "aiko.iqbal@example.com",
+        "name": "Aiko Iqbal",
+        "role": "claude_code_user",
+        "added_at": "2026-02-15T09:00:00Z",
+        "department": "Product"
+      },
+      {
+        "id": "user_0266",
+        "email": "aiko.ito@example.com",
+        "name": "Aiko Ito",
+        "role": "claude_code_user",
+        "added_at": "2026-05-15T09:00:00Z",
+        "department": "Frontend"
+      }
+    ],
+    "total": 474,
+    "page": 1,
+    "pages": 19
+  }
+}

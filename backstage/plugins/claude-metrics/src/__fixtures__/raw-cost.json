@@ -1,0 +1,105 @@
+{
+  "dataSource": "mock",
+  "day": "2026-11-20",
+  "data": [
+    {
+      "starting_at": "2026-11-20T00:00:00Z",
+      "ending_at": "2026-11-20T23:59:59Z",
+      "group": {
+        "actor": null,
+        "actor_type": null,
+        "agent_id": null,
+        "api_key_id": null,
+        "claude_tag_category": null,
+        "claude_tag_user_id": null,
+        "context_window": null,
+        "cost_type": "tokens",
+        "deployment_id": null,
+        "environment_id": null,
+        "inference_geo": null,
+        "model": "claude-opus-5-5",
+        "product": "claude_code",
+        "rbac_group_id": null,
+        "service_tier": "standard",
+        "session_id": null,
+        "slack_channel_id": null,
+        "speed": null,
+        "token_type": null,
+        "user_profile_id": null,
+        "workspace_id": "wrkspc_claude_code"
+      },
+      "cost": {
+        "amount": "26010.0000",
+        "list_amount": "26010.0000",
+        "currency": "USD",
+        "requests": 39760
+      }
+    },
+    {
+      "starting_at": "2026-11-20T00:00:00Z",
+      "ending_at": "2026-11-20T23:59:59Z",
+      "group": {
+        "actor": null,
+        "actor_type": null,
+        "agent_id": null,
+        "api_key_id": "apikey_prod_web",
+        "claude_tag_category": null,
+        "claude_tag_user_id": null,
+        "context_window": null,
+        "cost_type": "tokens",
+        "deployment_id": null,
+        "environment_id": null,
+        "inference_geo": null,
+        "model": "claude-sonnet-5-5",
+        "product": "api",
+        "rbac_group_id": null,
+        "service_tier": "standard",
+        "session_id": null,
+        "slack_channel_id": null,
+        "speed": null,
+        "token_type": null,
+        "user_profile_id": null,
+        "workspace_id": "wrkspc_prod"
+      },
+      "cost": {
+        "amount": "8278.3762",
+        "list_amount": "8278.3762",
+        "currency": "USD",
+        "requests": 24835
+      }
+    },
+    {
+      "starting_at": "2026-11-20T00:00:00Z",
+      "ending_at": "2026-11-20T23:59:59Z",
+      "group": {
+        "actor": null,
+        "actor_type": null,
+        "agent_id": null,
+        "api_key_id": null,
+        "claude_tag_category": null,
+        "claude_tag_user_id": null,
+        "context_window": null,
+        "cost_type": "tokens",
+        "deployment_id": null,
+        "environment_id": null,
+        "inference_geo": null,
+        "model": "claude-opus-5-5",
+        "product": "managed_agents",
+        "rbac_group_id": null,
+        "service_tier": "standard",
+        "session_id": null,
+        "slack_channel_id": null,
+        "speed": null,
+        "token_type": null,
+        "user_profile_id": null,
+        "workspace_id": "wrkspc_prod"
+      },
+      "cost": {
+        "amount": "5831.4905",
+        "list_amount": "5831.4905",
+        "currency": "USD",
+        "requests": 17494
+      }
+    }
+  ]
+}

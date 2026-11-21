@@ -1,6 +1,6 @@
 import type { ChartOptions, Plugin } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import './register';
+import { registerCharts } from './register';
 import { tooltipColors } from './tooltip';
 import { useChartColors } from './useChartColors';
 
@@ -19,6 +19,7 @@ export function HBarChart({
   max?: number;
   foldOther?: boolean;
 }) {
+  registerCharts();
   const c = useChartColors();
   const top = data.slice(0, max);
   const rest = data.slice(max).reduce((s, d) => s + d.value, 0);

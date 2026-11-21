@@ -2,6 +2,7 @@
 // the Nuxt app. This file is the only place the plugin reaches outside its package.
 /* eslint-disable @backstage/no-relative-monorepo-imports */
 export { addDays, toDay } from '../../../../lib/dates';
+export { TOOL_NAMES, type ToolName } from '../../../../lib/anthropic-types';
 export {
   PALETTE,
   type ChartColors,

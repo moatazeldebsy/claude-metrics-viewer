@@ -1,7 +1,7 @@
 import type { ChartOptions } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import type { SeriesDef } from '../../lib';
-import './register';
+import { registerCharts } from './register';
 import { tooltipColors } from './tooltip';
 import { useChartColors } from './useChartColors';
 
@@ -21,6 +21,7 @@ export function TrendChart({
   format?: (v: number) => string;
   height?: number;
 }) {
+  registerCharts();
   const c = useChartColors();
   const data = {
     labels: rows.map(r => String(at(r, xKey)).slice(5)),

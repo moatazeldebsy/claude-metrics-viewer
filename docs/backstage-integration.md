@@ -137,7 +137,7 @@ claudeMetrics:
 
 - `adminKey` is marked secret in the plugin's config schema, so it's never sent to the browser. Keep it out of the file and inject the env var.
 - Keys you leave out fall back to these env vars: `DATA_SOURCE`, `ANTHROPIC_ADMIN_KEY`, `DEPARTMENTS_FILE`, `HOLIDAY_COUNTRY`.
-- If the settings select `anthropic` and no key is set anywhere, the backend refuses to start with `claudeMetrics.adminKey is required when dataSource is anthropic`.
+- If the settings select `anthropic` and no key is set anywhere, the plugin fails at startup with `claudeMetrics.adminKey is required when dataSource is anthropic`. Backstage logs it as *Backend startup failed*. In the versions tested (1.56, 1.57) the rest of Backstage keeps serving and only `/api/claude-metrics/*` returns `503`, so check the backend log, not just the health check.
 - A relative `departmentsFile` resolves against the backend's working directory. Use an absolute path in containers.
 - The CSV is read once, on the first request after startup. Restart the backend to pick up a new file.
 
@@ -159,7 +159,7 @@ claudeMetrics:
   adminKey: ${ANTHROPIC_ADMIN_KEY}
 ```
 
-- If the variable isn't set, Backstage treats `adminKey` as missing rather than failing to load config. With `dataSource: anthropic`, the plugin then stops the backend at startup with `claudeMetrics.adminKey is required when dataSource is anthropic`, so a missing secret fails loudly.
+- If the variable isn't set, or is set but empty (Docker Compose's `${VAR:-}` passes an empty string), `adminKey` counts as missing; config still loads. On `mock` that's fine. On `anthropic` the plugin fails at startup with `claudeMetrics.adminKey is required when dataSource is anthropic`, logged as *Backend startup failed*, and its routes return `503` while the rest of Backstage keeps running.
 - The value never reaches the browser: `adminKey` is a secret in the plugin's config schema, and the frontend config contains no `claudeMetrics` block at all.
 - The key is read once, when the first request needs data. **Restart the backend after rotating it.**
 - Don't write the literal key into a committed `app-config*.yaml`.
@@ -243,7 +243,7 @@ spec:
       remoteRef: { key: backstage/claude-metrics, property: ANTHROPIC_ADMIN_KEY }
 ```
 
-If your backend already loads a shared Secret that ESO fills from one entry (`dataFrom: extract`), add `ANTHROPIC_ADMIN_KEY` to that entry instead. No manifest change is needed.
+If ESO already fills a shared Secret from one entry (`dataFrom: extract`), add `ANTHROPIC_ADMIN_KEY` to that entry instead. The pod sees it without a manifest change only if it loads that Secret with `envFrom`. If the Deployment lists variables one by one (`env:` with `secretKeyRef`), add an entry for `ANTHROPIC_ADMIN_KEY` there too, with `optional: true`.
 
 **Check it arrived** without printing it:
 
@@ -359,7 +359,7 @@ if (isPermission(request.permission, claudeMetricsReadPermission)) {
 For the Admin key, follow the template's existing pattern for optional API keys:
 
 - **Local:** add `ANTHROPIC_ADMIN_KEY=` to `local/backstage/.env.example` and your `local/backstage/.env`, list `ANTHROPIC_ADMIN_KEY: ${ANTHROPIC_ADMIN_KEY:-}` under the `backstage` service's `environment:` in `local/backstage/docker-compose.yml`, and set `dataSource: anthropic` in `backstage/app-config.local.yaml` when you want real data.
-- **AWS:** add `ANTHROPIC_ADMIN_KEY` to the optional-keys list in `scripts/bootstrap.sh` (next to `VOYAGE_API_KEY`), or add it by hand to the `idp-mvp/backstage` Secrets Manager entry. The existing `backstage-secrets` ExternalSecret already syncs every key from it into the pod. Set `claudeMetrics.dataSource: anthropic` in `app-config.aws.yaml` and its `kubernetes/backstage/configmap.yaml` mirror.
+- **AWS:** add `ANTHROPIC_ADMIN_KEY` to the optional-keys list in `scripts/bootstrap.sh` (next to `VOYAGE_API_KEY`), or add it by hand to the `idp-mvp/backstage` Secrets Manager entry. The `backstage-secrets` ExternalSecret syncs every key into the cluster, but `aws/backstage/deployment.yaml` maps variables one by one, so add an `ANTHROPIC_ADMIN_KEY` entry with `secretKeyRef` (`optional: true`) next to `VOYAGE_API_KEY`. Set `claudeMetrics.dataSource: anthropic` in `app-config.aws.yaml`; `scripts/lib.sh` turns it into the pod's ConfigMap at deploy time.
 - The key in `local/.env.example` called `ANTHROPIC_API_KEY` is the AI stack's regular key. It isn't an Admin key and won't work here.
 
 The template's groups are synced from GitHub teams (`catalog.providers.githubOrg`, ADR-0004). Create an `engineering-managers` team in the identity org. Within the 30-minute sync it appears as `group:default/engineering-managers`, and its members get access. The template's `app.packages` isn't `all`: add `claudeMetricsPlugin` to `createApp({ features })` in `packages/app/src/App.tsx`. The template is on Backstage 1.56.2, the release the plugins are built against.

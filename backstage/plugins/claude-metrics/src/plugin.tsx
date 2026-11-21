@@ -29,6 +29,7 @@ export const page = PageBlueprint.make({
 
 export const claudeMetricsPlugin = createFrontendPlugin({
   pluginId: 'claude-metrics',
+  title: 'Claude Metrics',
   info: { packageJson: () => import('../package.json') },
   extensions: [claudeMetricsApi, page],
   routes: {

@@ -15,4 +15,8 @@ export {
   fmtUsd,
 } from '../../../../app/utils/format';
 export type { GridColumn } from '../../../../app/utils/grid';
+export type { ClaudeCodeSummary, UserRow } from '../../../../lib/aggregate';
+export type { DepartmentRow } from '../../../../lib/departments-agg';
+export type { Member } from '../../../../lib/sources/types';
+export type { UserOption } from '../../../../lib/users';
 /* eslint-enable @backstage/no-relative-monorepo-imports */

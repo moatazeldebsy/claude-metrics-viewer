@@ -1,4 +1,5 @@
 import { mockErrorHandler, mockServices } from '@backstage/backend-test-utils';
+import { AuthorizeResult } from '@backstage/plugin-permission-common';
 import express from 'express';
 import request from 'supertest';
 
@@ -17,6 +18,7 @@ describe('createRouter', () => {
     const router = await createRouter({
       logger: mockServices.logger.mock(),
       httpAuth: mockServices.httpAuth(),
+      permissions: mockServices.permissions({ result: AuthorizeResult.ALLOW }),
     });
     app = express();
     app.use(router);
@@ -113,5 +115,58 @@ describe('createRouter', () => {
   it('rejects to = today with 400', async () => {
     const res = await request(app).get(`/claude-code?to=${day(0)}`);
     expect(res.status).toBe(400);
+  });
+});
+
+describe('permission check', () => {
+  const appWith = async (
+    permissions: Parameters<typeof createRouter>[0]['permissions'],
+  ) => {
+    const app = express();
+    app.use(
+      await createRouter({
+        logger: mockServices.logger.mock(),
+        httpAuth: mockServices.httpAuth(),
+        permissions,
+      }),
+    );
+    app.use(mockErrorHandler());
+    return app;
+  };
+
+  it.each(['/meta', '/claude-code', '/users', '/raw'])(
+    'returns 403 on %s when the policy denies',
+    async path => {
+      const app = await appWith(
+        mockServices.permissions({ result: AuthorizeResult.DENY }),
+      );
+      const res = await request(app).get(path);
+      expect(res.status).toBe(403);
+    },
+  );
+
+  it('asks the policy about claude-metrics.dashboard.read for the caller', async () => {
+    const authorize = jest.fn(
+      async (): Promise<{ result: AuthorizeResult.ALLOW }[]> => [
+        { result: AuthorizeResult.ALLOW },
+      ],
+    );
+    const app = await appWith(mockServices.permissions.mock({ authorize }));
+    const res = await request(app).get('/meta');
+    expect(res.status).toBe(200);
+    expect(authorize).toHaveBeenCalledWith(
+      [
+        {
+          permission: expect.objectContaining({
+            name: 'claude-metrics.dashboard.read',
+          }),
+        },
+      ],
+      {
+        credentials: expect.objectContaining({
+          principal: expect.objectContaining({ type: 'user' }),
+        }),
+      },
+    );
   });
 });

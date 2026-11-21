@@ -87,7 +87,7 @@ Claude Enterprise organizations have teams built in (RBAC groups), and their Ent
 
 ## Backstage plugin
 
-The dashboard also ships as a Backstage frontend and backend plugin pair in [`backstage/`](backstage/README.md): a **Claude Metrics** sidebar page with the same tabs, served by a backend plugin that uses the same data layer as this app. Open [`backstage/preview/index.html`](backstage/preview/index.html) to see how it looks inside Backstage, and read the [integration guide](docs/backstage-integration.md) to add it to an existing Backstage app.
+The dashboard also ships as a Backstage frontend and backend plugin pair in [`backstage/`](backstage/README.md): a **Claude Metrics** sidebar page with the same tabs, served by a backend plugin that uses the same data layer as this app. Open [`backstage/preview/index.html`](backstage/preview/index.html) to see how it looks inside Backstage, and read the [integration guide](docs/backstage-integration.md) to add it to an existing Backstage app. Access is guarded by a Backstage permission, so it can be limited to managers.
 
 ![Departments tab inside Backstage, dark theme](docs/screenshots/backstage-departments-dark.png)
 

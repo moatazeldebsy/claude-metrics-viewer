@@ -1,4 +1,11 @@
-import { HttpAuthService, LoggerService } from '@backstage/backend-plugin-api';
+import {
+  HttpAuthService,
+  LoggerService,
+  PermissionsService,
+} from '@backstage/backend-plugin-api';
+import { NotAllowedError } from '@backstage/errors';
+import { claudeMetricsReadPermission } from '@internal/backstage-plugin-claude-metrics-common';
+import { AuthorizeResult } from '@backstage/plugin-permission-common';
 import express from 'express';
 import Router from 'express-promise-router';
 import { dashboard, intParam } from './handler';
@@ -33,11 +40,29 @@ const SORTABLE = new Set<keyof UserRow>([
 /** The same routes, params and JSON shapes as the Nuxt app's server/api. */
 export async function createRouter({
   logger,
+  httpAuth,
+  permissions,
 }: {
   logger: LoggerService;
   httpAuth: HttpAuthService;
+  permissions: PermissionsService;
 }): Promise<express.Router> {
   const router = Router();
+
+  // Every route shows organization-wide per-user data: the permission policy decides who may see it.
+  router.use(async (req, _res, next) => {
+    const credentials = await httpAuth.credentials(req);
+    const [decision] = await permissions.authorize(
+      [{ permission: claudeMetricsReadPermission }],
+      { credentials },
+    );
+    if (decision.result !== AuthorizeResult.ALLOW) {
+      throw new NotAllowedError(
+        'You do not have access to Claude Metrics. Ask your Backstage admins for the claude-metrics.dashboard.read permission.',
+      );
+    }
+    next();
+  });
   const route = (path: string, fn: Parameters<typeof dashboard>[1]) =>
     router.get(path, dashboard(logger, fn));
 

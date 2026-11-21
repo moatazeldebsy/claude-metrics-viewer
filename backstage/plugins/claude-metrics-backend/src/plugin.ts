@@ -3,6 +3,7 @@ import {
   createBackendPlugin,
 } from '@backstage/backend-plugin-api';
 import { applyConfig } from './config';
+import { claudeMetricsPermissions } from '@internal/backstage-plugin-claude-metrics-common';
 import { createRouter } from './router';
 
 /**
@@ -19,10 +20,20 @@ export const claudeMetricsPlugin = createBackendPlugin({
         logger: coreServices.logger,
         httpAuth: coreServices.httpAuth,
         httpRouter: coreServices.httpRouter,
+        permissions: coreServices.permissions,
+        permissionsRegistry: coreServices.permissionsRegistry,
       },
-      async init({ config, logger, httpAuth, httpRouter }) {
+      async init({
+        config,
+        logger,
+        httpAuth,
+        httpRouter,
+        permissions,
+        permissionsRegistry,
+      }) {
         applyConfig(config);
-        httpRouter.use(await createRouter({ logger, httpAuth }));
+        permissionsRegistry.addPermissions(claudeMetricsPermissions);
+        httpRouter.use(await createRouter({ logger, httpAuth, permissions }));
       },
     });
   },

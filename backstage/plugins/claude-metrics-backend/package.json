@@ -15,7 +15,8 @@
     "pluginId": "claude-metrics",
     "pluginPackages": [
       "@internal/backstage-plugin-claude-metrics",
-      "@internal/backstage-plugin-claude-metrics-backend"
+      "@internal/backstage-plugin-claude-metrics-backend",
+      "@internal/backstage-plugin-claude-metrics-common"
     ]
   },
   "scripts": {
@@ -32,7 +33,9 @@
     "@backstage/backend-plugin-api": "^1.12.0",
     "@backstage/config": "^1.3.11",
     "@backstage/errors": "^1.4.0",
+    "@backstage/plugin-permission-common": "^0.9.13",
     "@backstage/types": "^1.2.2",
+    "@internal/backstage-plugin-claude-metrics-common": "workspace:^",
     "@internal/claude-metrics-lib": "workspace:^",
     "express": "^4.22.1",
     "express-promise-router": "^4.1.0"

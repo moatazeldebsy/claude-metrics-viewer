@@ -8,10 +8,11 @@ The Claude Metrics dashboard as a Backstage plugin: a **Claude Metrics** page in
 |---|---|
 | `plugins/claude-metrics` (`@internal/backstage-plugin-claude-metrics`) | Frontend plugin, built on Backstage's new frontend system and Backstage UI. Page at `/claude-metrics`, with a sidebar entry. |
 | `plugins/claude-metrics-backend` (`@internal/backstage-plugin-claude-metrics-backend`) | Backend plugin. Serves `/api/claude-metrics/*`, the same routes and JSON as the Nuxt app's `server/api`. |
+| `plugins/claude-metrics-common` (`@internal/backstage-plugin-claude-metrics-common`) | The `claude-metrics.dashboard.read` permission. The backend checks it on every route and the page checks it before loading; your permission policy decides who has it (for example, managers only). |
 | `packages/claude-metrics-lib` (`@internal/claude-metrics-lib`) | The data layer (Anthropic and mock sources, aggregation, departments, holidays, palette, formatters). The Nuxt app imports it as `#lib`; the plugins depend on it. `.` is browser-safe, `./server` is the Node entry. |
 | `preview/index.html` | A static page showing how the plugin looks inside Backstage, filled with mock data. Open it straight from disk. |
 
-The Admin API key is read only by the backend plugin, and every route requires a signed-in Backstage user, so the dashboard sits behind your Backstage sign-in.
+The Admin API key is read only by the backend plugin. Every route requires a signed-in Backstage user **and** the `claude-metrics.dashboard.read` permission, so you can limit the dashboard to managers in your permission policy. See [Access control](../docs/backstage-integration.md#access-control).
 
 ## Run the plugins locally
 
@@ -63,5 +64,5 @@ In the preview the filter bar is visual only; search, sorting and paging work on
 ## Known limits
 
 - The frontend plugin needs Backstage's new frontend system (1.57 apps use it by default).
-- Any signed-in user sees the whole organization's per-user data; there's no permission-framework integration yet.
+- Access is only limited if the permission framework is on and your policy handles `claude-metrics.dashboard.read`; with it off, every signed-in user can open the dashboard.
 - The cost tab stays organization-wide: the cost API has no department or user dimension.

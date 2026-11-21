@@ -1,5 +1,7 @@
 # Claude Metrics Viewer
 
+[![CI](https://github.com/moatazeldebsy/claude-metrics-viewer/actions/workflows/ci.yml/badge.svg)](https://github.com/moatazeldebsy/claude-metrics-viewer/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 A dashboard for your Anthropic organization's **Claude Code adoption** and **Claude API usage & cost**.
 
 It runs on deterministic mock data out of the box. Point it at a real organization by setting two environment variables.
@@ -158,3 +160,15 @@ vuetify.config.ts   light/dark themes (system by default, switchable in the head
 The app renders in the browser (`ssr: false`): it's an internal dashboard, so server rendering would add nothing and would risk date mismatches between server and browser.
 
 There is no auth on the dashboard itself. Put it behind your SSO or ingress auth before exposing it, since it shows per-user activity and cost.
+
+## Contributing
+
+Bug reports, ideas and pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers the repo layout, how to run and test each part, and what a pull request needs. Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Security
+
+The dashboard handles an Anthropic Admin API key and organization-wide per-user data. Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md), which also covers how to deploy it safely.
+
+## License
+
+[MIT](LICENSE)

@@ -1,0 +1,18 @@
+name: Question
+description: Ask how to set up, configure or use the dashboard or the Backstage plugin.
+labels: [question]
+body:
+  - type: markdown
+    attributes:
+      value: Please check the [README](https://github.com/moatazeldebsy/claude-metrics-viewer/blob/main/README.md) and the [Backstage integration guide](https://github.com/moatazeldebsy/claude-metrics-viewer/blob/main/docs/backstage-integration.md) first; many setup questions are answered there.
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What you're running (standalone or Backstage, versions, mock or real data) and what you've tried. Remove any keys.

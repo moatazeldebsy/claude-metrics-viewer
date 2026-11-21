@@ -1,0 +1,81 @@
+name: Bug report
+description: Something doesn't work as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem. **Security issues go in a private [security advisory](https://github.com/moatazeldebsy/claude-metrics-viewer/security/advisories/new), not here.**
+        Please don't paste API keys, Admin keys or real member emails. Redact them.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where does it happen?
+      options:
+        - Standalone dashboard (Nuxt)
+        - Backstage frontend plugin
+        - Backstage backend plugin / API
+        - Permission / access control
+        - Data layer (numbers, aggregation, departments, holidays)
+        - Preview page
+        - Docs
+        - Not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: data-source
+    attributes:
+      label: Data source
+      options:
+        - mock
+        - anthropic (real Admin API data)
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Include the exact error text, and the browser console or backend log lines if there are any.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The smallest set of steps that shows the problem. A dashboard URL with its filters (from, to, department, tab) helps a lot.
+      placeholder: |
+        1. Open /claude-metrics?tab=departments&from=2026-10-24&to=2026-11-20
+        2. Click …
+        3. See …
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Claude Metrics Viewer version or commit
+      placeholder: e.g. v0.1.0 or a1b2c3d
+    validations:
+      required: true
+  - type: input
+    id: backstage-version
+    attributes:
+      label: Backstage version (plugin issues only)
+      description: From `backstage.json` in your Backstage app.
+      placeholder: e.g. 1.56.2
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Node.js version, how you run it (npm run dev, Docker, Kubernetes, Backstage dev app) and browser.
+      placeholder: Node 24.21, Docker Compose, Chrome 140
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Screenshots (mock data preferred), config snippets with secrets removed, or links.

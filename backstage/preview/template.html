@@ -1,0 +1,577 @@
+<title>Claude Metrics in Backstage</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: Backstage app shell. Fixed nav rail on the left, plugin page on the right
+   (plugin header, page header, filter card, tab strip, tab panel of cards). Rail becomes a top bar on phones. */
+:root {
+  --bg: #f4f4f4;           /* page ground behind cards */
+  --surface: #ffffff;      /* cards, filter bar */
+  --surface-2: #ececec;    /* inputs, buttons, code */
+  --border: #e3e3e3;
+  --fg: #141414;
+  --fg-2: #666666;
+  --rail: #171717;         /* Backstage sidebar */
+  --rail-fg: #d6d6d6;
+  --rail-active: #9bf0e1;  /* Backstage's selected-nav indicator */
+  --focus: #2a78d6;
+  --info-bg: #e8f1fc;
+  --info-fg: #1d4f8f;
+  --font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --radius: 8px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #333333; --surface: #3d3d3d; --surface-2: #4a4a4a; --border: #4d4d4d;
+    --fg: #f5f5f5; --fg-2: #a8a8a8; --rail: #262626; --rail-fg: #cfcfcf;
+    --focus: #6aa8f0; --info-bg: #2b3a4d; --info-fg: #b9d4f5; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #333333; --surface: #3d3d3d; --surface-2: #4a4a4a; --border: #4d4d4d;
+  --fg: #f5f5f5; --fg-2: #a8a8a8; --rail: #262626; --rail-fg: #cfcfcf;
+  --focus: #6aa8f0; --info-bg: #2b3a4d; --info-fg: #b9d4f5; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 14px; line-height: 1.45; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* The rail column keeps its colour down the whole page, below the sticky rail itself. */
+.app { display: grid; grid-template-columns: 224px minmax(0, 1fr); min-height: 100vh; background: linear-gradient(to right, var(--rail) 224px, transparent 224px); }
+
+/* Nav rail */
+.rail { background: var(--rail); color: var(--rail-fg); padding: 20px 0; display: flex; flex-direction: column; gap: 4px; position: sticky; top: 0; height: 100vh; }
+.rail .logo { display: flex; align-items: center; gap: 10px; padding: 0 24px 20px; color: #fff; font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+.rail .logo svg { width: 26px; height: 26px; }
+.rail a { display: flex; align-items: center; gap: 14px; padding: 10px 24px; color: inherit; text-decoration: none; border-left: 3px solid transparent; font-size: 14px; }
+.rail a:hover { background: rgba(255, 255, 255, 0.06); }
+.rail a[aria-current="page"] { border-left-color: var(--rail-active); color: #fff; background: rgba(255, 255, 255, 0.08); font-weight: 600; }
+.rail a svg { width: 20px; height: 20px; flex: none; }
+.rail hr { border: 0; border-top: 1px solid rgba(255, 255, 255, 0.12); margin: 8px 16px; }
+.rail .spacer { flex: 1; }
+
+/* Page */
+.page { padding-block: 20px 48px; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); min-width: 0; }
+.plugin-header { display: flex; align-items: center; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.plugin-header .icon { width: 32px; height: 32px; border-radius: 6px; background: var(--surface); border: 1px solid var(--border); display: grid; place-items: center; }
+.plugin-header .icon svg { width: 18px; height: 18px; }
+.plugin-header .name { font-weight: 500; }
+.plugin-header .actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+.page-header { padding: 28px 0 20px; }
+.tag { display: inline-block; font-size: 13px; color: var(--fg-2); margin-bottom: 8px; }
+h1 { font-size: 24px; line-height: 1.25; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.01em; text-wrap: balance; }
+.description { color: var(--fg-2); margin: 0; }
+
+.btn { background: var(--surface-2); border: 0; border-radius: 6px; padding: 6px 10px; font-weight: 600; font-size: 13px; cursor: pointer; }
+.btn:hover:not(:disabled) { filter: brightness(0.96); }
+.btn:disabled { cursor: default; opacity: 0.45; }
+.btn.ghost { background: transparent; border: 1px solid var(--border); font-weight: 500; }
+
+.notice { display: flex; gap: 10px; align-items: flex-start; background: var(--info-bg); color: var(--info-fg); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 16px; font-size: 13px; }
+.notice svg { flex: none; width: 16px; height: 16px; margin-top: 2px; }
+
+/* Filter bar */
+.card { background: var(--surface); border-radius: var(--radius); min-width: 0; }
+.filters { padding: 14px 14px 16px; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 12px 16px; align-items: end; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field label, .field .label { font-size: 12px; font-weight: 500; }
+.control { background: var(--surface-2); border-radius: 6px; height: 32px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--fg); white-space: nowrap; overflow: hidden; }
+.control.placeholder { color: var(--fg-2); }
+.control svg { width: 14px; height: 14px; flex: none; color: var(--fg-2); }
+.f-date { grid-column: span 4; }
+.f-presets { grid-column: span 4; display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
+.f-switches { grid-column: span 4; display: flex; gap: 16px; justify-content: flex-end; flex-wrap: wrap; }
+.f-dept, .f-user { grid-column: span 6; }
+.switch { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.switch .track { width: 32px; height: 18px; border-radius: 9px; background: var(--surface-2); position: relative; }
+.switch .track::after { content: ""; position: absolute; left: 3px; top: 3px; width: 12px; height: 12px; border-radius: 50%; background: var(--fg-2); }
+
+/* Tabs */
+.tabs { display: flex; gap: 4px; margin: 20px 0 16px; overflow-x: auto; scrollbar-width: none; }
+.tab { background: none; border: 0; padding: 6px 8px 8px; color: var(--fg-2); cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; }
+.tab:hover { color: var(--fg); }
+.tab[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--fg); }
+
+/* Panel content */
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(max(200px, calc((100% - 36px) / 4)), 1fr)); gap: 12px; }
+.kpi { padding: 14px 14px 16px; }
+.kpi .k-label { font-size: 13px; color: var(--fg-2); }
+.kpi .k-value { font-size: 22px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.kpi .k-hint { font-size: 11px; color: var(--fg-2); margin-top: 4px; }
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 16px; }
+.chart-card { padding: 16px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.chart-card h3 { font-size: 18px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+.chart-card .sub { font-size: 13px; color: var(--fg-2); margin-top: 2px; }
+.chart-box { position: relative; min-width: 0; }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th { text-align: left; font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--fg); white-space: nowrap; }
+th.num, td.num { text-align: right; }
+th button { all: unset; cursor: pointer; display: inline-flex; gap: 4px; align-items: center; }
+th button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+td { padding: 11px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+tbody tr:hover td { background: color-mix(in srgb, var(--surface-2) 45%, transparent); }
+.table-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 12px; color: var(--fg-2); font-size: 13px; flex-wrap: wrap; }
+.pager { display: flex; align-items: center; gap: 8px; }
+.search { background: var(--surface-2); border: 0; border-radius: 6px; height: 32px; padding: 0 12px 0 32px; width: min(320px, 100%); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%23888' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-4-4'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: 11px center; }
+pre.json { margin: 0; max-height: 560px; overflow: auto; background: var(--surface-2); border-radius: 6px; padding: 12px; font: 12px/1.5 var(--mono); }
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+select.control { appearance: none; border: 0; padding-right: 32px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%23888' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; cursor: pointer; }
+
+@media (max-width: 1100px) {
+  .f-date, .f-presets, .f-switches { grid-column: span 12; justify-content: flex-start; }
+}
+@media (max-width: 760px) {
+  .app { grid-template-columns: minmax(0, 1fr); background: none; }
+  .rail { position: static; height: auto; flex-direction: row; align-items: center; padding: 10px max(12px, env(safe-area-inset-left, 0px)); overflow-x: auto; gap: 2px; }
+  .rail .logo { padding: 0 10px 0 4px; }
+  .rail .logo span, .rail a span, .rail hr, .rail .spacer { display: none; }
+  .rail a { padding: 8px 10px; border-left: 0; border-bottom: 3px solid transparent; }
+  .rail a[aria-current="page"] { border-bottom-color: var(--rail-active); }
+  .f-dept, .f-user { grid-column: span 12; }
+  h1 { font-size: 21px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="app">
+  <nav class="rail" aria-label="Backstage">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 18 12 4l8 14H4Z"/><path d="M9 18l3-5 3 5"/></svg>
+      <span>Backstage</span>
+    </div>
+    <a href="#overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11 12 4l9 7v9H3z"/><path d="M9 20v-6h6v6"/></svg><span>Home</span></a>
+    <a href="#overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg><span>Catalog</span></a>
+    <a href="#overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg><span>APIs</span></a>
+    <a href="#overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7"/></svg><span>Docs</span></a>
+    <a href="#overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><span>Create…</span></a>
+    <hr>
+    <a href="#overview" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Claude Metrics</span></a>
+    <div class="spacer"></div>
+    <a href="#overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6a7 7 0 0 0 0 2.4l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2Z"/></svg><span>Settings</span></a>
+  </nav>
+
+  <main class="page">
+    <div class="plugin-header">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div>
+      <span class="name">Claude Metrics</span>
+      <div class="actions"><button class="btn ghost" id="theme-toggle" type="button">Dark theme</button></div>
+    </div>
+
+    <header class="page-header">
+      <span class="tag" id="source-tag">Data source: mock</span>
+      <h1>Adoption &amp; cost</h1>
+      <p class="description">Claude Code adoption and Claude API usage &amp; cost</p>
+    </header>
+
+    <div class="notice" role="note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+      <span id="preview-note">Static preview of the plugin page. Numbers come from the built-in mock organization; the filter bar and row clicks are inactive here.</span>
+    </div>
+
+    <section class="card filters" aria-label="Filters">
+      <div class="field f-date"><span class="label">Date range</span><div class="control" id="range"><span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div></div>
+      <div class="f-presets"><button class="btn" type="button" disabled>Last 7 days</button><button class="btn" type="button" disabled>Last 28 days</button><button class="btn" type="button" disabled>Last 90 days</button></div>
+      <div class="f-switches"><span class="switch"><span class="track"></span>Exclude weekends</span><span class="switch"><span class="track"></span><span id="holiday-label">Exclude holidays (US)</span></span></div>
+      <div class="field f-dept"><span class="label">Department</span><div class="control"><span>All departments</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></div></div>
+      <div class="field f-user"><span class="label">User</span><div class="control placeholder"><span>Search name or email…</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></div></div>
+    </section>
+
+    <div class="tabs" role="tablist" aria-label="Dashboard sections" id="tabs"></div>
+    <section id="panel" role="tabpanel"></section>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha384-bs/nf9FbdNouRbMiFcrcZfLXYPKiPaGVGplVbv7dLGECccEXDW+S3zjqSKR5ZEaD" crossorigin="anonymous"></script>
+<script>
+const DATA = /*__PREVIEW_DATA__*/null;
+
+// Same formatters as the dashboard (app/utils/format.ts).
+const fmtInt = n => Math.round(n).toLocaleString('en-US');
+const fmtUsd = c => (c / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: c >= 1000000 ? 0 : 2 });
+const fmtPct = r => (r == null ? '—' : `${(r * 100).toFixed(1)}%`);
+const fmtCompact = n => Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(n);
+const fmtFixed1 = n => n.toFixed(1);
+const usDate = d => `${d.slice(5, 7)} / ${d.slice(8)} / ${d.slice(0, 4)}`;
+
+const TOOL_LABELS = { edit_tool: 'Edit', multi_edit_tool: 'MultiEdit', write_tool: 'Write', notebook_edit_tool: 'NotebookEdit' };
+
+// ---------- theme ----------
+const root = document.documentElement;
+const media = matchMedia('(prefers-color-scheme: dark)');
+const isDark = () => (root.dataset.theme ? root.dataset.theme === 'dark' : media.matches);
+const colors = () => DATA.palette[isDark() ? 'dark' : 'light'];
+const toggle = document.getElementById('theme-toggle');
+const syncToggle = () => (toggle.textContent = isDark() ? 'Light theme' : 'Dark theme');
+toggle.addEventListener('click', () => {
+  root.dataset.theme = isDark() ? 'light' : 'dark';
+});
+
+// ---------- small DOM helpers ----------
+function h(tag, attrs = {}, ...children) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null) continue;
+    if (k === 'class') el.className = v;
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v);
+  }
+  for (const c of children.flat()) if (c != null) el.append(c);
+  return el;
+}
+const kpi = (label, value, hint) =>
+  h('div', { class: 'card kpi', 'data-testid': 'kpi' },
+    h('div', { class: 'k-label' }, label),
+    h('div', { class: 'k-value', 'data-testid': 'kpi-value' }, value),
+    hint ? h('div', { class: 'k-hint' }, hint) : null);
+const card = (title, subtitle, ...body) =>
+  h('section', { class: 'card chart-card' }, h('div', {}, h('h3', {}, title), subtitle ? h('div', { class: 'sub' }, subtitle) : null), ...body);
+const kpis = (...items) => h('div', { class: 'kpis' }, ...items);
+const charts = (...items) => h('div', { class: 'charts' }, ...items);
+
+// ---------- charts (same options as the plugin's chart components) ----------
+const live = [];
+function chartBox(height, config) {
+  const canvas = h('canvas');
+  const box = h('div', { class: 'chart-box', style: `height:${height}px` }, canvas);
+  live.push({ canvas, config });
+  return box;
+}
+const tooltip = c => ({ backgroundColor: c.surface, titleColor: c.text2, bodyColor: c.text, borderColor: c.border, borderWidth: 1 });
+const at = (row, key) => row[key];
+
+function trend(rows, series, format = String, height = 240) {
+  return chartBox(height, c => ({
+    type: 'line',
+    data: {
+      labels: rows.map(r => String(r.day).slice(5)),
+      datasets: series.map((s, i) => {
+        const color = s.color ? c[s.color] : c.series[i];
+        return { label: s.label, data: rows.map(r => at(r, s.key) ?? null), borderColor: color, backgroundColor: color, borderWidth: 2, pointRadius: 0, pointHoverRadius: 4, cubicInterpolationMode: 'monotone' };
+      }),
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: series.length > 1, labels: { color: c.text2, boxWidth: 14, boxHeight: 2 } }, tooltip: { ...tooltip(c), callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y == null ? '—' : format(ctx.parsed.y)}` } } },
+      scales: {
+        x: { grid: { display: false }, border: { display: false }, ticks: { color: c.muted, maxRotation: 0, autoSkipPadding: 20 } },
+        y: { beginAtZero: true, grid: { color: c.grid }, border: { display: false }, ticks: { color: c.muted, callback: v => format(Number(v)) } },
+      },
+    },
+  }));
+}
+
+function hbar(data, format = String, max = 8, foldOther = true) {
+  const top = data.slice(0, max);
+  const rest = data.slice(max).reduce((s, d) => s + d.value, 0);
+  const rows = foldOther && rest > 0 ? [...top, { key: 'Other', value: rest }] : top;
+  return chartBox(Math.max(80, rows.length * 32 + 16), c => ({
+    type: 'bar',
+    data: { labels: rows.map(r => r.key), datasets: [{ data: rows.map(r => r.value), backgroundColor: c.series[0], borderRadius: 4, borderSkipped: 'start', barPercentage: 0.8 }] },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: false, layout: { padding: { right: 72 } },
+      plugins: { legend: { display: false }, tooltip: { ...tooltip(c), callbacks: { label: ctx => format(Number(ctx.parsed.x)) } } },
+      scales: { x: { display: false, beginAtZero: true }, y: { grid: { display: false }, border: { display: false }, ticks: { color: c.text2, font: { size: 12 } } } },
+    },
+    plugins: [{
+      id: 'valueLabels',
+      afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        ctx.save();
+        ctx.fillStyle = c.text2;
+        ctx.textBaseline = 'middle';
+        chart.getDatasetMeta(0).data.forEach((bar, i) => ctx.fillText(format(rows[i]?.value ?? 0), bar.x + 6, bar.y));
+        ctx.restore();
+      },
+    }],
+  }));
+}
+
+function stacked(rows, xKey, series, format = String, horizontal = false) {
+  return chartBox(horizontal ? Math.max(120, rows.length * 30 + 60) : 240, c => {
+    const value = { stacked: true, beginAtZero: true, grid: { color: c.grid }, border: { display: false }, ticks: { color: c.muted, callback: v => format(Number(v)) } };
+    const category = { stacked: true, grid: { display: false }, border: { display: false }, ticks: { color: c.text2 } };
+    return {
+      type: 'bar',
+      data: {
+        labels: rows.map(r => String(r[xKey])),
+        datasets: series.map((s, i) => ({ label: s.label, data: rows.map(r => Number(r[s.key] ?? 0)), backgroundColor: s.color ? c[s.color] : c.series[i], borderColor: c.surface, borderWidth: 1, borderRadius: i === series.length - 1 ? 4 : 0, borderSkipped: 'start' })),
+      },
+      options: {
+        indexAxis: horizontal ? 'y' : 'x', responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { labels: { color: c.text2, boxWidth: 12, boxHeight: 12 } }, tooltip: { ...tooltip(c), callbacks: { label: ctx => `${ctx.dataset.label}: ${format(Number(horizontal ? ctx.parsed.x : ctx.parsed.y))}` } } },
+        scales: horizontal ? { x: value, y: category } : { x: category, y: value },
+      },
+    };
+  });
+}
+
+// ---------- tables: client-side sort, optional search and paging ----------
+function table(rows, columns, { sortKey, desc = true, pageSize, searchLabel, searchOf, note } = {}) {
+  let sort = sortKey, dir = desc ? -1 : 1, page = 1, needle = '';
+  const wrap = h('div', { class: 'stack' });
+  const search = searchLabel ? h('input', { class: 'search', type: 'search', placeholder: searchLabel, 'aria-label': searchLabel, id: `search-${searchLabel.replace(/\W+/g, '-').toLowerCase()}` }) : null;
+  if (search) search.addEventListener('input', () => { needle = search.value.trim().toLowerCase(); page = 1; draw(); });
+  const host = h('div');
+  if (search) wrap.append(search);
+  wrap.append(host);
+
+  function cell(col, row) {
+    const v = col.value(row);
+    if (col.format) return col.format(v);
+    if (v == null) return '—';
+    return typeof v === 'number' ? fmtInt(v) : v;
+  }
+  function draw() {
+    let list = needle ? rows.filter(r => searchOf(r).toLowerCase().includes(needle)) : rows;
+    const col = columns.find(c => c.key === sort);
+    if (col) list = [...list].sort((a, b) => {
+      const x = col.value(a), y = col.value(b);
+      const cmp = x == null ? -1 : y == null ? 1 : typeof x === 'number' ? x - y : String(x).localeCompare(String(y));
+      return dir * cmp;
+    });
+    const pages = pageSize ? Math.max(1, Math.ceil(list.length / pageSize)) : 1;
+    page = Math.min(page, pages);
+    const shown = pageSize ? list.slice((page - 1) * pageSize, page * pageSize) : list;
+    const thead = h('thead', {}, h('tr', {}, columns.map(c =>
+      h('th', { class: c.numeric ? 'num' : null, 'aria-sort': c.key === sort ? (dir < 0 ? 'descending' : 'ascending') : null },
+        c.sortable === false ? c.title : h('button', { type: 'button', onclick: () => { if (sort === c.key) dir = -dir; else { sort = c.key; dir = -1; } draw(); } },
+          c.title, c.key === sort ? (dir < 0 ? ' ↓' : ' ↑') : '')))));
+    const tbody = h('tbody', {}, shown.map(r => h('tr', {}, columns.map(c => h('td', { class: c.numeric ? 'num' : null }, cell(c, r))))));
+    const parts = [h('div', { class: 'table-wrap' }, h('table', {}, thead, tbody))];
+    if (pageSize) {
+      const from = list.length ? (page - 1) * pageSize + 1 : 0;
+      parts.push(h('div', { class: 'table-foot' },
+        h('span', {}, note ?? ''),
+        h('div', { class: 'pager' },
+          h('span', {}, `${from} – ${Math.min(page * pageSize, list.length)} of ${list.length}`),
+          h('button', { class: 'btn', type: 'button', 'aria-label': 'Previous page', disabled: page <= 1 ? '' : null, onclick: () => { page--; draw(); } }, '‹'),
+          h('button', { class: 'btn', type: 'button', 'aria-label': 'Next page', disabled: page >= pages ? '' : null, onclick: () => { page++; draw(); } }, '›'))));
+    }
+    host.replaceChildren(...parts);
+  }
+  draw();
+  return wrap;
+}
+
+// ---------- tabs (ported from the plugin's tab components) ----------
+const cc = DATA.claudeCode;
+const k = cc.kpis;
+
+const TABS = [
+  { id: 'overview', label: 'Overview', render: () => h('div', { class: 'stack' },
+    kpis(
+      kpi('Active users', fmtInt(k.activeUsers), `+ ${k.apiActors} API-key actors`),
+      kpi('Sessions', fmtInt(k.sessions)),
+      kpi('Lines added', fmtInt(k.linesAdded), `${fmtInt(k.linesRemoved)} removed`),
+      kpi('Accept rate', fmtPct(k.acceptRate), 'Edit, MultiEdit, Write, NotebookEdit'),
+      kpi('Commits', fmtInt(k.commits)),
+      kpi('Pull requests', fmtInt(k.prs)),
+      kpi('Estimated cost', fmtUsd(k.costCents), 'Claude Code only'),
+      kpi('Cost per active user', k.activeUsers ? fmtUsd(k.costCents / k.activeUsers) : '—')),
+    charts(
+      card('Daily active users', null, trend(cc.daily, [{ key: 'activeUsers', label: 'Active users' }])),
+      card('Daily sessions', null, trend(cc.daily, [{ key: 'sessions', label: 'Sessions' }])),
+      card('Lines of code per day', null, trend(cc.daily, [{ key: 'linesAdded', label: 'Added' }, { key: 'linesRemoved', label: 'Removed' }], fmtCompact)),
+      card('Daily accept rate', 'Accepted ÷ (accepted + rejected) tool proposals', trend(cc.daily, [{ key: 'acceptRate', label: 'Accept rate' }], fmtPct)))) },
+
+  { id: 'departments', label: 'Departments', render: () => {
+    const d = DATA.departments;
+    const lowest = d.rows.slice(0, 15);
+    const largest = [...d.rows].sort((a, b) => b.seats - a.seats || a.department.localeCompare(b.department)).slice(0, 8).map(r => r.department).sort();
+    const tiers = [
+      { key: 'power', label: 'Power (≥60% of days)' }, { key: 'regular', label: 'Regular (25–60%)' },
+      { key: 'light', label: 'Light (<25%)' }, { key: 'inactive', label: 'Inactive', color: 'muted' },
+    ];
+    return h('div', { class: 'stack' },
+      kpis(
+        kpi('Org adoption', fmtPct(d.totals.adoption), `${fmtInt(d.totals.activeUsers)} of ${fmtInt(d.totals.seats)} seats active`),
+        kpi('Departments', fmtInt(d.totals.departments)),
+        kpi('Power users', fmtInt(d.totals.tiers.power), 'Active ≥60% of selected days'),
+        kpi('Inactive seats', fmtInt(d.totals.tiers.inactive))),
+      charts(
+        card('Adoption by department', d.rows.length > 15 ? '15 lowest shown, lowest first' : 'Lowest first', hbar(lowest.map(r => ({ key: r.department, value: r.adoption })), fmtPct, 15, false)),
+        card('Engagement mix by department', 'Seats per engagement tier', stacked(lowest.map(r => ({ name: r.department, ...r.tiers })), 'name', tiers, fmtInt, true))),
+      card('Weekly adoption', 'Share of seats active at least once that week · complete weeks · 8 largest departments',
+        trend(d.weekly.map(w => ({ ...w, day: String(w.week) })), largest.map(x => ({ key: x, label: x })), fmtPct, 300)),
+      card('All departments', 'Click a row to filter the whole dashboard to that department', table(d.rows, [
+        { key: 'department', title: 'Department', value: r => r.department },
+        { key: 'seats', title: 'Seats', value: r => r.seats, numeric: true },
+        { key: 'activeUsers', title: 'Active', value: r => r.activeUsers, numeric: true },
+        { key: 'adoption', title: 'Adoption', value: r => r.adoption, numeric: true, format: fmtPct },
+        { key: 'power', title: 'Power', value: r => r.tiers.power, numeric: true },
+        { key: 'light', title: 'Light', value: r => r.tiers.light, numeric: true },
+        { key: 'spa', title: 'Sessions / active', value: r => r.sessionsPerActive, numeric: true, format: fmtFixed1 },
+        { key: 'acceptRate', title: 'Accept rate', value: r => r.acceptRate, numeric: true, format: fmtPct },
+        { key: 'cost', title: 'Est. cost', value: r => r.costCents, numeric: true, format: fmtUsd },
+        { key: 'cpa', title: 'Cost / active', value: r => r.costPerActive, numeric: true, format: fmtUsd },
+      ], { sortKey: 'adoption', desc: false })));
+  } },
+
+  { id: 'tools', label: 'Tool acceptance', render: () => h('div', { class: 'stack' },
+    kpis(...cc.tools.map(t => kpi(`${TOOL_LABELS[t.tool]} accept rate`, fmtPct(t.rate), `${fmtInt(t.accepted + t.rejected)} proposals`))),
+    charts(
+      card('Accept rate by tool, daily', null, trend(cc.daily.map(p => ({ day: p.day, ...p.toolRates })), Object.keys(TOOL_LABELS).map(t => ({ key: t, label: TOOL_LABELS[t] })), fmtPct)),
+      card('Proposals by tool', null, stacked(cc.tools.map(t => ({ ...t, name: TOOL_LABELS[t.tool] })), 'name', [{ key: 'accepted', label: 'Accepted' }, { key: 'rejected', label: 'Rejected' }], fmtCompact))),
+    card('Table view', null, table(cc.tools, [
+      { key: 'tool', title: 'Tool', value: t => TOOL_LABELS[t.tool] },
+      { key: 'accepted', title: 'Accepted', value: t => t.accepted, numeric: true },
+      { key: 'rejected', title: 'Rejected', value: t => t.rejected, numeric: true },
+      { key: 'total', title: 'Total', value: t => t.accepted + t.rejected, numeric: true },
+      { key: 'rate', title: 'Accept rate', value: t => t.rate, numeric: true, format: fmtPct },
+    ], { sortKey: 'total' }))) },
+
+  { id: 'environments', label: 'Environments', render: () => {
+    const { localSessions, remoteSessions } = cc.remoteSplit;
+    const total = localSessions + remoteSessions;
+    return h('div', { class: 'stack' },
+      kpis(
+        kpi('Terminals in use', fmtInt(cc.terminals.length)),
+        kpi('Local sessions', fmtInt(localSessions), total ? fmtPct(localSessions / total) : null),
+        kpi('Remote sessions', fmtInt(remoteSessions), total ? fmtPct(remoteSessions / total) : null)),
+      charts(
+        card('Sessions by terminal', null, hbar(cc.terminals.map(t => ({ key: t.terminal, value: t.sessions })), fmtInt)),
+        card('Users by terminal', null, table(cc.terminals, [
+          { key: 'terminal', title: 'Terminal', value: t => t.terminal },
+          { key: 'users', title: 'Users', value: t => t.users, numeric: true },
+          { key: 'sessions', title: 'Sessions', value: t => t.sessions, numeric: true },
+        ], { sortKey: 'sessions' }))));
+  } },
+
+  { id: 'commits', label: 'Commits & PRs', render: () => h('div', { class: 'stack' },
+    kpis(
+      kpi('Commits by Claude Code', fmtInt(k.commits)),
+      kpi('Pull requests by Claude Code', fmtInt(k.prs)),
+      kpi('Commits per active user', k.activeUsers ? fmtFixed1(k.commits / k.activeUsers) : '—'),
+      kpi('Lines added per commit', k.commits ? fmtInt(k.linesAdded / k.commits) : '—')),
+    card('Commits and pull requests per day', null, trend(cc.daily, [{ key: 'commits', label: 'Commits' }, { key: 'prs', label: 'Pull requests' }])),
+    card('Top contributors', null, table(cc.topContributors, [
+      { key: 'label', title: 'User', value: u => u.label },
+      { key: 'commits', title: 'Commits', value: u => u.commits, numeric: true },
+      { key: 'prs', title: 'PRs', value: u => u.prs, numeric: true },
+      { key: 'linesAdded', title: 'Lines added', value: u => u.linesAdded, numeric: true },
+    ], { sortKey: 'commits' }))) },
+
+  { id: 'models', label: 'Models', render: () => h('div', { class: 'stack' },
+    card('Estimated Claude Code cost per model, daily', null, trend(cc.daily.map(p => ({ day: p.day, ...p.modelCost })), cc.models.map(m => ({ key: m.model, label: m.model })), fmtUsd)),
+    card('Tokens and cost by model', null, table(cc.models, [
+      { key: 'model', title: 'Model', value: m => m.model },
+      { key: 'input', title: 'Input', value: m => m.input, numeric: true, format: fmtCompact },
+      { key: 'output', title: 'Output', value: m => m.output, numeric: true, format: fmtCompact },
+      { key: 'cacheRead', title: 'Cache read', value: m => m.cacheRead, numeric: true, format: fmtCompact },
+      { key: 'cacheCreation', title: 'Cache write', value: m => m.cacheCreation, numeric: true, format: fmtCompact },
+      { key: 'cost', title: 'Est. cost', value: m => m.costCents, numeric: true, format: fmtUsd },
+    ], { sortKey: 'cost' }))) },
+
+  { id: 'cost', label: 'Cost & usage', render: () => {
+    const d = DATA.cost;
+    const days = d.daily.filter(x => x.cents > 0).length || 1;
+    const dims = { model: 'model', workspace_id: 'workspace', api_key_id: 'API key', product: 'product', service_tier: 'service tier', cost_type: 'cost type' };
+    return h('div', { class: 'stack' },
+      kpis(
+        kpi('Total cost', fmtUsd(d.totalCents), 'After discounts, before credits'),
+        kpi('List price', fmtUsd(d.listCents)),
+        kpi('Discounts', fmtUsd(d.listCents - d.totalCents), 'Batch and other discounts'),
+        kpi('Average per day', fmtUsd(d.totalCents / days))),
+      card('Daily cost', 'Usage & Cost Analytics API. Data can lag 4 to 24 hours.', trend(d.daily, [{ key: 'cents', label: 'Cost' }], fmtUsd)),
+      charts(...Object.entries(dims).map(([dim, label]) => card(`Cost by ${label}`, null, hbar(d.by[dim].map(r => ({ key: r.key, value: r.cents })), fmtUsd)))));
+  } },
+
+  { id: 'users', label: 'Users', render: () => {
+    const u = DATA.users;
+    return card('Users', 'Sorted, searched and paged on the server', table(u.rows, [
+      { key: 'label', title: 'User', value: r => r.label },
+      { key: 'department', title: 'Department', value: r => r.department, sortable: false },
+      { key: 'activeDays', title: 'Active days', value: r => r.activeDays, numeric: true },
+      { key: 'sessions', title: 'Sessions', value: r => r.sessions, numeric: true },
+      { key: 'linesAdded', title: 'Lines +', value: r => r.linesAdded, numeric: true },
+      { key: 'commits', title: 'Commits', value: r => r.commits, numeric: true },
+      { key: 'prs', title: 'PRs', value: r => r.prs, numeric: true },
+      { key: 'acceptRate', title: 'Accept rate', value: r => r.acceptRate, numeric: true, format: fmtPct },
+      { key: 'costCents', title: 'Est. cost', value: r => r.costCents, numeric: true, format: fmtUsd },
+      { key: 'lastActive', title: 'Last active', value: r => r.lastActive },
+    ], { sortKey: 'sessions', pageSize: 25, searchLabel: 'Search users', searchOf: r => r.label, note: `Preview includes the ${u.rows.length} most active of ${fmtInt(u.total)} users.` }));
+  } },
+
+  { id: 'seats', label: 'Seats', render: () => {
+    const s = DATA.seats;
+    return h('div', { class: 'stack' },
+      kpis(
+        kpi('Members', fmtInt(s.totalSeats)),
+        kpi('Used Claude Code', fmtInt(s.activeSeats), s.totalSeats ? fmtPct(s.activeSeats / s.totalSeats) : null),
+        kpi('No activity', fmtInt(s.idleCount))),
+      card('Members with no Claude Code activity in this range', null, table(s.idle.rows, [
+        { key: 'name', title: 'Name', value: m => m.name, sortable: false },
+        { key: 'email', title: 'Email', value: m => m.email, sortable: false },
+        { key: 'department', title: 'Department', value: m => m.department ?? 'Unassigned', sortable: false },
+        { key: 'role', title: 'Role', value: m => m.role, sortable: false },
+        { key: 'added_at', title: 'Member since', value: m => m.added_at.slice(0, 10), sortable: false },
+      ], { pageSize: 25, searchLabel: 'Search idle members', searchOf: m => `${m.name} ${m.email} ${m.department ?? ''}`, note: `Preview includes the first ${s.idle.rows.length} of ${fmtInt(s.idle.total)} idle members.` })));
+  } },
+
+  { id: 'api', label: 'API response', render: () => {
+    const pre = h('pre', { class: 'json', 'data-testid': 'raw-json' });
+    const select = h('select', { class: 'control', id: 'endpoint', 'aria-label': 'Endpoint' },
+      h('option', { value: 'claude_code' }, 'usage_report/claude_code'), h('option', { value: 'cost' }, 'analytics/cost'));
+    const show = () => (pre.textContent = JSON.stringify(DATA.raw[select.value], null, 2));
+    select.addEventListener('change', show);
+    show();
+    return card('Raw API response', 'Untouched upstream rows for one day (first 3 rows shown in this preview)',
+      h('div', { class: 'row' },
+        h('div', { class: 'field', style: 'width:280px;max-width:100%' }, h('label', { for: 'endpoint' }, 'Endpoint'), select),
+        h('div', { class: 'field' }, h('span', { class: 'label' }, 'Day'), h('div', { class: 'control' }, usDate(DATA.raw.cost.day)))),
+      pre);
+  } },
+];
+
+// ---------- page wiring ----------
+document.getElementById('source-tag').textContent = `Data source: ${DATA.meta.dataSource}`;
+document.getElementById('holiday-label').textContent = `Exclude holidays (${DATA.meta.holidayCountry})`;
+document.querySelector('#range span').textContent = `${usDate(DATA.range.from)}  –  ${usDate(DATA.range.to)}`;
+
+const tabStrip = document.getElementById('tabs');
+const panel = document.getElementById('panel');
+let charts_ = [];
+let current = null;
+
+function renderCharts() {
+  charts_.forEach(c => c.destroy());
+  const c = colors();
+  Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+  Chart.defaults.font.size = 11;
+  charts_ = live.map(({ canvas, config }) => new Chart(canvas, config(c)));
+}
+
+function show(id) {
+  const tab = TABS.find(t => t.id === id) ?? TABS[0];
+  current = tab.id;
+  for (const b of tabStrip.children) b.setAttribute('aria-selected', String(b.dataset.id === tab.id));
+  panel.setAttribute('aria-label', tab.label);
+  live.length = 0;
+  panel.replaceChildren(tab.render());
+  renderCharts();
+}
+
+for (const t of TABS) {
+  tabStrip.append(h('button', { class: 'tab', role: 'tab', type: 'button', 'data-id': t.id, onclick: () => {
+    if (location.hash.slice(1) !== t.id) location.hash = t.id;
+    else show(t.id);
+  } }, t.label));
+}
+addEventListener('hashchange', () => show(location.hash.slice(1)));
+
+const rethemed = () => { syncToggle(); if (current) renderCharts(); };
+media.addEventListener('change', rethemed);
+new MutationObserver(rethemed).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+
+syncToggle();
+show(location.hash.slice(1));
+</script>

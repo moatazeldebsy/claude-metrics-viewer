@@ -32,10 +32,10 @@ const active = computed(() => TABS.find((t) => t.id === f.tab.value) ?? TABS[0]!
   <v-container max-width="1400" class="py-6">
     <header class="d-flex flex-wrap align-baseline justify-space-between ga-2 mb-4">
       <div>
-        <h1 class="text-h6 font-weight-medium">Claude Metrics Viewer</h1>
+        <h1 class="text-h5 font-serif">Claude Metrics Viewer</h1>
         <p class="text-body-2 text-medium-emphasis">Claude Code adoption and Claude API usage &amp; cost</p>
       </div>
-      <v-chip v-if="meta?.dataSource === 'mock'" size="small" variant="outlined" data-testid="mock-badge">
+      <v-chip v-if="meta?.dataSource === 'mock'" size="small" color="primary" data-testid="mock-badge">
         Mock data, set DATA_SOURCE=anthropic for real data
       </v-chip>
     </header>

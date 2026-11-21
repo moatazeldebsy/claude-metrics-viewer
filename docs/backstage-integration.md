@@ -143,21 +143,127 @@ claudeMetrics:
 
 **Try it on mock data first.** Leave out `dataSource` (or set `mock`) and you get the full UI with no key and no egress.
 
+### The Anthropic Admin API key
+
+Real data needs an **Admin API key** from the Claude Console organization you want to report on.
+
+**Which key.** Create it in the Claude Console under **Settings → Admin keys**; only organization admins can. Admin keys start with `sk-ant-admin`. A regular API key (`sk-ant-api…`, the `ANTHROPIC_API_KEY` that SDKs and AI tools use) doesn't work: the Admin API rejects it, and every tab shows a 503 with Anthropic's error.
+
+**Treat it as a high-privilege credential.** An Admin key can manage the whole organization (members, workspaces, API keys). The plugin only calls read endpoints: the Claude Code usage report, the cost report and the member list. Create a dedicated key (for example named `backstage-claude-metrics`) so you can revoke it without affecting anything else, keep it in your secret store, and limit who can read that secret.
+
+**How Backstage receives it.** One environment variable, `ANTHROPIC_ADMIN_KEY`, on the **backend** process, referenced from config:
+
+```yaml
+claudeMetrics:
+  dataSource: anthropic
+  adminKey: ${ANTHROPIC_ADMIN_KEY}
+```
+
+- If the variable isn't set, Backstage treats `adminKey` as missing rather than failing to load config. With `dataSource: anthropic`, the plugin then stops the backend at startup with `claudeMetrics.adminKey is required when dataSource is anthropic`, so a missing secret fails loudly.
+- The value never reaches the browser: `adminKey` is a secret in the plugin's config schema, and the frontend config contains no `claudeMetrics` block at all.
+- The key is read once, when the first request needs data. **Restart the backend after rotating it.**
+- Don't write the literal key into a committed `app-config*.yaml`.
+
+**Setting the variable, per environment:**
+
+*Local development (`yarn start`).* `backstage-cli` doesn't read `.env` files, so export the variable in the shell that starts Backstage (or use `direnv`):
+
+```bash
+export ANTHROPIC_ADMIN_KEY=sk-ant-admin-...
+yarn start
+```
+
+Alternatively, put `claudeMetrics.adminKey` in `app-config.local.yaml`; apps created with `@backstage/create-app` git-ignore `*.local.yaml`. Check yours does before relying on it.
+
+*Docker.* Pass it at run time, never as a build argument or `ENV` line, which would bake it into the image:
+
+```bash
+docker run -e ANTHROPIC_ADMIN_KEY ... your-backstage-image     # from your shell
+docker run --env-file backstage.env ... your-backstage-image   # or from a git-ignored file
+```
+
+*Docker Compose.* Variables reach the container only when they're listed on the service. Compose fills `${...}` from the `.env` file next to the compose file:
+
+```yaml
+services:
+  backstage:
+    environment:
+      ANTHROPIC_ADMIN_KEY: ${ANTHROPIC_ADMIN_KEY:-}
+```
+
+*Kubernetes manifests.* Store it in a Secret and load it into the backend container:
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata: { name: claude-metrics }
+type: Opaque
+stringData:
+  ANTHROPIC_ADMIN_KEY: sk-ant-admin-...   # or create it with kubectl, not in git
+---
+# In the backend Deployment's container spec:
+envFrom:
+  - secretRef: { name: claude-metrics }
+```
+
+To create the Secret without writing the key to a file: `kubectl create secret generic claude-metrics -n backstage --from-literal=ANTHROPIC_ADMIN_KEY=sk-ant-admin-...`
+
+*Backstage Helm chart* (`backstage/charts`). List the Secret under `extraEnvVarsSecrets`; every key in it becomes an env var:
+
+```yaml
+backstage:
+  extraEnvVarsSecrets:
+    - claude-metrics
+```
+
+or pick the one key with `extraEnvVars`:
+
+```yaml
+backstage:
+  extraEnvVars:
+    - name: ANTHROPIC_ADMIN_KEY
+      valueFrom:
+        secretKeyRef: { name: claude-metrics, key: ANTHROPIC_ADMIN_KEY }
+```
+
+Don't put the key in the chart's `backstage.appConfig`: it's rendered into a ConfigMap, and the chart warns against secrets there.
+
+*External Secrets Operator* (AWS Secrets Manager, Vault, GCP Secret Manager, Azure Key Vault). Sync the key into the same Kubernetes Secret, then load it as above:
+
+```yaml
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata: { name: claude-metrics, namespace: backstage }
+spec:
+  refreshInterval: 1h
+  secretStoreRef: { name: your-secret-store, kind: SecretStore }
+  target: { name: claude-metrics }
+  data:
+    - secretKey: ANTHROPIC_ADMIN_KEY
+      remoteRef: { key: backstage/claude-metrics, property: ANTHROPIC_ADMIN_KEY }
+```
+
+If your backend already loads a shared Secret that ESO fills from one entry (`dataFrom: extract`), add `ANTHROPIC_ADMIN_KEY` to that entry instead. No manifest change is needed.
+
+**Check it arrived** without printing it:
+
+```bash
+kubectl exec -n backstage deploy/backstage -- sh -c 'test -n "$ANTHROPIC_ADMIN_KEY" && echo set || echo missing'
+```
+
+Then open Claude Metrics: the header says `Data source: anthropic` and the Overview tab shows your organization's numbers. A 503 on every tab with an authentication error means the key is wrong, revoked, or a regular API key.
+
+**Rotate it** by creating a new Admin key, updating the secret, restarting the backend (`kubectl rollout restart deploy/backstage -n backstage`), checking the page loads, and then revoking the old key in the Console.
+
 ## 4. Deploy
 
 **Image.** If you build with Backstage's standard backend Dockerfile, the `vendor/` tarballs must be in the image before `yarn install` runs: copy `vendor/` next to `yarn.lock` and `package.json`. With a private registry there's nothing extra.
 
-**Secret and CSV on Kubernetes** (adapt to your chart):
+**Admin key.** See [The Anthropic Admin API key](#the-anthropic-admin-api-key) for Docker, Compose, Kubernetes, the Helm chart and External Secrets.
+
+**Departments CSV on Kubernetes** (adapt to your chart):
 
 ```yaml
-# Secret with the Admin key
-apiVersion: v1
-kind: Secret
-metadata: { name: claude-metrics }
-stringData:
-  ANTHROPIC_ADMIN_KEY: sk-ant-admin-...
----
-# Departments CSV
 apiVersion: v1
 kind: ConfigMap
 metadata: { name: claude-metrics-departments }
@@ -171,8 +277,6 @@ data:
 # In the backend Deployment's pod spec
 containers:
   - name: backstage
-    envFrom:
-      - secretRef: { name: claude-metrics }
     volumeMounts:
       - { name: departments, mountPath: /etc/claude-metrics, readOnly: true }
 volumes:
@@ -180,7 +284,6 @@ volumes:
     configMap: { name: claude-metrics-departments }
 ```
 
-If you use External Secrets or Vault, map the key to the `ANTHROPIC_ADMIN_KEY` env var the same way.
 
 ## 5. Check it works
 
@@ -253,6 +356,12 @@ if (isPermission(request.permission, claudeMetricsReadPermission)) {
 }
 ```
 
+For the Admin key, follow the template's existing pattern for optional API keys:
+
+- **Local:** add `ANTHROPIC_ADMIN_KEY=` to `local/backstage/.env.example` and your `local/backstage/.env`, list `ANTHROPIC_ADMIN_KEY: ${ANTHROPIC_ADMIN_KEY:-}` under the `backstage` service's `environment:` in `local/backstage/docker-compose.yml`, and set `dataSource: anthropic` in `backstage/app-config.local.yaml` when you want real data.
+- **AWS:** add `ANTHROPIC_ADMIN_KEY` to the optional-keys list in `scripts/bootstrap.sh` (next to `VOYAGE_API_KEY`), or add it by hand to the `idp-mvp/backstage` Secrets Manager entry. The existing `backstage-secrets` ExternalSecret already syncs every key from it into the pod. Set `claudeMetrics.dataSource: anthropic` in `app-config.aws.yaml` and its `kubernetes/backstage/configmap.yaml` mirror.
+- The key in `local/.env.example` called `ANTHROPIC_API_KEY` is the AI stack's regular key. It isn't an Admin key and won't work here.
+
 The template's groups are synced from GitHub teams (`catalog.providers.githubOrg`, ADR-0004). Create an `engineering-managers` team in the identity org. Within the 30-minute sync it appears as `group:default/engineering-managers`, and its members get access. The template's `app.packages` isn't `all`: add `claudeMetricsPlugin` to `createApp({ features })` in `packages/app/src/App.tsx`. The template is on Backstage 1.56.2, the release the plugins are built against.
 
 This clause was tested in a fresh Backstage 1.57 app with the packed tarballs, and with unit tests in the template's own policy test suite. A user outside the group got the no-access page and `403` from the API with the same token that read the catalog; a user in the allow-list got the dashboard and `200`.
@@ -267,6 +376,7 @@ This clause was tested in a fresh Backstage 1.57 app with the packed tarballs, a
 | A manager sees *You don't have access* | They aren't in the group yet (org sync can take up to its schedule, e.g. 30 minutes), or the policy clause comes after an earlier `return` that already decided. Check the user's groups on their catalog page. |
 | Everyone can open the page | `permission.enabled` is `false`, or the app still uses the allow-all policy module. |
 | Page shows "Could not load data … 401" | The browser session expired, or a proxy in front of Backstage strips the `Authorization` header. |
+| Header says `Data source: mock` although you set a key | `dataSource` isn't `anthropic` in the config layer that's loaded, so the key is ignored. |
 | Every tab shows a 503 with an Anthropic error | Wrong key type (workspace key instead of Admin key), revoked key, or no egress to `api.anthropic.com`. |
 | Everyone is **Unassigned** | No `departmentsFile`, a wrong path, or emails in the CSV don't match Console member emails (matching ignores case). |
 | Frontend error about routes or extensions on startup | The app uses the legacy frontend system. See Requirements. |

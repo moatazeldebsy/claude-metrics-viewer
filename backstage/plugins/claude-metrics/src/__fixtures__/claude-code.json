@@ -1,0 +1,876 @@
+{
+  "kpis": {
+    "activeUsers": 726,
+    "apiActors": 2,
+    "sessions": 27380,
+    "linesAdded": 4874762,
+    "linesRemoved": 1908548,
+    "commits": 19658,
+    "prs": 3892,
+    "acceptRate": 0.8723951478069083,
+    "costCents": 624790
+  },
+  "daily": [
+    {
+      "day": "2026-10-24",
+      "activeUsers": 52,
+      "sessions": 198,
+      "linesAdded": 31144,
+      "linesRemoved": 10715,
+      "commits": 140,
+      "prs": 17,
+      "costCents": 3616,
+      "acceptRate": 0.8807146610614819,
+      "toolRates": {
+        "edit_tool": 0.8872180451127819,
+        "multi_edit_tool": 0.8444444444444444,
+        "write_tool": 0.8834080717488789,
+        "notebook_edit_tool": 0.9428571428571428
+      },
+      "modelCost": {
+        "claude-opus-5-5": 3236,
+        "claude-haiku-5-5": 14,
+        "claude-sonnet-5-5": 366
+      }
+    },
+    {
+      "day": "2026-10-25",
+      "activeUsers": 51,
+      "sessions": 175,
+      "linesAdded": 33077,
+      "linesRemoved": 12674,
+      "commits": 115,
+      "prs": 21,
+      "costCents": 4036,
+      "acceptRate": 0.87782340862423,
+      "toolRates": {
+        "edit_tool": 0.8847262247838616,
+        "multi_edit_tool": 0.8366666666666667,
+        "write_tool": 0.8755760368663594,
+        "notebook_edit_tool": 0.9534883720930233
+      },
+      "modelCost": {
+        "claude-opus-5-5": 3385,
+        "claude-haiku-5-5": 18,
+        "claude-sonnet-5-5": 633
+      }
+    },
+    {
+      "day": "2026-10-26",
+      "activeUsers": 383,
+      "sessions": 1223,
+      "linesAdded": 230171,
+      "linesRemoved": 88797,
+      "commits": 916,
+      "prs": 180,
+      "costCents": 29142,
+      "acceptRate": 0.8736956860302134,
+      "toolRates": {
+        "edit_tool": 0.8837048157985911,
+        "multi_edit_tool": 0.8385093167701864,
+        "write_tool": 0.8662186927306048,
+        "notebook_edit_tool": 0.8904109589041096
+      },
+      "modelCost": {
+        "claude-sonnet-5-5": 3603,
+        "claude-opus-5-5": 25426,
+        "claude-haiku-5-5": 113
+      }
+    },
+    {
+      "day": "2026-10-27",
+      "activeUsers": 381,
+      "sessions": 1356,
+      "linesAdded": 237495,
+      "linesRemoved": 89901,
+      "commits": 883,
+      "prs": 173,
+      "costCents": 30441,
+      "acceptRate": 0.8724967138328308,
+      "toolRates": {
+        "edit_tool": 0.8805060379528464,
+        "multi_edit_tool": 0.8389380530973451,
+        "write_tool": 0.8732227488151659,
+        "notebook_edit_tool": 0.8896551724137931
+      },
+      "modelCost": {
+        "claude-opus-5-5": 26469,
+        "claude-haiku-5-5": 147,
+        "claude-sonnet-5-5": 3825
+      }
+    },
+    {
+      "day": "2026-10-28",
+      "activeUsers": 384,
+      "sessions": 1299,
+      "linesAdded": 236169,
+      "linesRemoved": 87335,
+      "commits": 973,
+      "prs": 168,
+      "costCents": 28213,
+      "acceptRate": 0.8737782529016493,
+      "toolRates": {
+        "edit_tool": 0.8829907386491981,
+        "multi_edit_tool": 0.8380909901873327,
+        "write_tool": 0.8690824079485681,
+        "notebook_edit_tool": 0.8961937716262975
+      },
+      "modelCost": {
+        "claude-opus-5-5": 24465,
+        "claude-haiku-5-5": 118,
+        "claude-sonnet-5-5": 3630
+      }
+    },
+    {
+      "day": "2026-10-29",
+      "activeUsers": 399,
+      "sessions": 1332,
+      "linesAdded": 228994,
+      "linesRemoved": 87768,
+      "commits": 910,
+      "prs": 193,
+      "costCents": 28176,
+      "acceptRate": 0.8732638888888888,
+      "toolRates": {
+        "edit_tool": 0.8817586959017334,
+        "multi_edit_tool": 0.8437754271765663,
+        "write_tool": 0.8709497206703911,
+        "notebook_edit_tool": 0.8823529411764706
+      },
+      "modelCost": {
+        "claude-sonnet-5-5": 4490,
+        "claude-haiku-5-5": 116,
+        "claude-opus-5-5": 23570
+      }
+    },
+    {
+      "day": "2026-10-30",
+      "activeUsers": 387,
+      "sessions": 1248,
+      "linesAdded": 232974,
+      "linesRemoved": 87569,
+      "commits": 889,
+      "prs": 187,
+      "costCents": 28928,
+      "acceptRate": 0.8664104882459313,
+      "toolRates": {
+        "edit_tool": 0.876329043088976,
+        "multi_edit_tool": 0.829205807002562,
+        "write_tool": 0.8640046296296297,
+        "notebook_edit_tool": 0.8764044943820225
+      },
+      "modelCost": {
+        "claude-sonnet-5-5": 3582,
+        "claude-haiku-5-5": 113,
+        "claude-opus-5-5": 25233
+      }
+    },
+    {
+      "day": "2026-10-31",
+      "activeUsers": 64,
+      "sessions": 203,
+      "linesAdded": 31471,
+      "linesRemoved": 13592,
+      "commits": 136,
+      "prs": 23,
+      "costCents": 4656,
+      "acceptRate": 0.8816986855409504,
+      "toolRates": {
+        "edit_tool": 0.8864864864864865,
+        "multi_edit_tool": 0.8590425531914894,
+        "write_tool": 0.8803088803088803,
+        "notebook_edit_tool": 0.9375
+      },
+      "modelCost": {
+        "claude-opus-5-5": 4159,
+        "claude-haiku-5-5": 20,
+        "claude-sonnet-5-5": 477
+      }
+    },
+    {
+      "day": "2026-11-01",
+      "activeUsers": 59,
+      "sessions": 181,
+      "linesAdded": 30780,
+      "linesRemoved": 13329,
+      "commits": 140,
+      "prs": 25,
+      "costCents": 3785,
+      "acceptRate": 0.8748060010346611,
+      "toolRates": {
+        "edit_tool": 0.8788844621513944,
+        "multi_edit_tool": 0.845108695652174,
+        "write_tool": 0.8807692307692307,
+        "notebook_edit_tool": 0.96
+      },
+      "modelCost": {
+        "claude-opus-5-5": 3273,
+        "claude-haiku-5-5": 12,
+        "claude-sonnet-5-5": 500
+      }
+    },
+    {
+      "day": "2026-11-02",
+      "activeUsers": 390,
+      "sessions": 1236,
+      "linesAdded": 222561,
+      "linesRemoved": 84438,
+      "commits": 839,
+      "prs": 191,
+      "costCents": 29335,
+      "acceptRate": 0.8690693069306931,
+      "toolRates": {
+        "edit_tool": 0.8770097406407699,
+        "multi_edit_tool": 0.8371060807811807,
+        "write_tool": 0.8684879288437103,
+        "notebook_edit_tool": 0.8880866425992779
+      },
+      "modelCost": {
+        "claude-sonnet-5-5": 3185,
+        "claude-haiku-5-5": 99,
+        "claude-opus-5-5": 26051
+      }
+    },
+    {
+      "day": "2026-11-03",
+      "activeUsers": 392,
+      "sessions": 1315,
+      "linesAdded": 218853,
+      "linesRemoved": 89075,
+      "commits": 971,
+      "prs": 180,
+      "costCents": 29722,
+      "acceptRate": 0.872780847145488,
+      "toolRates": {
+        "edit_tool": 0.8804772234273319,
+        "multi_edit_tool": 0.8401771336553945,
+        "write_tool": 0.8753180661577609,
+        "notebook_edit_tool": 0.8929765886287625
+      },
+      "modelCost": {
+        "claude-sonnet-5-5": 4237,
+        "claude-haiku-5-5": 125,
+        "claude-opus-5-5": 25360
+      }
+    },
+    {
+      "day": "2026-11-04",
+      "activeUsers": 385,
+      "sessions": 1242,
+      "linesAdded": 229392,
+      "linesRemoved": 91312,
+      "commits": 925,
+      "prs": 174,
+      "costCents": 28836,
+      "acceptRate": 0.8697678030597189,
+      "toolRates": {
+        "edit_tool": 0.8793042660712187,
+        "multi_edit_tool": 0.8369230769230769,
+        "write_tool": 0.864321608040201,
+        "notebook_edit_tool": 0.8807947019867549
+      },
+      "modelCost": {
+        "claude-sonnet-5-5": 4241,
+        "claude-opus-5-5": 24479,
+        "claude-haiku-5-5": 116
+      }
+    },
+    {
+      "day": "2026-11-05",
+      "activeUsers": 414,
+      "sessions": 1378,
+      "linesAdded": 244823,
+      "linesRemoved": 93543,
+      "commits": 970,
+      "prs": 187,
+      "costCents": 30803,
+      "acceptRate": 0.8731104651162791,
+      "toolRates": {
+        "edit_tool": 0.8818560772268539,
+        "multi_edit_tool": 0.8408817635270541,
+        "write_tool": 0.8714208535926526,
+        "notebook_edit_tool": 0.8859060402684564
+      },
+      "modelCost": {
+        "claude-sonnet-5-5": 4171,
+        "claude-opus-5-5": 26504,
+        "claude-haiku-5-5": 128
+      }
+    },
+    {
+      "day": "2026-11-06",
+      "activeUsers": 396,
+      "sessions": 1316,
+      "linesAdded": 228238,
+      "linesRemoved": 93642,
+      "commits": 955,
+      "prs": 200,
+      "costCents": 29163,
+      "acceptRate": 0.8705615345193645,
+      "toolRates": {
+        "edit_tool": 0.8783097373824705,
+        "multi_edit_tool": 0.8365591397849462,
+        "write_tool": 0.8688801350590883,
+        "notebook_edit_tool": 0.9046052631578947
+      },
+      "modelCost": {
+        "claude-sonnet-5-5": 4227,
+        "claude-opus-5-5": 24798,
+        "claude-haiku-5-5": 138
+      }
+    },
+    {
+      "day": "2026-11-07",
+      "activeUsers": 68,
+      "sessions": 202,
+      "linesAdded": 45160,
+      "linesRemoved": 15238,
+      "commits": 164,
+      "prs": 40,
+      "costCents": 5151,
+      "acceptRate": 0.8665226781857451,
+      "toolRates": {
+        "edit_tool": 0.8702388637830859,
+        "multi_edit_tool": 0.8418604651162791,
+        "write_tool": 0.8719723183391004,
+        "notebook_edit_tool": 0.9361702127659575
+      },
+      "modelCost": {
+        "claude-opus-5-5": 4557,
+        "claude-haiku-5-5": 22,
+        "claude-sonnet-5-5": 572
+      }
+    },
+    {
+      "day": "2026-11-08",
+      "activeUsers": 51,
+      "sessions": 152,
+      "linesAdded": 32102,
+      "linesRemoved": 10886,
+      "commits": 147,
+      "prs": 20,
+      "costCents": 4171,
+      "acceptRate": 0.8735110606920022,
+      "toolRates": {
+        "edit_tool": 0.8828980623420387,
+        "multi_edit_tool": 0.8343558282208589,
+        "write_tool": 0.8894472361809045,
+        "notebook_edit_tool": 0.8431372549019608
+      },
+      "modelCost": {
+        "claude-opus-5-5": 3796,
+        "claude-haiku-5-5": 20,
+        "claude-sonnet-5-5": 355
+      }
+    },
+    {
+      "day": "2026-11-09",
+      "activeUsers": 394,
+      "sessions": 1301,
+      "linesAdded": 223406,
+      "linesRemoved": 92764,
+      "commits": 983,
+      "prs": 188,
+      "costCents": 30932,
+      "acceptRate": 0.867674161444895,
+      "toolRates": {
+        "edit_tool": 0.8768685638356771,
+        "multi_edit_tool": 0.8293973941368078,
+        "write_tool": 0.8673066064370413,
+        "notebook_edit_tool": 0.9055374592833876
+      },
+      "modelCost": {
+        "claude-opus-5-5": 27540,
+        "claude-haiku-5-5": 133,
+        "claude-sonnet-5-5": 3259
+      }
+    },
+    {
+      "day": "2026-11-10",
+      "activeUsers": 375,
+      "sessions": 1249,
+      "linesAdded": 222113,
+      "linesRemoved": 88878,
+      "commits": 898,
+      "prs": 165,
+      "costCents": 28410,
+      "acceptRate": 0.8727038349983887,
+      "toolRates": {
+        "edit_tool": 0.8823889364826827,
+        "multi_edit_tool": 0.8401585204755614,
+        "write_tool": 0.8701527614571093,
+        "notebook_edit_tool": 0.8694029850746269
+      },
+      "modelCost": {
+        "claude-opus-5-5": 24909,
+        "claude-haiku-5-5": 120,
+        "claude-sonnet-5-5": 3381
+      }
+    },
+    {
+      "day": "2026-11-11",
+      "activeUsers": 391,
+      "sessions": 1282,
+      "linesAdded": 243330,
+      "linesRemoved": 88917,
+      "commits": 909,
+      "prs": 172,
+      "costCents": 30447,
+      "acceptRate": 0.869578200821202,
+      "toolRates": {
+        "edit_tool": 0.8770627976520102,
+        "multi_edit_tool": 0.8341793570219966,
+        "write_tool": 0.8745541022592153,
+        "notebook_edit_tool": 0.89375
+      },
+      "modelCost": {
+        "claude-sonnet-5-5": 4158,
+        "claude-opus-5-5": 26157,
+        "claude-haiku-5-5": 132
+      }
+    },
+    {
+      "day": "2026-11-12",
+      "activeUsers": 398,
+      "sessions": 1366,
+      "linesAdded": 232907,
+      "linesRemoved": 91139,
+      "commits": 937,
+      "prs": 202,
+      "costCents": 30328,
+      "acceptRate": 0.8673528559002609,
+      "toolRates": {
+        "edit_tool": 0.8760445682451253,
+        "multi_edit_tool": 0.8316749585406302,
+        "write_tool": 0.8687679083094556,
+        "notebook_edit_tool": 0.8754098360655738
+      },
+      "modelCost": {
+        "claude-opus-5-5": 26706,
+        "claude-haiku-5-5": 114,
+        "claude-sonnet-5-5": 3508
+      }
+    },
+    {
+      "day": "2026-11-13",
+      "activeUsers": 418,
+      "sessions": 1419,
+      "linesAdded": 258102,
+      "linesRemoved": 102195,
+      "commits": 1008,
+      "prs": 217,
+      "costCents": 34305,
+      "acceptRate": 0.8779062215872191,
+      "toolRates": {
+        "edit_tool": 0.8860196746121831,
+        "multi_edit_tool": 0.8401529636711281,
+        "write_tool": 0.8793195108984583,
+        "notebook_edit_tool": 0.9090909090909091
+      },
+      "modelCost": {
+        "claude-sonnet-5-5": 4217,
+        "claude-haiku-5-5": 130,
+        "claude-opus-5-5": 29958
+      }
+    },
+    {
+      "day": "2026-11-14",
+      "activeUsers": 53,
+      "sessions": 173,
+      "linesAdded": 32357,
+      "linesRemoved": 14730,
+      "commits": 125,
+      "prs": 25,
+      "costCents": 3987,
+      "acceptRate": 0.8544137022397892,
+      "toolRates": {
+        "edit_tool": 0.8637316561844863,
+        "multi_edit_tool": 0.8260869565217391,
+        "write_tool": 0.8464730290456431,
+        "notebook_edit_tool": 0.8723404255319149
+      },
+      "modelCost": {
+        "claude-sonnet-5-5": 434,
+        "claude-haiku-5-5": 18,
+        "claude-opus-5-5": 3535
+      }
+    },
+    {
+      "day": "2026-11-15",
+      "activeUsers": 55,
+      "sessions": 196,
+      "linesAdded": 35551,
+      "linesRemoved": 12887,
+      "commits": 157,
+      "prs": 30,
+      "costCents": 4517,
+      "acceptRate": 0.856788899900892,
+      "toolRates": {
+        "edit_tool": 0.8656716417910447,
+        "multi_edit_tool": 0.825136612021858,
+        "write_tool": 0.8494623655913979,
+        "notebook_edit_tool": 0.9090909090909091
+      },
+      "modelCost": {
+        "claude-opus-5-5": 4080,
+        "claude-haiku-5-5": 18,
+        "claude-sonnet-5-5": 419
+      }
+    },
+    {
+      "day": "2026-11-16",
+      "activeUsers": 381,
+      "sessions": 1255,
+      "linesAdded": 225252,
+      "linesRemoved": 87277,
+      "commits": 940,
+      "prs": 195,
+      "costCents": 28156,
+      "acceptRate": 0.8743647234678624,
+      "toolRates": {
+        "edit_tool": 0.8832587091842307,
+        "multi_edit_tool": 0.8388646288209607,
+        "write_tool": 0.8713235294117647,
+        "notebook_edit_tool": 0.8903654485049833
+      },
+      "modelCost": {
+        "claude-sonnet-5-5": 3887,
+        "claude-haiku-5-5": 105,
+        "claude-opus-5-5": 24164
+      }
+    },
+    {
+      "day": "2026-11-17",
+      "activeUsers": 369,
+      "sessions": 1293,
+      "linesAdded": 224875,
+      "linesRemoved": 89784,
+      "commits": 884,
+      "prs": 170,
+      "costCents": 29475,
+      "acceptRate": 0.8789199938809852,
+      "toolRates": {
+        "edit_tool": 0.8862767154105736,
+        "multi_edit_tool": 0.8459850811759544,
+        "write_tool": 0.88,
+        "notebook_edit_tool": 0.9071428571428571
+      },
+      "modelCost": {
+        "claude-sonnet-5-5": 3468,
+        "claude-opus-5-5": 25900,
+        "claude-haiku-5-5": 107
+      }
+    },
+    {
+      "day": "2026-11-18",
+      "activeUsers": 376,
+      "sessions": 1274,
+      "linesAdded": 221351,
+      "linesRemoved": 87286,
+      "commits": 955,
+      "prs": 199,
+      "costCents": 28942,
+      "acceptRate": 0.8752764612954187,
+      "toolRates": {
+        "edit_tool": 0.8848086124401914,
+        "multi_edit_tool": 0.8410078192875761,
+        "write_tool": 0.8751451800232288,
+        "notebook_edit_tool": 0.8731884057971014
+      },
+      "modelCost": {
+        "claude-opus-5-5": 24873,
+        "claude-haiku-5-5": 129,
+        "claude-sonnet-5-5": 3940
+      }
+    },
+    {
+      "day": "2026-11-19",
+      "activeUsers": 377,
+      "sessions": 1237,
+      "linesAdded": 218234,
+      "linesRemoved": 92551,
+      "commits": 864,
+      "prs": 170,
+      "costCents": 27379,
+      "acceptRate": 0.8766228836079265,
+      "toolRates": {
+        "edit_tool": 0.8838517538054269,
+        "multi_edit_tool": 0.8455509451360074,
+        "write_tool": 0.8715216104203671,
+        "notebook_edit_tool": 0.9190283400809717
+      },
+      "modelCost": {
+        "claude-sonnet-5-5": 3709,
+        "claude-haiku-5-5": 112,
+        "claude-opus-5-5": 23558
+      }
+    },
+    {
+      "day": "2026-11-20",
+      "activeUsers": 380,
+      "sessions": 1279,
+      "linesAdded": 223880,
+      "linesRemoved": 90326,
+      "commits": 925,
+      "prs": 180,
+      "costCents": 29738,
+      "acceptRate": 0.873730378578024,
+      "toolRates": {
+        "edit_tool": 0.883694150161216,
+        "multi_edit_tool": 0.8365343576611183,
+        "write_tool": 0.8738095238095238,
+        "notebook_edit_tool": 0.8754325259515571
+      },
+      "modelCost": {
+        "claude-opus-5-5": 26010,
+        "claude-haiku-5-5": 126,
+        "claude-sonnet-5-5": 3602
+      }
+    }
+  ],
+  "tools": [
+    {
+      "tool": "edit_tool",
+      "accepted": 166558,
+      "rejected": 22507,
+      "rate": 0.8809562848755719
+    },
+    {
+      "tool": "multi_edit_tool",
+      "accepted": 41615,
+      "rejected": 8031,
+      "rate": 0.8382347016879507
+    },
+    {
+      "tool": "write_tool",
+      "accepted": 31550,
+      "rejected": 4665,
+      "rate": 0.871185972663261
+    },
+    {
+      "tool": "notebook_edit_tool",
+      "accepted": 5516,
+      "rejected": 668,
+      "rate": 0.8919793014230272
+    }
+  ],
+  "terminals": [
+    {
+      "terminal": "iTerm.app",
+      "sessions": 5177,
+      "users": 155
+    },
+    {
+      "terminal": "tmux",
+      "sessions": 4942,
+      "users": 143
+    },
+    {
+      "terminal": "ghostty",
+      "sessions": 4650,
+      "users": 144
+    },
+    {
+      "terminal": "jetbrains",
+      "sessions": 4514,
+      "users": 145
+    },
+    {
+      "terminal": "vscode",
+      "sessions": 4416,
+      "users": 139
+    },
+    {
+      "terminal": "remote",
+      "sessions": 3598,
+      "users": 661
+    },
+    {
+      "terminal": "github-actions",
+      "sessions": 83,
+      "users": 2
+    }
+  ],
+  "remoteSplit": {
+    "localSessions": 23699,
+    "remoteSessions": 3681
+  },
+  "models": [
+    {
+      "model": "claude-opus-5-5",
+      "input": 467180859,
+      "output": 116609705,
+      "cacheRead": 1874460339,
+      "cacheCreation": 94156766,
+      "costCents": 542151
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "input": 138668500,
+      "output": 34361451,
+      "cacheRead": 558131800,
+      "cacheCreation": 27318350,
+      "costCents": 80076
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "input": 106370198,
+      "output": 26637170,
+      "cacheRead": 424623995,
+      "cacheCreation": 21339311,
+      "costCents": 2563
+    }
+  ],
+  "topContributors": [
+    {
+      "label": "fatima.moreau@example.com",
+      "type": "user_actor",
+      "sessions": 103,
+      "linesAdded": 16217,
+      "linesRemoved": 6955,
+      "commits": 103,
+      "prs": 21,
+      "accepted": 1001,
+      "rejected": 153,
+      "acceptRate": 0.8674176776429809,
+      "costCents": 2596,
+      "activeDays": 18,
+      "lastActive": "2026-11-20"
+    },
+    {
+      "label": "priya.park@example.com",
+      "type": "user_actor",
+      "sessions": 106,
+      "linesAdded": 19425,
+      "linesRemoved": 10712,
+      "commits": 101,
+      "prs": 12,
+      "accepted": 1222,
+      "rejected": 201,
+      "acceptRate": 0.8587491215741392,
+      "costCents": 3365,
+      "activeDays": 20,
+      "lastActive": "2026-11-20"
+    },
+    {
+      "label": "nia.lopez@example.com",
+      "type": "user_actor",
+      "sessions": 106,
+      "linesAdded": 21950,
+      "linesRemoved": 7471,
+      "commits": 100,
+      "prs": 16,
+      "accepted": 1197,
+      "rejected": 187,
+      "acceptRate": 0.8648843930635838,
+      "costCents": 2756,
+      "activeDays": 18,
+      "lastActive": "2026-11-20"
+    },
+    {
+      "label": "goran.quist@example.com",
+      "type": "user_actor",
+      "sessions": 106,
+      "linesAdded": 19104,
+      "linesRemoved": 8071,
+      "commits": 95,
+      "prs": 16,
+      "accepted": 1179,
+      "rejected": 174,
+      "acceptRate": 0.8713968957871396,
+      "costCents": 2686,
+      "activeDays": 19,
+      "lastActive": "2026-11-20"
+    },
+    {
+      "label": "wen.khan@example.com",
+      "type": "user_actor",
+      "sessions": 91,
+      "linesAdded": 16128,
+      "linesRemoved": 7642,
+      "commits": 92,
+      "prs": 22,
+      "accepted": 982,
+      "rejected": 127,
+      "acceptRate": 0.8854824165915239,
+      "costCents": 2774,
+      "activeDays": 18,
+      "lastActive": "2026-11-19"
+    },
+    {
+      "label": "bruno.ueda@example.com",
+      "type": "user_actor",
+      "sessions": 131,
+      "linesAdded": 22280,
+      "linesRemoved": 8663,
+      "commits": 87,
+      "prs": 27,
+      "accepted": 1200,
+      "rejected": 170,
+      "acceptRate": 0.8759124087591241,
+      "costCents": 3336,
+      "activeDays": 23,
+      "lastActive": "2026-11-20"
+    },
+    {
+      "label": "zane.zhang@example.com",
+      "type": "user_actor",
+      "sessions": 89,
+      "linesAdded": 14538,
+      "linesRemoved": 7156,
+      "commits": 87,
+      "prs": 21,
+      "accepted": 798,
+      "rejected": 126,
+      "acceptRate": 0.8636363636363636,
+      "costCents": 1976,
+      "activeDays": 19,
+      "lastActive": "2026-11-20"
+    },
+    {
+      "label": "ben.gupta@example.com",
+      "type": "user_actor",
+      "sessions": 93,
+      "linesAdded": 22212,
+      "linesRemoved": 7099,
+      "commits": 83,
+      "prs": 20,
+      "accepted": 993,
+      "rejected": 132,
+      "acceptRate": 0.8826666666666667,
+      "costCents": 2570,
+      "activeDays": 21,
+      "lastActive": "2026-11-20"
+    },
+    {
+      "label": "omar.hall@example.com",
+      "type": "user_actor",
+      "sessions": 119,
+      "linesAdded": 18364,
+      "linesRemoved": 7200,
+      "commits": 82,
+      "prs": 22,
+      "accepted": 877,
+      "rejected": 122,
+      "acceptRate": 0.8778778778778779,
+      "costCents": 1314,
+      "activeDays": 20,
+      "lastActive": "2026-11-20"
+    },
+    {
+      "label": "bruno.haas@example.com",
+      "type": "user_actor",
+      "sessions": 94,
+      "linesAdded": 18483,
+      "linesRemoved": 6862,
+      "commits": 82,
+      "prs": 19,
+      "accepted": 1004,
+      "rejected": 138,
+      "acceptRate": 0.8791593695271454,
+      "costCents": 1324,
+      "activeDays": 18,
+      "lastActive": "2026-11-19"
+    }
+  ]
+}

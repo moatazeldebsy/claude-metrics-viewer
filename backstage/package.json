@@ -1,0 +1,44 @@
+{
+  "name": "claude-metrics-backstage",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": "^24.15.0 || ^26.13.0"
+  },
+  "scripts": {
+    "tsc": "tsc",
+    "test": "backstage-cli repo test",
+    "lint": "backstage-cli repo lint",
+    "new": "backstage-cli new"
+  },
+  "backstage": {
+    "cli": {
+      "new": {
+        "globals": {
+          "license": "UNLICENSED",
+          "namePrefix": "@internal/"
+        }
+      }
+    }
+  },
+  "workspaces": [
+    "plugins/*"
+  ],
+  "devDependencies": {
+    "@backstage/cli": "^0.36.8",
+    "@backstage/cli-defaults": "^0.1.8",
+    "@jest/environment-jsdom-abstract": "^30.5.0",
+    "@types/jest": "^30.0.0",
+    "jest": "^30.5.0",
+    "jsdom": "^27.1.0",
+    "prettier": "^2.3.2",
+    "typescript": "~5.9.0"
+  },
+  "resolutions": {
+    "@yarnpkg/core": "4.9.1",
+    "@types/react": "^18",
+    "@types/react-dom": "^18"
+  },
+  "prettier": "@backstage/cli/config/prettier",
+  "packageManager": "yarn@4.13.0"
+}

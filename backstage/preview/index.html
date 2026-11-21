@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+</head>
+<body>
+<title>Claude Metrics in Backstage</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: Backstage app shell. Fixed nav rail on the left, plugin page on the right
+   (plugin header, page header, filter card, tab strip, tab panel of cards). Rail becomes a top bar on phones. */
+:root {
+  --bg: #f4f4f4;           /* page ground behind cards */
+  --surface: #ffffff;      /* cards, filter bar */
+  --surface-2: #ececec;    /* inputs, buttons, code */
+  --border: #e3e3e3;
+  --fg: #141414;
+  --fg-2: #666666;
+  --rail: #171717;         /* Backstage sidebar */
+  --rail-fg: #d6d6d6;
+  --rail-active: #9bf0e1;  /* Backstage's selected-nav indicator */
+  --focus: #2a78d6;
+  --info-bg: #e8f1fc;
+  --info-fg: #1d4f8f;
+  --font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --radius: 8px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #333333; --surface: #3d3d3d; --surface-2: #4a4a4a; --border: #4d4d4d;
+    --fg: #f5f5f5; --fg-2: #a8a8a8; --rail: #262626; --rail-fg: #cfcfcf;
+    --focus: #6aa8f0; --info-bg: #2b3a4d; --info-fg: #b9d4f5; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #333333; --surface: #3d3d3d; --surface-2: #4a4a4a; --border: #4d4d4d;
+  --fg: #f5f5f5; --fg-2: #a8a8a8; --rail: #262626; --rail-fg: #cfcfcf;
+  --focus: #6aa8f0; --info-bg: #2b3a4d; --info-fg: #b9d4f5; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 14px; line-height: 1.45; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* The rail column keeps its colour down the whole page, below the sticky rail itself. */
+.app { display: grid; grid-template-columns: 224px minmax(0, 1fr); min-height: 100vh; background: linear-gradient(to right, var(--rail) 224px, transparent 224px); }
+
+/* Nav rail */
+.rail { background: var(--rail); color: var(--rail-fg); padding: 20px 0; display: flex; flex-direction: column; gap: 4px; position: sticky; top: 0; height: 100vh; }
+.rail .logo { display: flex; align-items: center; gap: 10px; padding: 0 24px 20px; color: #fff; font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+.rail .logo svg { width: 26px; height: 26px; }
+.rail a { display: flex; align-items: center; gap: 14px; padding: 10px 24px; color: inherit; text-decoration: none; border-left: 3px solid transparent; font-size: 14px; }
+.rail a:hover { background: rgba(255, 255, 255, 0.06); }
+.rail a[aria-current="page"] { border-left-color: var(--rail-active); color: #fff; background: rgba(255, 255, 255, 0.08); font-weight: 600; }
+.rail a svg { width: 20px; height: 20px; flex: none; }
+.rail hr { border: 0; border-top: 1px solid rgba(255, 255, 255, 0.12); margin: 8px 16px; }
+.rail .spacer { flex: 1; }
+
+/* Page */
+.page { padding-block: 20px 48px; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); min-width: 0; }
+.plugin-header { display: flex; align-items: center; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.plugin-header .icon { width: 32px; height: 32px; border-radius: 6px; background: var(--surface); border: 1px solid var(--border); display: grid; place-items: center; }
+.plugin-header .icon svg { width: 18px; height: 18px; }
+.plugin-header .name { font-weight: 500; }
+.plugin-header .actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+.page-header { padding: 28px 0 20px; }
+.tag { display: inline-block; font-size: 13px; color: var(--fg-2); margin-bottom: 8px; }
+h1 { font-size: 24px; line-height: 1.25; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.01em; text-wrap: balance; }
+.description { color: var(--fg-2); margin: 0; }
+
+.btn { background: var(--surface-2); border: 0; border-radius: 6px; padding: 6px 10px; font-weight: 600; font-size: 13px; cursor: pointer; }
+.btn:hover:not(:disabled) { filter: brightness(0.96); }
+.btn:disabled { cursor: default; opacity: 0.45; }
+.btn.ghost { background: transparent; border: 1px solid var(--border); font-weight: 500; }
+
+.notice { display: flex; gap: 10px; align-items: flex-start; background: var(--info-bg); color: var(--info-fg); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 16px; font-size: 13px; }
+.notice svg { flex: none; width: 16px; height: 16px; margin-top: 2px; }
+
+/* Filter bar */
+.card { background: var(--surface); border-radius: var(--radius); min-width: 0; }
+.filters { padding: 14px 14px 16px; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 12px 16px; align-items: end; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field label, .field .label { font-size: 12px; font-weight: 500; }
+.control { background: var(--surface-2); border-radius: 6px; height: 32px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--fg); white-space: nowrap; overflow: hidden; }
+.control.placeholder { color: var(--fg-2); }
+.control svg { width: 14px; height: 14px; flex: none; color: var(--fg-2); }
+.f-date { grid-column: span 4; }
+.f-presets { grid-column: span 4; display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
+.f-switches { grid-column: span 4; display: flex; gap: 16px; justify-content: flex-end; flex-wrap: wrap; }
+.f-dept, .f-user { grid-column: span 6; }
+.switch { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.switch .track { width: 32px; height: 18px; border-radius: 9px; background: var(--surface-2); position: relative; }
+.switch .track::after { content: ""; position: absolute; left: 3px; top: 3px; width: 12px; height: 12px; border-radius: 50%; background: var(--fg-2); }
+
+/* Tabs */
+.tabs { display: flex; gap: 4px; margin: 20px 0 16px; overflow-x: auto; scrollbar-width: none; }
+.tab { background: none; border: 0; padding: 6px 8px 8px; color: var(--fg-2); cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; }
+.tab:hover { color: var(--fg); }
+.tab[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--fg); }
+
+/* Panel content */
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(max(200px, calc((100% - 36px) / 4)), 1fr)); gap: 12px; }
+.kpi { padding: 14px 14px 16px; }
+.kpi .k-label { font-size: 13px; color: var(--fg-2); }
+.kpi .k-value { font-size: 22px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.kpi .k-hint { font-size: 11px; color: var(--fg-2); margin-top: 4px; }
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 16px; }
+.chart-card { padding: 16px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.chart-card h3 { font-size: 18px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+.chart-card .sub { font-size: 13px; color: var(--fg-2); margin-top: 2px; }
+.chart-box { position: relative; min-width: 0; }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th { text-align: left; font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--fg); white-space: nowrap; }
+th.num, td.num { text-align: right; }
+th button { all: unset; cursor: pointer; display: inline-flex; gap: 4px; align-items: center; }
+th button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+td { padding: 11px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+tbody tr:hover td { background: color-mix(in srgb, var(--surface-2) 45%, transparent); }
+.table-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 12px; color: var(--fg-2); font-size: 13px; flex-wrap: wrap; }
+.pager { display: flex; align-items: center; gap: 8px; }
+.search { background: var(--surface-2); border: 0; border-radius: 6px; height: 32px; padding: 0 12px 0 32px; width: min(320px, 100%); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%23888' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-4-4'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: 11px center; }
+pre.json { margin: 0; max-height: 560px; overflow: auto; background: var(--surface-2); border-radius: 6px; padding: 12px; font: 12px/1.5 var(--mono); }
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+select.control { appearance: none; border: 0; padding-right: 32px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%23888' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; cursor: pointer; }
+
+@media (max-width: 1100px) {
+  .f-date, .f-presets, .f-switches { grid-column: span 12; justify-content: flex-start; }
+}
+@media (max-width: 760px) {
+  .app { grid-template-columns: minmax(0, 1fr); background: none; }
+  .rail { position: static; height: auto; flex-direction: row; align-items: center; padding: 10px max(12px, env(safe-area-inset-left, 0px)); overflow-x: auto; gap: 2px; }
+  .rail .logo { padding: 0 10px 0 4px; }
+  .rail .logo span, .rail a span, .rail hr, .rail .spacer { display: none; }
+  .rail a { padding: 8px 10px; border-left: 0; border-bottom: 3px solid transparent; }
+  .rail a[aria-current="page"] { border-bottom-color: var(--rail-active); }
+  .f-dept, .f-user { grid-column: span 12; }
+  h1 { font-size: 21px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="app">
+  <nav class="rail" aria-label="Backstage">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 18 12 4l8 14H4Z"/><path d="M9 18l3-5 3 5"/></svg>
+      <span>Backstage</span>
+    </div>
+    <a href="#overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11 12 4l9 7v9H3z"/><path d="M9 20v-6h6v6"/></svg><span>Home</span></a>
+    <a href="#overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg><span>Catalog</span></a>
+    <a href="#overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg><span>APIs</span></a>
+    <a href="#overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7"/></svg><span>Docs</span></a>
+    <a href="#overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><span>Create…</span></a>
+    <hr>
+    <a href="#overview" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Claude Metrics</span></a>
+    <div class="spacer"></div>
+    <a href="#overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6a7 7 0 0 0 0 2.4l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2Z"/></svg><span>Settings</span></a>
+  </nav>
+
+  <main class="page">
+    <div class="plugin-header">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div>
+      <span class="name">Claude Metrics</span>
+      <div class="actions"><button class="btn ghost" id="theme-toggle" type="button">Dark theme</button></div>
+    </div>
+
+    <header class="page-header">
+      <span class="tag" id="source-tag">Data source: mock</span>
+      <h1>Adoption &amp; cost</h1>
+      <p class="description">Claude Code adoption and Claude API usage &amp; cost</p>
+    </header>
+
+    <div class="notice" role="note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+      <span id="preview-note">Static preview of the plugin page. Numbers come from the built-in mock organization; the filter bar and row clicks are inactive here.</span>
+    </div>
+
+    <section class="card filters" aria-label="Filters">
+      <div class="field f-date"><span class="label">Date range</span><div class="control" id="range"><span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div></div>
+      <div class="f-presets"><button class="btn" type="button" disabled>Last 7 days</button><button class="btn" type="button" disabled>Last 28 days</button><button class="btn" type="button" disabled>Last 90 days</button></div>
+      <div class="f-switches"><span class="switch"><span class="track"></span>Exclude weekends</span><span class="switch"><span class="track"></span><span id="holiday-label">Exclude holidays (US)</span></span></div>
+      <div class="field f-dept"><span class="label">Department</span><div class="control"><span>All departments</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></div></div>
+      <div class="field f-user"><span class="label">User</span><div class="control placeholder"><span>Search name or email…</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></div></div>
+    </section>
+
+    <div class="tabs" role="tablist" aria-label="Dashboard sections" id="tabs"></div>
+    <section id="panel" role="tabpanel"></section>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha384-bs/nf9FbdNouRbMiFcrcZfLXYPKiPaGVGplVbv7dLGECccEXDW+S3zjqSKR5ZEaD" crossorigin="anonymous"></script>
+<script>
+const DATA = {"range":{"from":"2026-10-24","to":"2026-11-20"},"meta":{"dataSource":"mock","holidayCountry":"US","departments":["Backend","Data","Design","Frontend","ML Research","Mobile","Platform","Product","QA","SRE","Security","Support Eng"]},"palette":{"light":{"series":["#c6613f","#2a78d6","#1baf7a","#eda100","#e87ba4","#008300","#6250d6","#e34948"],"surface":"#ffffff","border":"#e8e6dc","grid":"#f0eee6","text":"#141413","text2":"#5e5d59","muted":"#73726c"},"dark":{"series":["#d4714f","#3987e5","#199e70","#c98500","#d55181","#0ca30c","#9085e9","#e66767"],"surface":"#30302e","border":"#3e3e38","grid":"#3a3a37","text":"#faf9f5","text2":"#c2c0b6","muted":"#9c9a92"}},"claudeCode":{"kpis":{"activeUsers":726,"apiActors":2,"sessions":27380,"linesAdded":4874762,"linesRemoved":1908548,"commits":19658,"prs":3892,"acceptRate":0.8723951478069083,"costCents":624790},"daily":[{"day":"2026-10-24","activeUsers":52,"sessions":198,"linesAdded":31144,"linesRemoved":10715,"commits":140,"prs":17,"costCents":3616,"acceptRate":0.8807146610614819,"toolRates":{"edit_tool":0.8872180451127819,"multi_edit_tool":0.8444444444444444,"write_tool":0.8834080717488789,"notebook_edit_tool":0.9428571428571428},"modelCost":{"claude-opus-5-5":3236,"claude-haiku-5-5":14,"claude-sonnet-5-5":366}},{"day":"2026-10-25","activeUsers":51,"sessions":175,"linesAdded":33077,"linesRemoved":12674,"commits":115,"prs":21,"costCents":4036,"acceptRate":0.87782340862423,"toolRates":{"edit_tool":0.8847262247838616,"multi_edit_tool":0.8366666666666667,"write_tool":0.8755760368663594,"notebook_edit_tool":0.9534883720930233},"modelCost":{"claude-opus-5-5":3385,"claude-haiku-5-5":18,"claude-sonnet-5-5":633}},{"day":"2026-10-26","activeUsers":383,"sessions":1223,"linesAdded":230171,"linesRemoved":88797,"commits":916,"prs":180,"costCents":29142,"acceptRate":0.8736956860302134,"toolRates":{"edit_tool":0.8837048157985911,"multi_edit_tool":0.8385093167701864,"write_tool":0.8662186927306048,"notebook_edit_tool":0.8904109589041096},"modelCost":{"claude-sonnet-5-5":3603,"claude-opus-5-5":25426,"claude-haiku-5-5":113}},{"day":"2026-10-27","activeUsers":381,"sessions":1356,"linesAdded":237495,"linesRemoved":89901,"commits":883,"prs":173,"costCents":30441,"acceptRate":0.8724967138328308,"toolRates":{"edit_tool":0.8805060379528464,"multi_edit_tool":0.8389380530973451,"write_tool":0.8732227488151659,"notebook_edit_tool":0.8896551724137931},"modelCost":{"claude-opus-5-5":26469,"claude-haiku-5-5":147,"claude-sonnet-5-5":3825}},{"day":"2026-10-28","activeUsers":384,"sessions":1299,"linesAdded":236169,"linesRemoved":87335,"commits":973,"prs":168,"costCents":28213,"acceptRate":0.8737782529016493,"toolRates":{"edit_tool":0.8829907386491981,"multi_edit_tool":0.8380909901873327,"write_tool":0.8690824079485681,"notebook_edit_tool":0.8961937716262975},"modelCost":{"claude-opus-5-5":24465,"claude-haiku-5-5":118,"claude-sonnet-5-5":3630}},{"day":"2026-10-29","activeUsers":399,"sessions":1332,"linesAdded":228994,"linesRemoved":87768,"commits":910,"prs":193,"costCents":28176,"acceptRate":0.8732638888888888,"toolRates":{"edit_tool":0.8817586959017334,"multi_edit_tool":0.8437754271765663,"write_tool":0.8709497206703911,"notebook_edit_tool":0.8823529411764706},"modelCost":{"claude-sonnet-5-5":4490,"claude-haiku-5-5":116,"claude-opus-5-5":23570}},{"day":"2026-10-30","activeUsers":387,"sessions":1248,"linesAdded":232974,"linesRemoved":87569,"commits":889,"prs":187,"costCents":28928,"acceptRate":0.8664104882459313,"toolRates":{"edit_tool":0.876329043088976,"multi_edit_tool":0.829205807002562,"write_tool":0.8640046296296297,"notebook_edit_tool":0.8764044943820225},"modelCost":{"claude-sonnet-5-5":3582,"claude-haiku-5-5":113,"claude-opus-5-5":25233}},{"day":"2026-10-31","activeUsers":64,"sessions":203,"linesAdded":31471,"linesRemoved":13592,"commits":136,"prs":23,"costCents":4656,"acceptRate":0.8816986855409504,"toolRates":{"edit_tool":0.8864864864864865,"multi_edit_tool":0.8590425531914894,"write_tool":0.8803088803088803,"notebook_edit_tool":0.9375},"modelCost":{"claude-opus-5-5":4159,"claude-haiku-5-5":20,"claude-sonnet-5-5":477}},{"day":"2026-11-01","activeUsers":59,"sessions":181,"linesAdded":30780,"linesRemoved":13329,"commits":140,"prs":25,"costCents":3785,"acceptRate":0.8748060010346611,"toolRates":{"edit_tool":0.8788844621513944,"multi_edit_tool":0.845108695652174,"write_tool":0.8807692307692307,"notebook_edit_tool":0.96},"modelCost":{"claude-opus-5-5":3273,"claude-haiku-5-5":12,"claude-sonnet-5-5":500}},{"day":"2026-11-02","activeUsers":390,"sessions":1236,"linesAdded":222561,"linesRemoved":84438,"commits":839,"prs":191,"costCents":29335,"acceptRate":0.8690693069306931,"toolRates":{"edit_tool":0.8770097406407699,"multi_edit_tool":0.8371060807811807,"write_tool":0.8684879288437103,"notebook_edit_tool":0.8880866425992779},"modelCost":{"claude-sonnet-5-5":3185,"claude-haiku-5-5":99,"claude-opus-5-5":26051}},{"day":"2026-11-03","activeUsers":392,"sessions":1315,"linesAdded":218853,"linesRemoved":89075,"commits":971,"prs":180,"costCents":29722,"acceptRate":0.872780847145488,"toolRates":{"edit_tool":0.8804772234273319,"multi_edit_tool":0.8401771336553945,"write_tool":0.8753180661577609,"notebook_edit_tool":0.8929765886287625},"modelCost":{"claude-sonnet-5-5":4237,"claude-haiku-5-5":125,"claude-opus-5-5":25360}},{"day":"2026-11-04","activeUsers":385,"sessions":1242,"linesAdded":229392,"linesRemoved":91312,"commits":925,"prs":174,"costCents":28836,"acceptRate":0.8697678030597189,"toolRates":{"edit_tool":0.8793042660712187,"multi_edit_tool":0.8369230769230769,"write_tool":0.864321608040201,"notebook_edit_tool":0.8807947019867549},"modelCost":{"claude-sonnet-5-5":4241,"claude-opus-5-5":24479,"claude-haiku-5-5":116}},{"day":"2026-11-05","activeUsers":414,"sessions":1378,"linesAdded":244823,"linesRemoved":93543,"commits":970,"prs":187,"costCents":30803,"acceptRate":0.8731104651162791,"toolRates":{"edit_tool":0.8818560772268539,"multi_edit_tool":0.8408817635270541,"write_tool":0.8714208535926526,"notebook_edit_tool":0.8859060402684564},"modelCost":{"claude-sonnet-5-5":4171,"claude-opus-5-5":26504,"claude-haiku-5-5":128}},{"day":"2026-11-06","activeUsers":396,"sessions":1316,"linesAdded":228238,"linesRemoved":93642,"commits":955,"prs":200,"costCents":29163,"acceptRate":0.8705615345193645,"toolRates":{"edit_tool":0.8783097373824705,"multi_edit_tool":0.8365591397849462,"write_tool":0.8688801350590883,"notebook_edit_tool":0.9046052631578947},"modelCost":{"claude-sonnet-5-5":4227,"claude-opus-5-5":24798,"claude-haiku-5-5":138}},{"day":"2026-11-07","activeUsers":68,"sessions":202,"linesAdded":45160,"linesRemoved":15238,"commits":164,"prs":40,"costCents":5151,"acceptRate":0.8665226781857451,"toolRates":{"edit_tool":0.8702388637830859,"multi_edit_tool":0.8418604651162791,"write_tool":0.8719723183391004,"notebook_edit_tool":0.9361702127659575},"modelCost":{"claude-opus-5-5":4557,"claude-haiku-5-5":22,"claude-sonnet-5-5":572}},{"day":"2026-11-08","activeUsers":51,"sessions":152,"linesAdded":32102,"linesRemoved":10886,"commits":147,"prs":20,"costCents":4171,"acceptRate":0.8735110606920022,"toolRates":{"edit_tool":0.8828980623420387,"multi_edit_tool":0.8343558282208589,"write_tool":0.8894472361809045,"notebook_edit_tool":0.8431372549019608},"modelCost":{"claude-opus-5-5":3796,"claude-haiku-5-5":20,"claude-sonnet-5-5":355}},{"day":"2026-11-09","activeUsers":394,"sessions":1301,"linesAdded":223406,"linesRemoved":92764,"commits":983,"prs":188,"costCents":30932,"acceptRate":0.867674161444895,"toolRates":{"edit_tool":0.8768685638356771,"multi_edit_tool":0.8293973941368078,"write_tool":0.8673066064370413,"notebook_edit_tool":0.9055374592833876},"modelCost":{"claude-opus-5-5":27540,"claude-haiku-5-5":133,"claude-sonnet-5-5":3259}},{"day":"2026-11-10","activeUsers":375,"sessions":1249,"linesAdded":222113,"linesRemoved":88878,"commits":898,"prs":165,"costCents":28410,"acceptRate":0.8727038349983887,"toolRates":{"edit_tool":0.8823889364826827,"multi_edit_tool":0.8401585204755614,"write_tool":0.8701527614571093,"notebook_edit_tool":0.8694029850746269},"modelCost":{"claude-opus-5-5":24909,"claude-haiku-5-5":120,"claude-sonnet-5-5":3381}},{"day":"2026-11-11","activeUsers":391,"sessions":1282,"linesAdded":243330,"linesRemoved":88917,"commits":909,"prs":172,"costCents":30447,"acceptRate":0.869578200821202,"toolRates":{"edit_tool":0.8770627976520102,"multi_edit_tool":0.8341793570219966,"write_tool":0.8745541022592153,"notebook_edit_tool":0.89375},"modelCost":{"claude-sonnet-5-5":4158,"claude-opus-5-5":26157,"claude-haiku-5-5":132}},{"day":"2026-11-12","activeUsers":398,"sessions":1366,"linesAdded":232907,"linesRemoved":91139,"commits":937,"prs":202,"costCents":30328,"acceptRate":0.8673528559002609,"toolRates":{"edit_tool":0.8760445682451253,"multi_edit_tool":0.8316749585406302,"write_tool":0.8687679083094556,"notebook_edit_tool":0.8754098360655738},"modelCost":{"claude-opus-5-5":26706,"claude-haiku-5-5":114,"claude-sonnet-5-5":3508}},{"day":"2026-11-13","activeUsers":418,"sessions":1419,"linesAdded":258102,"linesRemoved":102195,"commits":1008,"prs":217,"costCents":34305,"acceptRate":0.8779062215872191,"toolRates":{"edit_tool":0.8860196746121831,"multi_edit_tool":0.8401529636711281,"write_tool":0.8793195108984583,"notebook_edit_tool":0.9090909090909091},"modelCost":{"claude-sonnet-5-5":4217,"claude-haiku-5-5":130,"claude-opus-5-5":29958}},{"day":"2026-11-14","activeUsers":53,"sessions":173,"linesAdded":32357,"linesRemoved":14730,"commits":125,"prs":25,"costCents":3987,"acceptRate":0.8544137022397892,"toolRates":{"edit_tool":0.8637316561844863,"multi_edit_tool":0.8260869565217391,"write_tool":0.8464730290456431,"notebook_edit_tool":0.8723404255319149},"modelCost":{"claude-sonnet-5-5":434,"claude-haiku-5-5":18,"claude-opus-5-5":3535}},{"day":"2026-11-15","activeUsers":55,"sessions":196,"linesAdded":35551,"linesRemoved":12887,"commits":157,"prs":30,"costCents":4517,"acceptRate":0.856788899900892,"toolRates":{"edit_tool":0.8656716417910447,"multi_edit_tool":0.825136612021858,"write_tool":0.8494623655913979,"notebook_edit_tool":0.9090909090909091},"modelCost":{"claude-opus-5-5":4080,"claude-haiku-5-5":18,"claude-sonnet-5-5":419}},{"day":"2026-11-16","activeUsers":381,"sessions":1255,"linesAdded":225252,"linesRemoved":87277,"commits":940,"prs":195,"costCents":28156,"acceptRate":0.8743647234678624,"toolRates":{"edit_tool":0.8832587091842307,"multi_edit_tool":0.8388646288209607,"write_tool":0.8713235294117647,"notebook_edit_tool":0.8903654485049833},"modelCost":{"claude-sonnet-5-5":3887,"claude-haiku-5-5":105,"claude-opus-5-5":24164}},{"day":"2026-11-17","activeUsers":369,"sessions":1293,"linesAdded":224875,"linesRemoved":89784,"commits":884,"prs":170,"costCents":29475,"acceptRate":0.8789199938809852,"toolRates":{"edit_tool":0.8862767154105736,"multi_edit_tool":0.8459850811759544,"write_tool":0.88,"notebook_edit_tool":0.9071428571428571},"modelCost":{"claude-sonnet-5-5":3468,"claude-opus-5-5":25900,"claude-haiku-5-5":107}},{"day":"2026-11-18","activeUsers":376,"sessions":1274,"linesAdded":221351,"linesRemoved":87286,"commits":955,"prs":199,"costCents":28942,"acceptRate":0.8752764612954187,"toolRates":{"edit_tool":0.8848086124401914,"multi_edit_tool":0.8410078192875761,"write_tool":0.8751451800232288,"notebook_edit_tool":0.8731884057971014},"modelCost":{"claude-opus-5-5":24873,"claude-haiku-5-5":129,"claude-sonnet-5-5":3940}},{"day":"2026-11-19","activeUsers":377,"sessions":1237,"linesAdded":218234,"linesRemoved":92551,"commits":864,"prs":170,"costCents":27379,"acceptRate":0.8766228836079265,"toolRates":{"edit_tool":0.8838517538054269,"multi_edit_tool":0.8455509451360074,"write_tool":0.8715216104203671,"notebook_edit_tool":0.9190283400809717},"modelCost":{"claude-sonnet-5-5":3709,"claude-haiku-5-5":112,"claude-opus-5-5":23558}},{"day":"2026-11-20","activeUsers":380,"sessions":1279,"linesAdded":223880,"linesRemoved":90326,"commits":925,"prs":180,"costCents":29738,"acceptRate":0.873730378578024,"toolRates":{"edit_tool":0.883694150161216,"multi_edit_tool":0.8365343576611183,"write_tool":0.8738095238095238,"notebook_edit_tool":0.8754325259515571},"modelCost":{"claude-opus-5-5":26010,"claude-haiku-5-5":126,"claude-sonnet-5-5":3602}}],"tools":[{"tool":"edit_tool","accepted":166558,"rejected":22507,"rate":0.8809562848755719},{"tool":"multi_edit_tool","accepted":41615,"rejected":8031,"rate":0.8382347016879507},{"tool":"write_tool","accepted":31550,"rejected":4665,"rate":0.871185972663261},{"tool":"notebook_edit_tool","accepted":5516,"rejected":668,"rate":0.8919793014230272}],"terminals":[{"terminal":"iTerm.app","sessions":5177,"users":155},{"terminal":"tmux","sessions":4942,"users":143},{"terminal":"ghostty","sessions":4650,"users":144},{"terminal":"jetbrains","sessions":4514,"users":145},{"terminal":"vscode","sessions":4416,"users":139},{"terminal":"remote","sessions":3598,"users":661},{"terminal":"github-actions","sessions":83,"users":2}],"remoteSplit":{"localSessions":23699,"remoteSessions":3681},"models":[{"model":"claude-opus-5-5","input":467180859,"output":116609705,"cacheRead":1874460339,"cacheCreation":94156766,"costCents":542151},{"model":"claude-sonnet-5-5","input":138668500,"output":34361451,"cacheRead":558131800,"cacheCreation":27318350,"costCents":80076},{"model":"claude-haiku-5-5","input":106370198,"output":26637170,"cacheRead":424623995,"cacheCreation":21339311,"costCents":2563}],"topContributors":[{"label":"fatima.moreau@example.com","type":"user_actor","sessions":103,"linesAdded":16217,"linesRemoved":6955,"commits":103,"prs":21,"accepted":1001,"rejected":153,"acceptRate":0.8674176776429809,"costCents":2596,"activeDays":18,"lastActive":"2026-11-20"},{"label":"priya.park@example.com","type":"user_actor","sessions":106,"linesAdded":19425,"linesRemoved":10712,"commits":101,"prs":12,"accepted":1222,"rejected":201,"acceptRate":0.8587491215741392,"costCents":3365,"activeDays":20,"lastActive":"2026-11-20"},{"label":"nia.lopez@example.com","type":"user_actor","sessions":106,"linesAdded":21950,"linesRemoved":7471,"commits":100,"prs":16,"accepted":1197,"rejected":187,"acceptRate":0.8648843930635838,"costCents":2756,"activeDays":18,"lastActive":"2026-11-20"},{"label":"goran.quist@example.com","type":"user_actor","sessions":106,"linesAdded":19104,"linesRemoved":8071,"commits":95,"prs":16,"accepted":1179,"rejected":174,"acceptRate":0.8713968957871396,"costCents":2686,"activeDays":19,"lastActive":"2026-11-20"},{"label":"wen.khan@example.com","type":"user_actor","sessions":91,"linesAdded":16128,"linesRemoved":7642,"commits":92,"prs":22,"accepted":982,"rejected":127,"acceptRate":0.8854824165915239,"costCents":2774,"activeDays":18,"lastActive":"2026-11-19"},{"label":"bruno.ueda@example.com","type":"user_actor","sessions":131,"linesAdded":22280,"linesRemoved":8663,"commits":87,"prs":27,"accepted":1200,"rejected":170,"acceptRate":0.8759124087591241,"costCents":3336,"activeDays":23,"lastActive":"2026-11-20"},{"label":"zane.zhang@example.com","type":"user_actor","sessions":89,"linesAdded":14538,"linesRemoved":7156,"commits":87,"prs":21,"accepted":798,"rejected":126,"acceptRate":0.8636363636363636,"costCents":1976,"activeDays":19,"lastActive":"2026-11-20"},{"label":"ben.gupta@example.com","type":"user_actor","sessions":93,"linesAdded":22212,"linesRemoved":7099,"commits":83,"prs":20,"accepted":993,"rejected":132,"acceptRate":0.8826666666666667,"costCents":2570,"activeDays":21,"lastActive":"2026-11-20"},{"label":"omar.hall@example.com","type":"user_actor","sessions":119,"linesAdded":18364,"linesRemoved":7200,"commits":82,"prs":22,"accepted":877,"rejected":122,"acceptRate":0.8778778778778779,"costCents":1314,"activeDays":20,"lastActive":"2026-11-20"},{"label":"bruno.haas@example.com","type":"user_actor","sessions":94,"linesAdded":18483,"linesRemoved":6862,"commits":82,"prs":19,"accepted":1004,"rejected":138,"acceptRate":0.8791593695271454,"costCents":1324,"activeDays":18,"lastActive":"2026-11-19"}]},"departments":{"rows":[{"department":"Design","seats":106,"activeUsers":18,"adoption":0.16981132075471697,"sessions":964,"sessionsPerActive":53.55555555555556,"linesAdded":175427,"commits":708,"prs":163,"acceptRate":0.8694227618772284,"costCents":22848,"costPerActive":1269.3333333333333,"tiers":{"power":3,"regular":13,"light":2,"inactive":88}},{"department":"Product","seats":97,"activeUsers":27,"adoption":0.27835051546391754,"sessions":1195,"sessionsPerActive":44.25925925925926,"linesAdded":218471,"commits":905,"prs":195,"acceptRate":0.8667814395802591,"costCents":28371,"costPerActive":1050.7777777777778,"tiers":{"power":9,"regular":12,"light":6,"inactive":70}},{"department":"Support Eng","seats":90,"activeUsers":33,"adoption":0.36666666666666664,"sessions":1050,"sessionsPerActive":31.818181818181817,"linesAdded":184913,"commits":815,"prs":154,"acceptRate":0.8688554326138219,"costCents":22902,"costPerActive":694,"tiers":{"power":4,"regular":20,"light":9,"inactive":57}},{"department":"QA","seats":94,"activeUsers":44,"adoption":0.46808510638297873,"sessions":1766,"sessionsPerActive":40.13636363636363,"linesAdded":307126,"commits":1221,"prs":268,"acceptRate":0.8712543457866564,"costCents":40250,"costPerActive":914.7727272727273,"tiers":{"power":10,"regular":26,"light":8,"inactive":50}},{"department":"Security","seats":106,"activeUsers":63,"adoption":0.5943396226415094,"sessions":2042,"sessionsPerActive":32.41269841269841,"linesAdded":359994,"commits":1458,"prs":295,"acceptRate":0.8768302381063761,"costCents":49944,"costPerActive":792.7619047619048,"tiers":{"power":7,"regular":40,"light":16,"inactive":43}},{"department":"Mobile","seats":105,"activeUsers":65,"adoption":0.6190476190476191,"sessions":2189,"sessionsPerActive":33.676923076923075,"linesAdded":378804,"commits":1552,"prs":299,"acceptRate":0.8743559990717104,"costCents":51759,"costPerActive":796.2923076923076,"tiers":{"power":11,"regular":38,"light":16,"inactive":40}},{"department":"SRE","seats":90,"activeUsers":62,"adoption":0.6888888888888889,"sessions":2505,"sessionsPerActive":40.403225806451616,"linesAdded":470241,"commits":1890,"prs":411,"acceptRate":0.8736499869202885,"costCents":58343,"costPerActive":941.016129032258,"tiers":{"power":19,"regular":32,"light":11,"inactive":28}},{"department":"Data","seats":103,"activeUsers":74,"adoption":0.7184466019417476,"sessions":2708,"sessionsPerActive":36.5945945945946,"linesAdded":474361,"commits":1937,"prs":336,"acceptRate":0.8769826767049193,"costCents":59570,"costPerActive":805,"tiers":{"power":14,"regular":47,"light":13,"inactive":29}},{"department":"Frontend","seats":100,"activeUsers":72,"adoption":0.72,"sessions":2481,"sessionsPerActive":34.458333333333336,"linesAdded":422720,"commits":1675,"prs":285,"acceptRate":0.8694300953340893,"costCents":57110,"costPerActive":793.1944444444445,"tiers":{"power":11,"regular":44,"light":17,"inactive":28}},{"department":"Backend","seats":88,"activeUsers":68,"adoption":0.7727272727272727,"sessions":2929,"sessionsPerActive":43.0735294117647,"linesAdded":517304,"commits":2035,"prs":400,"acceptRate":0.8756195889234023,"costCents":67455,"costPerActive":991.9852941176471,"tiers":{"power":17,"regular":41,"light":10,"inactive":20}},{"department":"ML Research","seats":96,"activeUsers":86,"adoption":0.8958333333333334,"sessions":3564,"sessionsPerActive":41.44186046511628,"linesAdded":629591,"commits":2584,"prs":545,"acceptRate":0.8689810542315836,"costCents":72944,"costPerActive":848.1860465116279,"tiers":{"power":20,"regular":52,"light":14,"inactive":10}},{"department":"Platform","seats":125,"activeUsers":114,"adoption":0.912,"sessions":3904,"sessionsPerActive":34.24561403508772,"linesAdded":721042,"commits":2828,"prs":531,"acceptRate":0.8717708769423991,"costCents":92277,"costPerActive":809.4473684210526,"tiers":{"power":20,"regular":68,"light":26,"inactive":11}}],"weekly":[{"week":"2026-10-26","Design":0.16037735849056603,"Product":0.25773195876288657,"Support Eng":0.34444444444444444,"QA":0.43617021276595747,"Security":0.5377358490566038,"Mobile":0.5619047619047619,"SRE":0.5888888888888889,"Data":0.6601941747572816,"Frontend":0.67,"Backend":0.7386363636363636,"ML Research":0.84375,"Platform":0.856},{"week":"2026-11-02","Design":0.16037735849056603,"Product":0.27835051546391754,"Support Eng":0.34444444444444444,"QA":0.43617021276595747,"Security":0.5471698113207547,"Mobile":0.5523809523809524,"SRE":0.6777777777777778,"Data":0.6796116504854369,"Frontend":0.65,"Backend":0.75,"ML Research":0.8541666666666666,"Platform":0.856},{"week":"2026-11-09","Design":0.16981132075471697,"Product":0.26804123711340205,"Support Eng":0.3333333333333333,"QA":0.44680851063829785,"Security":0.5471698113207547,"Mobile":0.5904761904761905,"SRE":0.6333333333333333,"Data":0.6407766990291263,"Frontend":0.67,"Backend":0.75,"ML Research":0.8333333333333334,"Platform":0.832}],"totals":{"departments":12,"seats":1200,"activeUsers":726,"adoption":0.605,"tiers":{"power":145,"regular":433,"light":148,"inactive":474}}},"cost":{"totalCents":1082852.5603000002,"listCents":1131952.8307000005,"daily":[{"day":"2026-10-24","cents":13207.433599999998},{"day":"2026-10-25","cents":12469.085899999998},{"day":"2026-10-26","cents":46009.0549},{"day":"2026-10-27","cents":51938.89549999999},{"day":"2026-10-28","cents":47560.1011},{"day":"2026-10-29","cents":49268.58500000001},{"day":"2026-10-30","cents":49457.13860000001},{"day":"2026-10-31","cents":13232.722500000002},{"day":"2026-11-01","cents":13125.628},{"day":"2026-11-02","cents":48213.80010000001},{"day":"2026-11-03","cents":46408.6707},{"day":"2026-11-04","cents":48861.0865},{"day":"2026-11-05","cents":51378.8423},{"day":"2026-11-06","cents":49448.74279999999},{"day":"2026-11-07","cents":13572.7745},{"day":"2026-11-08","cents":12424.876900000001},{"day":"2026-11-09","cents":49400.5949},{"day":"2026-11-10","cents":48550.5105},{"day":"2026-11-11","cents":49577.033299999996},{"day":"2026-11-12","cents":49955.904},{"day":"2026-11-13","cents":53616.07889999999},{"day":"2026-11-14","cents":13242.319500000001},{"day":"2026-11-15","cents":13288.539900000002},{"day":"2026-11-16","cents":46386.3182},{"day":"2026-11-17","cents":46857.467000000004},{"day":"2026-11-18","cents":49492.15769999999},{"day":"2026-11-19","cents":47498.453499999996},{"day":"2026-11-20","cents":48409.744}],"by":{"model":[{"key":"claude-opus-5-5","cents":739246.7727999999},{"key":"claude-sonnet-5-5","cents":291942.51749999996},{"key":"claude-haiku-5-5","cents":51663.27}],"workspace_id":[{"key":"wrkspc_claude_code","cents":624790},{"key":"wrkspc_prod","cents":402307.6426},{"key":"wrkspc_staging","cents":36497.36329999999},{"key":"wrkspc_data","cents":19257.5544}],"api_key_id":[{"key":"(none)","cents":785388.4095000001},{"key":"apikey_prod_web","cents":211866.51749999996},{"key":"apikey_staging","cents":36497.36329999999},{"key":"apikey_prod_batch","cents":29842.715600000003},{"key":"apikey_data_etl","cents":19257.5544}],"product":[{"key":"claude_code","cents":624790},{"key":"api","cents":297464.1508},{"key":"managed_agents","cents":160598.40949999998}],"service_tier":[{"key":"standard","cents":1033752.2903000001},{"key":"batch","cents":49100.27}],"cost_type":[{"key":"tokens","cents":1059517.7489999998},{"key":"session_usage","cents":16471.6316},{"key":"web_search","cents":6863.1797000000015}]}},"users":{"rows":[{"label":"bruno.ueda@example.com","type":"user_actor","sessions":131,"linesAdded":22280,"linesRemoved":8663,"commits":87,"prs":27,"accepted":1200,"rejected":170,"acceptRate":0.8759124087591241,"costCents":3336,"activeDays":23,"lastActive":"2026-11-20","department":"Backend"},{"label":"omar.hall@example.com","type":"user_actor","sessions":119,"linesAdded":18364,"linesRemoved":7200,"commits":82,"prs":22,"accepted":877,"rejected":122,"acceptRate":0.8778778778778779,"costCents":1314,"activeDays":20,"lastActive":"2026-11-20","department":"Design"},{"label":"goran.quist@example.com","type":"user_actor","sessions":106,"linesAdded":19104,"linesRemoved":8071,"commits":95,"prs":16,"accepted":1179,"rejected":174,"acceptRate":0.8713968957871396,"costCents":2686,"activeDays":19,"lastActive":"2026-11-20","department":"Backend"},{"label":"rosa.varga@example.com","type":"user_actor","sessions":106,"linesAdded":20541,"linesRemoved":6542,"commits":77,"prs":17,"accepted":914,"rejected":160,"acceptRate":0.851024208566108,"costCents":2672,"activeDays":20,"lastActive":"2026-11-20","department":"Platform"},{"label":"priya.park@example.com","type":"user_actor","sessions":106,"linesAdded":19425,"linesRemoved":10712,"commits":101,"prs":12,"accepted":1222,"rejected":201,"acceptRate":0.8587491215741392,"costCents":3365,"activeDays":20,"lastActive":"2026-11-20","department":"SRE"},{"label":"nia.lopez@example.com","type":"user_actor","sessions":106,"linesAdded":21950,"linesRemoved":7471,"commits":100,"prs":16,"accepted":1197,"rejected":187,"acceptRate":0.8648843930635838,"costCents":2756,"activeDays":18,"lastActive":"2026-11-20","department":"Design"},{"label":"fatima.moreau@example.com","type":"user_actor","sessions":103,"linesAdded":16217,"linesRemoved":6955,"commits":103,"prs":21,"accepted":1001,"rejected":153,"acceptRate":0.8674176776429809,"costCents":2596,"activeDays":18,"lastActive":"2026-11-20","department":"ML Research"},{"label":"chen.cho@example.com","type":"user_actor","sessions":101,"linesAdded":16415,"linesRemoved":8929,"commits":77,"prs":16,"accepted":916,"rejected":130,"acceptRate":0.875717017208413,"costCents":1933,"activeDays":21,"lastActive":"2026-11-20","department":"Backend"},{"label":"eli.zhang@example.com","type":"user_actor","sessions":100,"linesAdded":15139,"linesRemoved":6822,"commits":53,"prs":21,"accepted":1013,"rejected":176,"acceptRate":0.8519764507989908,"costCents":2677,"activeDays":18,"lastActive":"2026-11-20","department":"Backend"},{"label":"lena.berg@example.com","type":"user_actor","sessions":97,"linesAdded":18545,"linesRemoved":5419,"commits":68,"prs":15,"accepted":826,"rejected":121,"acceptRate":0.8722280887011615,"costCents":2404,"activeDays":18,"lastActive":"2026-11-19","department":"Backend"},{"label":"bruno.haas@example.com","type":"user_actor","sessions":94,"linesAdded":18483,"linesRemoved":6862,"commits":82,"prs":19,"accepted":1004,"rejected":138,"acceptRate":0.8791593695271454,"costCents":1324,"activeDays":18,"lastActive":"2026-11-19","department":"Data"},{"label":"ben.gupta@example.com","type":"user_actor","sessions":93,"linesAdded":22212,"linesRemoved":7099,"commits":83,"prs":20,"accepted":993,"rejected":132,"acceptRate":0.8826666666666667,"costCents":2570,"activeDays":21,"lastActive":"2026-11-20","department":"Backend"},{"label":"dara.kowalski@example.com","type":"user_actor","sessions":92,"linesAdded":17605,"linesRemoved":5546,"commits":48,"prs":17,"accepted":693,"rejected":111,"acceptRate":0.8619402985074627,"costCents":2234,"activeDays":15,"lastActive":"2026-11-20","department":"Frontend"},{"label":"wen.khan@example.com","type":"user_actor","sessions":91,"linesAdded":16128,"linesRemoved":7642,"commits":92,"prs":22,"accepted":982,"rejected":127,"acceptRate":0.8854824165915239,"costCents":2774,"activeDays":18,"lastActive":"2026-11-19","department":"Mobile"},{"label":"omar.zhang@example.com","type":"user_actor","sessions":91,"linesAdded":17870,"linesRemoved":6478,"commits":69,"prs":16,"accepted":689,"rejected":119,"acceptRate":0.8527227722772277,"costCents":1285,"activeDays":19,"lastActive":"2026-11-20","department":"ML Research"},{"label":"aiko.eze@example.com","type":"user_actor","sessions":90,"linesAdded":9596,"linesRemoved":4829,"commits":61,"prs":19,"accepted":875,"rejected":114,"acceptRate":0.884732052578362,"costCents":2132,"activeDays":16,"lastActive":"2026-11-20","department":"Security"},{"label":"kofi.abara@example.com","type":"user_actor","sessions":89,"linesAdded":12372,"linesRemoved":5721,"commits":69,"prs":16,"accepted":566,"rejected":85,"acceptRate":0.869431643625192,"costCents":2251,"activeDays":13,"lastActive":"2026-11-19","department":"Data"},{"label":"zane.zhang@example.com","type":"user_actor","sessions":89,"linesAdded":14538,"linesRemoved":7156,"commits":87,"prs":21,"accepted":798,"rejected":126,"acceptRate":0.8636363636363636,"costCents":1976,"activeDays":19,"lastActive":"2026-11-20","department":"Product"},{"label":"wen.brandt@example.com","type":"user_actor","sessions":88,"linesAdded":16420,"linesRemoved":5575,"commits":59,"prs":17,"accepted":665,"rejected":111,"acceptRate":0.8569587628865979,"costCents":1094,"activeDays":17,"lastActive":"2026-11-20","department":"SRE"},{"label":"fatima.cho@example.com","type":"user_actor","sessions":88,"linesAdded":15635,"linesRemoved":6645,"commits":62,"prs":18,"accepted":694,"rejected":98,"acceptRate":0.8762626262626263,"costCents":2083,"activeDays":17,"lastActive":"2026-11-20","department":"SRE"},{"label":"viktor.haas@example.com","type":"user_actor","sessions":87,"linesAdded":15980,"linesRemoved":7195,"commits":68,"prs":15,"accepted":788,"rejected":117,"acceptRate":0.8707182320441988,"costCents":2040,"activeDays":17,"lastActive":"2026-11-20","department":"Data"},{"label":"quinn.engel@example.com","type":"user_actor","sessions":85,"linesAdded":13509,"linesRemoved":6146,"commits":61,"prs":13,"accepted":752,"rejected":111,"acceptRate":0.8713789107763615,"costCents":961,"activeDays":19,"lastActive":"2026-11-20","department":"ML Research"},{"label":"ada.eze@example.com","type":"user_actor","sessions":83,"linesAdded":13578,"linesRemoved":5293,"commits":65,"prs":14,"accepted":714,"rejected":92,"acceptRate":0.8858560794044665,"costCents":1044,"activeDays":17,"lastActive":"2026-11-18","department":"Support Eng"},{"label":"ada.moreau@example.com","type":"user_actor","sessions":82,"linesAdded":15301,"linesRemoved":5723,"commits":48,"prs":10,"accepted":747,"rejected":86,"acceptRate":0.8967587034813925,"costCents":1111,"activeDays":22,"lastActive":"2026-11-20","department":"SRE"},{"label":"yara.costa@example.com","type":"user_actor","sessions":82,"linesAdded":16777,"linesRemoved":5968,"commits":76,"prs":16,"accepted":825,"rejected":106,"acceptRate":0.8861439312567132,"costCents":2240,"activeDays":17,"lastActive":"2026-11-19","department":"Platform"},{"label":"priya.adler@example.com","type":"user_actor","sessions":82,"linesAdded":14912,"linesRemoved":4673,"commits":53,"prs":17,"accepted":725,"rejected":100,"acceptRate":0.8787878787878788,"costCents":1578,"activeDays":15,"lastActive":"2026-11-20","department":"ML Research"},{"label":"chen.brandt@example.com","type":"user_actor","sessions":82,"linesAdded":12813,"linesRemoved":5025,"commits":65,"prs":12,"accepted":807,"rejected":116,"acceptRate":0.8743228602383532,"costCents":922,"activeDays":19,"lastActive":"2026-11-20","department":"Backend"},{"label":"viktor.gupta@example.com","type":"user_actor","sessions":82,"linesAdded":17384,"linesRemoved":6314,"commits":68,"prs":24,"accepted":699,"rejected":110,"acceptRate":0.8640296662546354,"costCents":1991,"activeDays":18,"lastActive":"2026-11-20","department":"ML Research"},{"label":"bruno.costa@example.com","type":"user_actor","sessions":81,"linesAdded":18330,"linesRemoved":7109,"commits":78,"prs":17,"accepted":893,"rejected":158,"acceptRate":0.8496669838249287,"costCents":2416,"activeDays":17,"lastActive":"2026-11-20","department":"Frontend"},{"label":"ivan.okafor@example.com","type":"user_actor","sessions":81,"linesAdded":13352,"linesRemoved":4780,"commits":50,"prs":18,"accepted":625,"rejected":85,"acceptRate":0.8802816901408451,"costCents":1090,"activeDays":15,"lastActive":"2026-11-18","department":"Data"},{"label":"tara.nakamura@example.com","type":"user_actor","sessions":81,"linesAdded":16925,"linesRemoved":4654,"commits":61,"prs":12,"accepted":721,"rejected":96,"acceptRate":0.8824969400244798,"costCents":1802,"activeDays":19,"lastActive":"2026-11-20","department":"ML Research"},{"label":"mateo.khan@example.com","type":"user_actor","sessions":80,"linesAdded":13688,"linesRemoved":4545,"commits":60,"prs":6,"accepted":699,"rejected":101,"acceptRate":0.87375,"costCents":938,"activeDays":20,"lastActive":"2026-11-20","department":"Security"},{"label":"kofi.costa@example.com","type":"user_actor","sessions":80,"linesAdded":15847,"linesRemoved":6495,"commits":63,"prs":21,"accepted":805,"rejected":149,"acceptRate":0.8438155136268344,"costCents":2730,"activeDays":17,"lastActive":"2026-11-20","department":"SRE"},{"label":"mateo.ito@example.com","type":"user_actor","sessions":80,"linesAdded":13104,"linesRemoved":6135,"commits":70,"prs":14,"accepted":681,"rejected":105,"acceptRate":0.8664122137404581,"costCents":1051,"activeDays":19,"lastActive":"2026-11-19","department":"Data"},{"label":"ivan.jensen@example.com","type":"user_actor","sessions":80,"linesAdded":13048,"linesRemoved":5774,"commits":62,"prs":18,"accepted":689,"rejected":129,"acceptRate":0.8422982885085575,"costCents":1983,"activeDays":14,"lastActive":"2026-11-20","department":"Design"},{"label":"yara.nakamura@example.com","type":"user_actor","sessions":80,"linesAdded":12321,"linesRemoved":4991,"commits":48,"prs":21,"accepted":623,"rejected":126,"acceptRate":0.8317757009345794,"costCents":1886,"activeDays":17,"lastActive":"2026-11-20","department":"Product"},{"label":"carla.nakamura@example.com","type":"user_actor","sessions":80,"linesAdded":15563,"linesRemoved":5993,"commits":60,"prs":13,"accepted":692,"rejected":109,"acceptRate":0.8639200998751561,"costCents":2555,"activeDays":14,"lastActive":"2026-11-20","department":"Mobile"},{"label":"hana.weber@example.com","type":"user_actor","sessions":80,"linesAdded":17292,"linesRemoved":5973,"commits":65,"prs":19,"accepted":916,"rejected":129,"acceptRate":0.876555023923445,"costCents":2040,"activeDays":16,"lastActive":"2026-11-20","department":"Platform"},{"label":"esme.jensen@example.com","type":"user_actor","sessions":78,"linesAdded":9738,"linesRemoved":3668,"commits":44,"prs":14,"accepted":677,"rejected":92,"acceptRate":0.8803641092327699,"costCents":1797,"activeDays":16,"lastActive":"2026-11-20","department":"Design"},{"label":"dev.weber@example.com","type":"user_actor","sessions":78,"linesAdded":10259,"linesRemoved":5027,"commits":51,"prs":9,"accepted":605,"rejected":108,"acceptRate":0.8485273492286115,"costCents":612,"activeDays":15,"lastActive":"2026-11-18","department":"Support Eng"},{"label":"fatima.engel@example.com","type":"user_actor","sessions":78,"linesAdded":15318,"linesRemoved":5143,"commits":77,"prs":11,"accepted":669,"rejected":104,"acceptRate":0.8654592496765847,"costCents":1993,"activeDays":17,"lastActive":"2026-11-20","department":"ML Research"},{"label":"wen.ford@example.com","type":"user_actor","sessions":78,"linesAdded":12236,"linesRemoved":6018,"commits":51,"prs":11,"accepted":763,"rejected":129,"acceptRate":0.8553811659192825,"costCents":849,"activeDays":20,"lastActive":"2026-11-20","department":"ML Research"},{"label":"bruno.weber@example.com","type":"user_actor","sessions":77,"linesAdded":14143,"linesRemoved":3578,"commits":52,"prs":8,"accepted":672,"rejected":107,"acceptRate":0.8626444159178434,"costCents":1499,"activeDays":20,"lastActive":"2026-11-20","department":"Product"},{"label":"sami.diaz@example.com","type":"user_actor","sessions":77,"linesAdded":15527,"linesRemoved":6058,"commits":61,"prs":22,"accepted":884,"rejected":130,"acceptRate":0.8717948717948718,"costCents":975,"activeDays":18,"lastActive":"2026-11-20","department":"ML Research"},{"label":"rosa.park@example.com","type":"user_actor","sessions":76,"linesAdded":14520,"linesRemoved":6155,"commits":80,"prs":21,"accepted":936,"rejected":129,"acceptRate":0.8788732394366198,"costCents":2328,"activeDays":16,"lastActive":"2026-11-19","department":"Platform"},{"label":"hana.cho@example.com","type":"user_actor","sessions":76,"linesAdded":14547,"linesRemoved":5475,"commits":66,"prs":8,"accepted":703,"rejected":110,"acceptRate":0.8646986469864698,"costCents":1860,"activeDays":18,"lastActive":"2026-11-20","department":"Frontend"},{"label":"nia.rossi@example.com","type":"user_actor","sessions":75,"linesAdded":12748,"linesRemoved":5434,"commits":71,"prs":21,"accepted":744,"rejected":104,"acceptRate":0.8773584905660378,"costCents":2303,"activeDays":15,"lastActive":"2026-11-17","department":"ML Research"},{"label":"viktor.novak@example.com","type":"user_actor","sessions":75,"linesAdded":13837,"linesRemoved":5962,"commits":60,"prs":21,"accepted":849,"rejected":127,"acceptRate":0.8698770491803278,"costCents":2503,"activeDays":16,"lastActive":"2026-11-20","department":"Security"},{"label":"uma.abara@example.com","type":"user_actor","sessions":74,"linesAdded":16175,"linesRemoved":5197,"commits":69,"prs":12,"accepted":776,"rejected":121,"acceptRate":0.8651059085841695,"costCents":948,"activeDays":15,"lastActive":"2026-11-20","department":"Product"},{"label":"fatima.ito@example.com","type":"user_actor","sessions":73,"linesAdded":11969,"linesRemoved":6983,"commits":56,"prs":19,"accepted":746,"rejected":111,"acceptRate":0.8704784130688448,"costCents":2342,"activeDays":17,"lastActive":"2026-11-19","department":"Frontend"},{"label":"quinn.zhang@example.com","type":"user_actor","sessions":73,"linesAdded":13954,"linesRemoved":5006,"commits":50,"prs":8,"accepted":484,"rejected":69,"acceptRate":0.8752260397830018,"costCents":2038,"activeDays":15,"lastActive":"2026-11-20","department":"Platform"},{"label":"wen.abara@example.com","type":"user_actor","sessions":72,"linesAdded":14127,"linesRemoved":4595,"commits":67,"prs":14,"accepted":705,"rejected":99,"acceptRate":0.8768656716417911,"costCents":1921,"activeDays":13,"lastActive":"2026-11-19","department":"Security"},{"label":"quinn.garcia@example.com","type":"user_actor","sessions":72,"linesAdded":10647,"linesRemoved":4485,"commits":44,"prs":4,"accepted":585,"rejected":85,"acceptRate":0.8731343283582089,"costCents":848,"activeDays":19,"lastActive":"2026-11-20","department":"Frontend"},{"label":"wen.moreau@example.com","type":"user_actor","sessions":72,"linesAdded":13206,"linesRemoved":5774,"commits":55,"prs":15,"accepted":626,"rejected":80,"acceptRate":0.886685552407932,"costCents":1790,"activeDays":22,"lastActive":"2026-11-20","department":"SRE"},{"label":"nia.adler@example.com","type":"user_actor","sessions":72,"linesAdded":15266,"linesRemoved":6573,"commits":59,"prs":18,"accepted":741,"rejected":113,"acceptRate":0.8676814988290398,"costCents":2284,"activeDays":17,"lastActive":"2026-11-20","department":"QA"},{"label":"nia.iqbal@example.com","type":"user_actor","sessions":72,"linesAdded":14048,"linesRemoved":5462,"commits":56,"prs":16,"accepted":681,"rejected":113,"acceptRate":0.8576826196473551,"costCents":2091,"activeDays":18,"lastActive":"2026-11-20","department":"Platform"},{"label":"quinn.kowalski@example.com","type":"user_actor","sessions":72,"linesAdded":16027,"linesRemoved":5925,"commits":54,"prs":16,"accepted":759,"rejected":115,"acceptRate":0.868421052631579,"costCents":1116,"activeDays":13,"lastActive":"2026-11-20","department":"Design"},{"label":"bruno.novak@example.com","type":"user_actor","sessions":72,"linesAdded":12956,"linesRemoved":4283,"commits":67,"prs":12,"accepted":811,"rejected":88,"acceptRate":0.9021134593993326,"costCents":1121,"activeDays":20,"lastActive":"2026-11-20","department":"Data"},{"label":"dev.haas@example.com","type":"user_actor","sessions":72,"linesAdded":12451,"linesRemoved":4924,"commits":45,"prs":8,"accepted":653,"rejected":84,"acceptRate":0.8860244233378561,"costCents":2105,"activeDays":18,"lastActive":"2026-11-20","department":"Product"},{"label":"esme.haas@example.com","type":"user_actor","sessions":72,"linesAdded":9748,"linesRemoved":5177,"commits":48,"prs":17,"accepted":635,"rejected":97,"acceptRate":0.8674863387978142,"costCents":1832,"activeDays":13,"lastActive":"2026-11-20","department":"ML Research"},{"label":"ada.tanaka@example.com","type":"user_actor","sessions":71,"linesAdded":13146,"linesRemoved":4889,"commits":53,"prs":16,"accepted":666,"rejected":135,"acceptRate":0.8314606741573034,"costCents":1903,"activeDays":15,"lastActive":"2026-11-20","department":"Platform"},{"label":"tara.xu@example.com","type":"user_actor","sessions":71,"linesAdded":13115,"linesRemoved":5026,"commits":56,"prs":17,"accepted":641,"rejected":85,"acceptRate":0.8829201101928374,"costCents":2046,"activeDays":17,"lastActive":"2026-11-20","department":"SRE"},{"label":"dev.diaz@example.com","type":"user_actor","sessions":71,"linesAdded":13254,"linesRemoved":4656,"commits":58,"prs":14,"accepted":607,"rejected":85,"acceptRate":0.8771676300578035,"costCents":1175,"activeDays":13,"lastActive":"2026-11-20","department":"Backend"},{"label":"chen.zhang@example.com","type":"user_actor","sessions":71,"linesAdded":12566,"linesRemoved":4924,"commits":49,"prs":7,"accepted":584,"rejected":78,"acceptRate":0.8821752265861027,"costCents":687,"activeDays":16,"lastActive":"2026-11-20","department":"ML Research"},{"label":"tara.meyer@example.com","type":"user_actor","sessions":70,"linesAdded":10712,"linesRemoved":3892,"commits":47,"prs":11,"accepted":524,"rejected":71,"acceptRate":0.880672268907563,"costCents":1825,"activeDays":20,"lastActive":"2026-11-20","department":"Product"},{"label":"nia.moreau@example.com","type":"user_actor","sessions":70,"linesAdded":17674,"linesRemoved":6817,"commits":79,"prs":15,"accepted":737,"rejected":122,"acceptRate":0.8579743888242142,"costCents":2174,"activeDays":18,"lastActive":"2026-11-20","department":"Platform"},{"label":"fatima.tanaka@example.com","type":"user_actor","sessions":70,"linesAdded":13333,"linesRemoved":5774,"commits":70,"prs":16,"accepted":782,"rejected":95,"acceptRate":0.8916761687571265,"costCents":2197,"activeDays":17,"lastActive":"2026-11-20","department":"Product"},{"label":"sami.varga@example.com","type":"user_actor","sessions":70,"linesAdded":9737,"linesRemoved":4719,"commits":47,"prs":10,"accepted":570,"rejected":106,"acceptRate":0.8431952662721893,"costCents":882,"activeDays":14,"lastActive":"2026-11-19","department":"Data"},{"label":"ada.yilmaz@example.com","type":"user_actor","sessions":70,"linesAdded":12002,"linesRemoved":4414,"commits":57,"prs":13,"accepted":678,"rejected":109,"acceptRate":0.8614993646759848,"costCents":944,"activeDays":15,"lastActive":"2026-11-20","department":"Data"},{"label":"kofi.zhang@example.com","type":"user_actor","sessions":70,"linesAdded":15394,"linesRemoved":5164,"commits":58,"prs":17,"accepted":773,"rejected":133,"acceptRate":0.8532008830022075,"costCents":1055,"activeDays":17,"lastActive":"2026-11-20","department":"SRE"},{"label":"chen.nakamura@example.com","type":"user_actor","sessions":70,"linesAdded":11350,"linesRemoved":5009,"commits":36,"prs":12,"accepted":630,"rejected":103,"acceptRate":0.859481582537517,"costCents":726,"activeDays":19,"lastActive":"2026-11-20","department":"Mobile"},{"label":"lena.hall@example.com","type":"user_actor","sessions":69,"linesAdded":14467,"linesRemoved":4916,"commits":72,"prs":17,"accepted":734,"rejected":126,"acceptRate":0.8534883720930233,"costCents":2064,"activeDays":14,"lastActive":"2026-11-20","department":"Security"},{"label":"eli.khan@example.com","type":"user_actor","sessions":69,"linesAdded":9470,"linesRemoved":4481,"commits":48,"prs":5,"accepted":406,"rejected":59,"acceptRate":0.8731182795698925,"costCents":750,"activeDays":16,"lastActive":"2026-11-20","department":"Backend"},{"label":"bruno.gupta@example.com","type":"user_actor","sessions":69,"linesAdded":13242,"linesRemoved":4709,"commits":38,"prs":10,"accepted":476,"rejected":69,"acceptRate":0.8733944954128441,"costCents":1283,"activeDays":18,"lastActive":"2026-11-20","department":"Mobile"},{"label":"carla.gupta@example.com","type":"user_actor","sessions":69,"linesAdded":13043,"linesRemoved":4864,"commits":53,"prs":14,"accepted":762,"rejected":125,"acceptRate":0.859075535512965,"costCents":2308,"activeDays":17,"lastActive":"2026-11-18","department":"Platform"},{"label":"wen.lopez@example.com","type":"user_actor","sessions":69,"linesAdded":11166,"linesRemoved":4748,"commits":67,"prs":9,"accepted":623,"rejected":61,"acceptRate":0.9108187134502924,"costCents":899,"activeDays":19,"lastActive":"2026-11-20","department":"Backend"},{"label":"omar.xu@example.com","type":"user_actor","sessions":68,"linesAdded":10702,"linesRemoved":4924,"commits":57,"prs":12,"accepted":636,"rejected":90,"acceptRate":0.8760330578512396,"costCents":1016,"activeDays":16,"lastActive":"2026-11-20","department":"Support Eng"},{"label":"dara.brandt@example.com","type":"user_actor","sessions":68,"linesAdded":13164,"linesRemoved":4553,"commits":28,"prs":7,"accepted":577,"rejected":82,"acceptRate":0.8755690440060698,"costCents":1772,"activeDays":19,"lastActive":"2026-11-19","department":"Data"},{"label":"fatima.hall@example.com","type":"user_actor","sessions":68,"linesAdded":13521,"linesRemoved":4976,"commits":69,"prs":15,"accepted":748,"rejected":103,"acceptRate":0.8789659224441834,"costCents":1565,"activeDays":15,"lastActive":"2026-11-18","department":"Backend"},{"label":"ivan.park@example.com","type":"user_actor","sessions":68,"linesAdded":12974,"linesRemoved":4534,"commits":54,"prs":16,"accepted":715,"rejected":99,"acceptRate":0.8783783783783784,"costCents":2085,"activeDays":16,"lastActive":"2026-11-20","department":"ML Research"},{"label":"quinn.ueda@example.com","type":"user_actor","sessions":68,"linesAdded":14206,"linesRemoved":4915,"commits":62,"prs":11,"accepted":637,"rejected":85,"acceptRate":0.8822714681440443,"costCents":725,"activeDays":21,"lastActive":"2026-11-20","department":"QA"},{"label":"rosa.xu@example.com","type":"user_actor","sessions":68,"linesAdded":9315,"linesRemoved":4435,"commits":50,"prs":8,"accepted":643,"rejected":92,"acceptRate":0.8748299319727891,"costCents":1426,"activeDays":18,"lastActive":"2026-11-20","department":"Mobile"},{"label":"sami.zhang@example.com","type":"user_actor","sessions":68,"linesAdded":13178,"linesRemoved":4958,"commits":55,"prs":16,"accepted":780,"rejected":114,"acceptRate":0.87248322147651,"costCents":1092,"activeDays":16,"lastActive":"2026-11-19","department":"Design"},{"label":"kofi.adler@example.com","type":"user_actor","sessions":68,"linesAdded":13214,"linesRemoved":5256,"commits":52,"prs":19,"accepted":703,"rejected":117,"acceptRate":0.8573170731707317,"costCents":2249,"activeDays":16,"lastActive":"2026-11-20","department":"ML Research"},{"label":"ben.lopez@example.com","type":"user_actor","sessions":68,"linesAdded":16938,"linesRemoved":5670,"commits":62,"prs":9,"accepted":712,"rejected":109,"acceptRate":0.8672350791717418,"costCents":2025,"activeDays":17,"lastActive":"2026-11-19","department":"SRE"},{"label":"ivan.eze@example.com","type":"user_actor","sessions":68,"linesAdded":10630,"linesRemoved":3684,"commits":45,"prs":7,"accepted":533,"rejected":82,"acceptRate":0.8666666666666667,"costCents":690,"activeDays":15,"lastActive":"2026-11-19","department":"QA"},{"label":"jade.novak@example.com","type":"user_actor","sessions":67,"linesAdded":17164,"linesRemoved":5523,"commits":51,"prs":14,"accepted":724,"rejected":106,"acceptRate":0.8722891566265061,"costCents":1694,"activeDays":15,"lastActive":"2026-11-20","department":"Data"},{"label":"dara.dahl@example.com","type":"user_actor","sessions":66,"linesAdded":12463,"linesRemoved":4321,"commits":71,"prs":11,"accepted":543,"rejected":61,"acceptRate":0.8990066225165563,"costCents":1505,"activeDays":17,"lastActive":"2026-11-20","department":"Platform"},{"label":"hana.fischer@example.com","type":"user_actor","sessions":66,"linesAdded":10631,"linesRemoved":3842,"commits":35,"prs":7,"accepted":525,"rejected":79,"acceptRate":0.8692052980132451,"costCents":1315,"activeDays":20,"lastActive":"2026-11-20","department":"Platform"},{"label":"rosa.ito@example.com","type":"user_actor","sessions":66,"linesAdded":14629,"linesRemoved":4620,"commits":56,"prs":11,"accepted":701,"rejected":128,"acceptRate":0.8455971049457177,"costCents":1874,"activeDays":13,"lastActive":"2026-11-20","department":"Design"},{"label":"nia.okafor@example.com","type":"user_actor","sessions":66,"linesAdded":11328,"linesRemoved":5540,"commits":48,"prs":16,"accepted":658,"rejected":82,"acceptRate":0.8891891891891892,"costCents":1828,"activeDays":14,"lastActive":"2026-11-20","department":"QA"},{"label":"mateo.varga@example.com","type":"user_actor","sessions":66,"linesAdded":12994,"linesRemoved":4023,"commits":56,"prs":11,"accepted":706,"rejected":99,"acceptRate":0.8770186335403727,"costCents":2114,"activeDays":14,"lastActive":"2026-11-20","department":"QA"},{"label":"nia.costa@example.com","type":"user_actor","sessions":65,"linesAdded":11580,"linesRemoved":4637,"commits":40,"prs":9,"accepted":519,"rejected":80,"acceptRate":0.8664440734557596,"costCents":1862,"activeDays":18,"lastActive":"2026-11-20","department":"Frontend"},{"label":"chen.moreau@example.com","type":"user_actor","sessions":65,"linesAdded":10080,"linesRemoved":6171,"commits":70,"prs":13,"accepted":650,"rejected":104,"acceptRate":0.8620689655172413,"costCents":1898,"activeDays":16,"lastActive":"2026-11-20","department":"Backend"},{"label":"wen.cho@example.com","type":"user_actor","sessions":65,"linesAdded":10379,"linesRemoved":4988,"commits":43,"prs":9,"accepted":553,"rejected":75,"acceptRate":0.8805732484076433,"costCents":1384,"activeDays":13,"lastActive":"2026-11-20","department":"QA"},{"label":"uma.haas@example.com","type":"user_actor","sessions":65,"linesAdded":10163,"linesRemoved":4050,"commits":36,"prs":8,"accepted":530,"rejected":54,"acceptRate":0.9075342465753424,"costCents":1512,"activeDays":14,"lastActive":"2026-11-20","department":"ML Research"},{"label":"priya.kowalski@example.com","type":"user_actor","sessions":65,"linesAdded":12069,"linesRemoved":3878,"commits":56,"prs":8,"accepted":565,"rejected":80,"acceptRate":0.875968992248062,"costCents":1873,"activeDays":17,"lastActive":"2026-11-20","department":"Data"},{"label":"hana.yilmaz@example.com","type":"user_actor","sessions":65,"linesAdded":13124,"linesRemoved":3956,"commits":56,"prs":17,"accepted":515,"rejected":83,"acceptRate":0.8612040133779264,"costCents":1488,"activeDays":13,"lastActive":"2026-11-19","department":"SRE"},{"label":"tara.jensen@example.com","type":"user_actor","sessions":64,"linesAdded":11795,"linesRemoved":4247,"commits":55,"prs":13,"accepted":634,"rejected":101,"acceptRate":0.8625850340136054,"costCents":1863,"activeDays":12,"lastActive":"2026-11-20","department":"Mobile"},{"label":"goran.brandt@example.com","type":"user_actor","sessions":64,"linesAdded":12608,"linesRemoved":2747,"commits":31,"prs":13,"accepted":462,"rejected":71,"acceptRate":0.8667917448405253,"costCents":733,"activeDays":17,"lastActive":"2026-11-20","department":"Backend"}],"total":728,"page":1,"pages":8},"seats":{"totalSeats":1200,"activeSeats":726,"idleCount":474,"idle":{"rows":[{"id":"user_0001","email":"ada.abara@example.com","name":"Ada Abara","role":"admin","added_at":"2026-01-15T09:00:00Z","department":"Security"},{"id":"user_0031","email":"ada.berg@example.com","name":"Ada Berg","role":"claude_code_user","added_at":"2026-04-15T09:00:00Z","department":"Support Eng"},{"id":"user_0811","email":"ada.brandt@example.com","name":"Ada Brandt","role":"claude_code_user","added_at":"2026-01-15T09:00:00Z","department":"Backend"},{"id":"user_0841","email":"ada.cho@example.com","name":"Ada Cho","role":"claude_code_user","added_at":"2026-04-15T09:00:00Z","department":"Support Eng"},{"id":"user_0901","email":"ada.engel@example.com","name":"Ada Engel","role":"claude_code_user","added_at":"2026-01-15T09:00:00Z","department":"Frontend"},{"id":"user_0151","email":"ada.fischer@example.com","name":"Ada Fischer","role":"claude_code_user","added_at":"2026-07-15T09:00:00Z","department":"Support Eng"},{"id":"user_0931","email":"ada.ford@example.com","name":"Ada Ford","role":"claude_code_user","added_at":"2026-04-15T09:00:00Z","department":"Frontend"},{"id":"user_0181","email":"ada.garcia@example.com","name":"Ada Garcia","role":"claude_code_user","added_at":"2026-01-15T09:00:00Z","department":"Product"},{"id":"user_0961","email":"ada.gupta@example.com","name":"Ada Gupta","role":"claude_code_user","added_at":"2026-07-15T09:00:00Z","department":"Design"},{"id":"user_0241","email":"ada.ito@example.com","name":"Ada Ito","role":"claude_code_user","added_at":"2026-07-15T09:00:00Z","department":"Data"},{"id":"user_0271","email":"ada.jensen@example.com","name":"Ada Jensen","role":"claude_code_user","added_at":"2026-01-15T09:00:00Z","department":"Frontend"},{"id":"user_0301","email":"ada.khan@example.com","name":"Ada Khan","role":"claude_code_user","added_at":"2026-04-15T09:00:00Z","department":"SRE"},{"id":"user_1081","email":"ada.kowalski@example.com","name":"Ada Kowalski","role":"claude_code_user","added_at":"2026-01-15T09:00:00Z","department":"Mobile"},{"id":"user_0331","email":"ada.lund@example.com","name":"Ada Lund","role":"claude_code_user","added_at":"2026-07-15T09:00:00Z","department":"Product"},{"id":"user_1171","email":"ada.novak@example.com","name":"Ada Novak","role":"claude_code_user","added_at":"2026-01-15T09:00:00Z","department":"QA"},{"id":"user_0451","email":"ada.park@example.com","name":"Ada Park","role":"claude_code_user","added_at":"2026-01-15T09:00:00Z","department":"QA"},{"id":"user_0631","email":"ada.varga@example.com","name":"Ada Varga","role":"claude_code_user","added_at":"2026-01-15T09:00:00Z","department":"Backend"},{"id":"user_0661","email":"ada.weber@example.com","name":"Ada Weber","role":"claude_code_user","added_at":"2026-04-15T09:00:00Z","department":"Security"},{"id":"user_0806","email":"aiko.adler@example.com","name":"Aiko Adler","role":"claude_code_user","added_at":"2026-05-15T09:00:00Z","department":"Security"},{"id":"user_0836","email":"aiko.brandt@example.com","name":"Aiko Brandt","role":"claude_code_user","added_at":"2026-08-15T09:00:00Z","department":"Design"},{"id":"user_0956","email":"aiko.ford@example.com","name":"Aiko Ford","role":"claude_code_user","added_at":"2026-02-15T09:00:00Z","department":"Design"},{"id":"user_1016","email":"aiko.haas@example.com","name":"Aiko Haas","role":"claude_code_user","added_at":"2026-08-15T09:00:00Z","department":"Frontend"},{"id":"user_0236","email":"aiko.hall@example.com","name":"Aiko Hall","role":"claude_code_user","added_at":"2026-02-15T09:00:00Z","department":"Design"},{"id":"user_1046","email":"aiko.iqbal@example.com","name":"Aiko Iqbal","role":"claude_code_user","added_at":"2026-02-15T09:00:00Z","department":"Product"},{"id":"user_0266","email":"aiko.ito@example.com","name":"Aiko Ito","role":"claude_code_user","added_at":"2026-05-15T09:00:00Z","department":"Frontend"}],"total":474,"page":1,"pages":19}},"raw":{"claude_code":{"dataSource":"mock","day":"2026-11-20","data":[{"date":"2026-11-20T00:00:00Z","actor":{"type":"user_actor","email_address":"chen.abara@example.com"},"organization_id":"00000000-0000-4000-8000-000000000001","customer_type":"api","terminal_type":"tmux","subscription_type":null,"is_remote":false,"core_metrics":{"num_sessions":1,"lines_of_code":{"added":171,"removed":214},"commits_by_claude_code":1,"pull_requests_by_claude_code":1},"tool_actions":{"edit_tool":{"accepted":4,"rejected":0},"multi_edit_tool":{"accepted":5,"rejected":1},"write_tool":{"accepted":5,"rejected":1},"notebook_edit_tool":{"accepted":1,"rejected":0}},"model_breakdown":[{"model":"claude-opus-5-5","tokens":{"input":25134,"output":3845,"cache_read":70306,"cache_creation":6887},"estimated_cost":{"currency":"USD","amount":24}},{"model":"claude-haiku-5-5","tokens":{"input":7743,"output":1572,"cache_read":24682,"cache_creation":1968},"estimated_cost":{"currency":"USD","amount":0}}]},{"date":"2026-11-20T00:00:00Z","actor":{"type":"user_actor","email_address":"eli.abara@example.com"},"organization_id":"00000000-0000-4000-8000-000000000001","customer_type":"api","terminal_type":"jetbrains","subscription_type":null,"is_remote":false,"core_metrics":{"num_sessions":4,"lines_of_code":{"added":411,"removed":89},"commits_by_claude_code":1,"pull_requests_by_claude_code":1},"tool_actions":{"edit_tool":{"accepted":18,"rejected":4},"multi_edit_tool":{"accepted":3,"rejected":1},"write_tool":{"accepted":1,"rejected":0},"notebook_edit_tool":{"accepted":0,"rejected":0}},"model_breakdown":[{"model":"claude-sonnet-5-5","tokens":{"input":54137,"output":16339,"cache_read":205256,"cache_creation":11002},"estimated_cost":{"currency":"USD","amount":34}},{"model":"claude-haiku-5-5","tokens":{"input":9986,"output":3112,"cache_read":41186,"cache_creation":1590},"estimated_cost":{"currency":"USD","amount":0}}]},{"date":"2026-11-20T00:00:00Z","actor":{"type":"user_actor","email_address":"tara.abara@example.com"},"organization_id":"00000000-0000-4000-8000-000000000001","customer_type":"api","terminal_type":"jetbrains","subscription_type":null,"is_remote":false,"core_metrics":{"num_sessions":2,"lines_of_code":{"added":125,"removed":158},"commits_by_claude_code":0,"pull_requests_by_claude_code":1},"tool_actions":{"edit_tool":{"accepted":22,"rejected":3},"multi_edit_tool":{"accepted":2,"rejected":1},"write_tool":{"accepted":2,"rejected":0},"notebook_edit_tool":{"accepted":0,"rejected":0}},"model_breakdown":[{"model":"claude-opus-5-5","tokens":{"input":21131,"output":6428,"cache_read":46615,"cache_creation":5770},"estimated_cost":{"currency":"USD","amount":26}},{"model":"claude-haiku-5-5","tokens":{"input":16341,"output":3869,"cache_read":63588,"cache_creation":3130},"estimated_cost":{"currency":"USD","amount":0}}]}]},"cost":{"dataSource":"mock","day":"2026-11-20","data":[{"starting_at":"2026-11-20T00:00:00Z","ending_at":"2026-11-20T23:59:59Z","group":{"actor":null,"actor_type":null,"agent_id":null,"api_key_id":null,"claude_tag_category":null,"claude_tag_user_id":null,"context_window":null,"cost_type":"tokens","deployment_id":null,"environment_id":null,"inference_geo":null,"model":"claude-opus-5-5","product":"claude_code","rbac_group_id":null,"service_tier":"standard","session_id":null,"slack_channel_id":null,"speed":null,"token_type":null,"user_profile_id":null,"workspace_id":"wrkspc_claude_code"},"cost":{"amount":"26010.0000","list_amount":"26010.0000","currency":"USD","requests":39760}},{"starting_at":"2026-11-20T00:00:00Z","ending_at":"2026-11-20T23:59:59Z","group":{"actor":null,"actor_type":null,"agent_id":null,"api_key_id":"apikey_prod_web","claude_tag_category":null,"claude_tag_user_id":null,"context_window":null,"cost_type":"tokens","deployment_id":null,"environment_id":null,"inference_geo":null,"model":"claude-sonnet-5-5","product":"api","rbac_group_id":null,"service_tier":"standard","session_id":null,"slack_channel_id":null,"speed":null,"token_type":null,"user_profile_id":null,"workspace_id":"wrkspc_prod"},"cost":{"amount":"8278.3762","list_amount":"8278.3762","currency":"USD","requests":24835}},{"starting_at":"2026-11-20T00:00:00Z","ending_at":"2026-11-20T23:59:59Z","group":{"actor":null,"actor_type":null,"agent_id":null,"api_key_id":null,"claude_tag_category":null,"claude_tag_user_id":null,"context_window":null,"cost_type":"tokens","deployment_id":null,"environment_id":null,"inference_geo":null,"model":"claude-opus-5-5","product":"managed_agents","rbac_group_id":null,"service_tier":"standard","session_id":null,"slack_channel_id":null,"speed":null,"token_type":null,"user_profile_id":null,"workspace_id":"wrkspc_prod"},"cost":{"amount":"5831.4905","list_amount":"5831.4905","currency":"USD","requests":17494}}]}}};
+
+// Same formatters as the dashboard (app/utils/format.ts).
+const fmtInt = n => Math.round(n).toLocaleString('en-US');
+const fmtUsd = c => (c / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: c >= 1000000 ? 0 : 2 });
+const fmtPct = r => (r == null ? '—' : `${(r * 100).toFixed(1)}%`);
+const fmtCompact = n => Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(n);
+const fmtFixed1 = n => n.toFixed(1);
+const usDate = d => `${d.slice(5, 7)} / ${d.slice(8)} / ${d.slice(0, 4)}`;
+
+const TOOL_LABELS = { edit_tool: 'Edit', multi_edit_tool: 'MultiEdit', write_tool: 'Write', notebook_edit_tool: 'NotebookEdit' };
+
+// ---------- theme ----------
+const root = document.documentElement;
+const media = matchMedia('(prefers-color-scheme: dark)');
+const isDark = () => (root.dataset.theme ? root.dataset.theme === 'dark' : media.matches);
+const colors = () => DATA.palette[isDark() ? 'dark' : 'light'];
+const toggle = document.getElementById('theme-toggle');
+const syncToggle = () => (toggle.textContent = isDark() ? 'Light theme' : 'Dark theme');
+toggle.addEventListener('click', () => {
+  root.dataset.theme = isDark() ? 'light' : 'dark';
+});
+
+// ---------- small DOM helpers ----------
+function h(tag, attrs = {}, ...children) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null) continue;
+    if (k === 'class') el.className = v;
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v);
+  }
+  for (const c of children.flat()) if (c != null) el.append(c);
+  return el;
+}
+const kpi = (label, value, hint) =>
+  h('div', { class: 'card kpi', 'data-testid': 'kpi' },
+    h('div', { class: 'k-label' }, label),
+    h('div', { class: 'k-value', 'data-testid': 'kpi-value' }, value),
+    hint ? h('div', { class: 'k-hint' }, hint) : null);
+const card = (title, subtitle, ...body) =>
+  h('section', { class: 'card chart-card' }, h('div', {}, h('h3', {}, title), subtitle ? h('div', { class: 'sub' }, subtitle) : null), ...body);
+const kpis = (...items) => h('div', { class: 'kpis' }, ...items);
+const charts = (...items) => h('div', { class: 'charts' }, ...items);
+
+// ---------- charts (same options as the plugin's chart components) ----------
+const live = [];
+function chartBox(height, config) {
+  const canvas = h('canvas');
+  const box = h('div', { class: 'chart-box', style: `height:${height}px` }, canvas);
+  live.push({ canvas, config });
+  return box;
+}
+const tooltip = c => ({ backgroundColor: c.surface, titleColor: c.text2, bodyColor: c.text, borderColor: c.border, borderWidth: 1 });
+const at = (row, key) => row[key];
+
+function trend(rows, series, format = String, height = 240) {
+  return chartBox(height, c => ({
+    type: 'line',
+    data: {
+      labels: rows.map(r => String(r.day).slice(5)),
+      datasets: series.map((s, i) => {
+        const color = s.color ? c[s.color] : c.series[i];
+        return { label: s.label, data: rows.map(r => at(r, s.key) ?? null), borderColor: color, backgroundColor: color, borderWidth: 2, pointRadius: 0, pointHoverRadius: 4, cubicInterpolationMode: 'monotone' };
+      }),
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: series.length > 1, labels: { color: c.text2, boxWidth: 14, boxHeight: 2 } }, tooltip: { ...tooltip(c), callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y == null ? '—' : format(ctx.parsed.y)}` } } },
+      scales: {
+        x: { grid: { display: false }, border: { display: false }, ticks: { color: c.muted, maxRotation: 0, autoSkipPadding: 20 } },
+        y: { beginAtZero: true, grid: { color: c.grid }, border: { display: false }, ticks: { color: c.muted, callback: v => format(Number(v)) } },
+      },
+    },
+  }));
+}
+
+function hbar(data, format = String, max = 8, foldOther = true) {
+  const top = data.slice(0, max);
+  const rest = data.slice(max).reduce((s, d) => s + d.value, 0);
+  const rows = foldOther && rest > 0 ? [...top, { key: 'Other', value: rest }] : top;
+  return chartBox(Math.max(80, rows.length * 32 + 16), c => ({
+    type: 'bar',
+    data: { labels: rows.map(r => r.key), datasets: [{ data: rows.map(r => r.value), backgroundColor: c.series[0], borderRadius: 4, borderSkipped: 'start', barPercentage: 0.8 }] },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: false, layout: { padding: { right: 72 } },
+      plugins: { legend: { display: false }, tooltip: { ...tooltip(c), callbacks: { label: ctx => format(Number(ctx.parsed.x)) } } },
+      scales: { x: { display: false, beginAtZero: true }, y: { grid: { display: false }, border: { display: false }, ticks: { color: c.text2, font: { size: 12 } } } },
+    },
+    plugins: [{
+      id: 'valueLabels',
+      afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        ctx.save();
+        ctx.fillStyle = c.text2;
+        ctx.textBaseline = 'middle';
+        chart.getDatasetMeta(0).data.forEach((bar, i) => ctx.fillText(format(rows[i]?.value ?? 0), bar.x + 6, bar.y));
+        ctx.restore();
+      },
+    }],
+  }));
+}
+
+function stacked(rows, xKey, series, format = String, horizontal = false) {
+  return chartBox(horizontal ? Math.max(120, rows.length * 30 + 60) : 240, c => {
+    const value = { stacked: true, beginAtZero: true, grid: { color: c.grid }, border: { display: false }, ticks: { color: c.muted, callback: v => format(Number(v)) } };
+    const category = { stacked: true, grid: { display: false }, border: { display: false }, ticks: { color: c.text2 } };
+    return {
+      type: 'bar',
+      data: {
+        labels: rows.map(r => String(r[xKey])),
+        datasets: series.map((s, i) => ({ label: s.label, data: rows.map(r => Number(r[s.key] ?? 0)), backgroundColor: s.color ? c[s.color] : c.series[i], borderColor: c.surface, borderWidth: 1, borderRadius: i === series.length - 1 ? 4 : 0, borderSkipped: 'start' })),
+      },
+      options: {
+        indexAxis: horizontal ? 'y' : 'x', responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { labels: { color: c.text2, boxWidth: 12, boxHeight: 12 } }, tooltip: { ...tooltip(c), callbacks: { label: ctx => `${ctx.dataset.label}: ${format(Number(horizontal ? ctx.parsed.x : ctx.parsed.y))}` } } },
+        scales: horizontal ? { x: value, y: category } : { x: category, y: value },
+      },
+    };
+  });
+}
+
+// ---------- tables: client-side sort, optional search and paging ----------
+function table(rows, columns, { sortKey, desc = true, pageSize, searchLabel, searchOf, note } = {}) {
+  let sort = sortKey, dir = desc ? -1 : 1, page = 1, needle = '';
+  const wrap = h('div', { class: 'stack' });
+  const search = searchLabel ? h('input', { class: 'search', type: 'search', placeholder: searchLabel, 'aria-label': searchLabel, id: `search-${searchLabel.replace(/\W+/g, '-').toLowerCase()}` }) : null;
+  if (search) search.addEventListener('input', () => { needle = search.value.trim().toLowerCase(); page = 1; draw(); });
+  const host = h('div');
+  if (search) wrap.append(search);
+  wrap.append(host);
+
+  function cell(col, row) {
+    const v = col.value(row);
+    if (col.format) return col.format(v);
+    if (v == null) return '—';
+    return typeof v === 'number' ? fmtInt(v) : v;
+  }
+  function draw() {
+    let list = needle ? rows.filter(r => searchOf(r).toLowerCase().includes(needle)) : rows;
+    const col = columns.find(c => c.key === sort);
+    if (col) list = [...list].sort((a, b) => {
+      const x = col.value(a), y = col.value(b);
+      const cmp = x == null ? -1 : y == null ? 1 : typeof x === 'number' ? x - y : String(x).localeCompare(String(y));
+      return dir * cmp;
+    });
+    const pages = pageSize ? Math.max(1, Math.ceil(list.length / pageSize)) : 1;
+    page = Math.min(page, pages);
+    const shown = pageSize ? list.slice((page - 1) * pageSize, page * pageSize) : list;
+    const thead = h('thead', {}, h('tr', {}, columns.map(c =>
+      h('th', { class: c.numeric ? 'num' : null, 'aria-sort': c.key === sort ? (dir < 0 ? 'descending' : 'ascending') : null },
+        c.sortable === false ? c.title : h('button', { type: 'button', onclick: () => { if (sort === c.key) dir = -dir; else { sort = c.key; dir = -1; } draw(); } },
+          c.title, c.key === sort ? (dir < 0 ? ' ↓' : ' ↑') : '')))));
+    const tbody = h('tbody', {}, shown.map(r => h('tr', {}, columns.map(c => h('td', { class: c.numeric ? 'num' : null }, cell(c, r))))));
+    const parts = [h('div', { class: 'table-wrap' }, h('table', {}, thead, tbody))];
+    if (pageSize) {
+      const from = list.length ? (page - 1) * pageSize + 1 : 0;
+      parts.push(h('div', { class: 'table-foot' },
+        h('span', {}, note ?? ''),
+        h('div', { class: 'pager' },
+          h('span', {}, `${from} – ${Math.min(page * pageSize, list.length)} of ${list.length}`),
+          h('button', { class: 'btn', type: 'button', 'aria-label': 'Previous page', disabled: page <= 1 ? '' : null, onclick: () => { page--; draw(); } }, '‹'),
+          h('button', { class: 'btn', type: 'button', 'aria-label': 'Next page', disabled: page >= pages ? '' : null, onclick: () => { page++; draw(); } }, '›'))));
+    }
+    host.replaceChildren(...parts);
+  }
+  draw();
+  return wrap;
+}
+
+// ---------- tabs (ported from the plugin's tab components) ----------
+const cc = DATA.claudeCode;
+const k = cc.kpis;
+
+const TABS = [
+  { id: 'overview', label: 'Overview', render: () => h('div', { class: 'stack' },
+    kpis(
+      kpi('Active users', fmtInt(k.activeUsers), `+ ${k.apiActors} API-key actors`),
+      kpi('Sessions', fmtInt(k.sessions)),
+      kpi('Lines added', fmtInt(k.linesAdded), `${fmtInt(k.linesRemoved)} removed`),
+      kpi('Accept rate', fmtPct(k.acceptRate), 'Edit, MultiEdit, Write, NotebookEdit'),
+      kpi('Commits', fmtInt(k.commits)),
+      kpi('Pull requests', fmtInt(k.prs)),
+      kpi('Estimated cost', fmtUsd(k.costCents), 'Claude Code only'),
+      kpi('Cost per active user', k.activeUsers ? fmtUsd(k.costCents / k.activeUsers) : '—')),
+    charts(
+      card('Daily active users', null, trend(cc.daily, [{ key: 'activeUsers', label: 'Active users' }])),
+      card('Daily sessions', null, trend(cc.daily, [{ key: 'sessions', label: 'Sessions' }])),
+      card('Lines of code per day', null, trend(cc.daily, [{ key: 'linesAdded', label: 'Added' }, { key: 'linesRemoved', label: 'Removed' }], fmtCompact)),
+      card('Daily accept rate', 'Accepted ÷ (accepted + rejected) tool proposals', trend(cc.daily, [{ key: 'acceptRate', label: 'Accept rate' }], fmtPct)))) },
+
+  { id: 'departments', label: 'Departments', render: () => {
+    const d = DATA.departments;
+    const lowest = d.rows.slice(0, 15);
+    const largest = [...d.rows].sort((a, b) => b.seats - a.seats || a.department.localeCompare(b.department)).slice(0, 8).map(r => r.department).sort();
+    const tiers = [
+      { key: 'power', label: 'Power (≥60% of days)' }, { key: 'regular', label: 'Regular (25–60%)' },
+      { key: 'light', label: 'Light (<25%)' }, { key: 'inactive', label: 'Inactive', color: 'muted' },
+    ];
+    return h('div', { class: 'stack' },
+      kpis(
+        kpi('Org adoption', fmtPct(d.totals.adoption), `${fmtInt(d.totals.activeUsers)} of ${fmtInt(d.totals.seats)} seats active`),
+        kpi('Departments', fmtInt(d.totals.departments)),
+        kpi('Power users', fmtInt(d.totals.tiers.power), 'Active ≥60% of selected days'),
+        kpi('Inactive seats', fmtInt(d.totals.tiers.inactive))),
+      charts(
+        card('Adoption by department', d.rows.length > 15 ? '15 lowest shown, lowest first' : 'Lowest first', hbar(lowest.map(r => ({ key: r.department, value: r.adoption })), fmtPct, 15, false)),
+        card('Engagement mix by department', 'Seats per engagement tier', stacked(lowest.map(r => ({ name: r.department, ...r.tiers })), 'name', tiers, fmtInt, true))),
+      card('Weekly adoption', 'Share of seats active at least once that week · complete weeks · 8 largest departments',
+        trend(d.weekly.map(w => ({ ...w, day: String(w.week) })), largest.map(x => ({ key: x, label: x })), fmtPct, 300)),
+      card('All departments', 'Click a row to filter the whole dashboard to that department', table(d.rows, [
+        { key: 'department', title: 'Department', value: r => r.department },
+        { key: 'seats', title: 'Seats', value: r => r.seats, numeric: true },
+        { key: 'activeUsers', title: 'Active', value: r => r.activeUsers, numeric: true },
+        { key: 'adoption', title: 'Adoption', value: r => r.adoption, numeric: true, format: fmtPct },
+        { key: 'power', title: 'Power', value: r => r.tiers.power, numeric: true },
+        { key: 'light', title: 'Light', value: r => r.tiers.light, numeric: true },
+        { key: 'spa', title: 'Sessions / active', value: r => r.sessionsPerActive, numeric: true, format: fmtFixed1 },
+        { key: 'acceptRate', title: 'Accept rate', value: r => r.acceptRate, numeric: true, format: fmtPct },
+        { key: 'cost', title: 'Est. cost', value: r => r.costCents, numeric: true, format: fmtUsd },
+        { key: 'cpa', title: 'Cost / active', value: r => r.costPerActive, numeric: true, format: fmtUsd },
+      ], { sortKey: 'adoption', desc: false })));
+  } },
+
+  { id: 'tools', label: 'Tool acceptance', render: () => h('div', { class: 'stack' },
+    kpis(...cc.tools.map(t => kpi(`${TOOL_LABELS[t.tool]} accept rate`, fmtPct(t.rate), `${fmtInt(t.accepted + t.rejected)} proposals`))),
+    charts(
+      card('Accept rate by tool, daily', null, trend(cc.daily.map(p => ({ day: p.day, ...p.toolRates })), Object.keys(TOOL_LABELS).map(t => ({ key: t, label: TOOL_LABELS[t] })), fmtPct)),
+      card('Proposals by tool', null, stacked(cc.tools.map(t => ({ ...t, name: TOOL_LABELS[t.tool] })), 'name', [{ key: 'accepted', label: 'Accepted' }, { key: 'rejected', label: 'Rejected' }], fmtCompact))),
+    card('Table view', null, table(cc.tools, [
+      { key: 'tool', title: 'Tool', value: t => TOOL_LABELS[t.tool] },
+      { key: 'accepted', title: 'Accepted', value: t => t.accepted, numeric: true },
+      { key: 'rejected', title: 'Rejected', value: t => t.rejected, numeric: true },
+      { key: 'total', title: 'Total', value: t => t.accepted + t.rejected, numeric: true },
+      { key: 'rate', title: 'Accept rate', value: t => t.rate, numeric: true, format: fmtPct },
+    ], { sortKey: 'total' }))) },
+
+  { id: 'environments', label: 'Environments', render: () => {
+    const { localSessions, remoteSessions } = cc.remoteSplit;
+    const total = localSessions + remoteSessions;
+    return h('div', { class: 'stack' },
+      kpis(
+        kpi('Terminals in use', fmtInt(cc.terminals.length)),
+        kpi('Local sessions', fmtInt(localSessions), total ? fmtPct(localSessions / total) : null),
+        kpi('Remote sessions', fmtInt(remoteSessions), total ? fmtPct(remoteSessions / total) : null)),
+      charts(
+        card('Sessions by terminal', null, hbar(cc.terminals.map(t => ({ key: t.terminal, value: t.sessions })), fmtInt)),
+        card('Users by terminal', null, table(cc.terminals, [
+          { key: 'terminal', title: 'Terminal', value: t => t.terminal },
+          { key: 'users', title: 'Users', value: t => t.users, numeric: true },
+          { key: 'sessions', title: 'Sessions', value: t => t.sessions, numeric: true },
+        ], { sortKey: 'sessions' }))));
+  } },
+
+  { id: 'commits', label: 'Commits & PRs', render: () => h('div', { class: 'stack' },
+    kpis(
+      kpi('Commits by Claude Code', fmtInt(k.commits)),
+      kpi('Pull requests by Claude Code', fmtInt(k.prs)),
+      kpi('Commits per active user', k.activeUsers ? fmtFixed1(k.commits / k.activeUsers) : '—'),
+      kpi('Lines added per commit', k.commits ? fmtInt(k.linesAdded / k.commits) : '—')),
+    card('Commits and pull requests per day', null, trend(cc.daily, [{ key: 'commits', label: 'Commits' }, { key: 'prs', label: 'Pull requests' }])),
+    card('Top contributors', null, table(cc.topContributors, [
+      { key: 'label', title: 'User', value: u => u.label },
+      { key: 'commits', title: 'Commits', value: u => u.commits, numeric: true },
+      { key: 'prs', title: 'PRs', value: u => u.prs, numeric: true },
+      { key: 'linesAdded', title: 'Lines added', value: u => u.linesAdded, numeric: true },
+    ], { sortKey: 'commits' }))) },
+
+  { id: 'models', label: 'Models', render: () => h('div', { class: 'stack' },
+    card('Estimated Claude Code cost per model, daily', null, trend(cc.daily.map(p => ({ day: p.day, ...p.modelCost })), cc.models.map(m => ({ key: m.model, label: m.model })), fmtUsd)),
+    card('Tokens and cost by model', null, table(cc.models, [
+      { key: 'model', title: 'Model', value: m => m.model },
+      { key: 'input', title: 'Input', value: m => m.input, numeric: true, format: fmtCompact },
+      { key: 'output', title: 'Output', value: m => m.output, numeric: true, format: fmtCompact },
+      { key: 'cacheRead', title: 'Cache read', value: m => m.cacheRead, numeric: true, format: fmtCompact },
+      { key: 'cacheCreation', title: 'Cache write', value: m => m.cacheCreation, numeric: true, format: fmtCompact },
+      { key: 'cost', title: 'Est. cost', value: m => m.costCents, numeric: true, format: fmtUsd },
+    ], { sortKey: 'cost' }))) },
+
+  { id: 'cost', label: 'Cost & usage', render: () => {
+    const d = DATA.cost;
+    const days = d.daily.filter(x => x.cents > 0).length || 1;
+    const dims = { model: 'model', workspace_id: 'workspace', api_key_id: 'API key', product: 'product', service_tier: 'service tier', cost_type: 'cost type' };
+    return h('div', { class: 'stack' },
+      kpis(
+        kpi('Total cost', fmtUsd(d.totalCents), 'After discounts, before credits'),
+        kpi('List price', fmtUsd(d.listCents)),
+        kpi('Discounts', fmtUsd(d.listCents - d.totalCents), 'Batch and other discounts'),
+        kpi('Average per day', fmtUsd(d.totalCents / days))),
+      card('Daily cost', 'Usage & Cost Analytics API. Data can lag 4 to 24 hours.', trend(d.daily, [{ key: 'cents', label: 'Cost' }], fmtUsd)),
+      charts(...Object.entries(dims).map(([dim, label]) => card(`Cost by ${label}`, null, hbar(d.by[dim].map(r => ({ key: r.key, value: r.cents })), fmtUsd)))));
+  } },
+
+  { id: 'users', label: 'Users', render: () => {
+    const u = DATA.users;
+    return card('Users', 'Sorted, searched and paged on the server', table(u.rows, [
+      { key: 'label', title: 'User', value: r => r.label },
+      { key: 'department', title: 'Department', value: r => r.department, sortable: false },
+      { key: 'activeDays', title: 'Active days', value: r => r.activeDays, numeric: true },
+      { key: 'sessions', title: 'Sessions', value: r => r.sessions, numeric: true },
+      { key: 'linesAdded', title: 'Lines +', value: r => r.linesAdded, numeric: true },
+      { key: 'commits', title: 'Commits', value: r => r.commits, numeric: true },
+      { key: 'prs', title: 'PRs', value: r => r.prs, numeric: true },
+      { key: 'acceptRate', title: 'Accept rate', value: r => r.acceptRate, numeric: true, format: fmtPct },
+      { key: 'costCents', title: 'Est. cost', value: r => r.costCents, numeric: true, format: fmtUsd },
+      { key: 'lastActive', title: 'Last active', value: r => r.lastActive },
+    ], { sortKey: 'sessions', pageSize: 25, searchLabel: 'Search users', searchOf: r => r.label, note: `Preview includes the ${u.rows.length} most active of ${fmtInt(u.total)} users.` }));
+  } },
+
+  { id: 'seats', label: 'Seats', render: () => {
+    const s = DATA.seats;
+    return h('div', { class: 'stack' },
+      kpis(
+        kpi('Members', fmtInt(s.totalSeats)),
+        kpi('Used Claude Code', fmtInt(s.activeSeats), s.totalSeats ? fmtPct(s.activeSeats / s.totalSeats) : null),
+        kpi('No activity', fmtInt(s.idleCount))),
+      card('Members with no Claude Code activity in this range', null, table(s.idle.rows, [
+        { key: 'name', title: 'Name', value: m => m.name, sortable: false },
+        { key: 'email', title: 'Email', value: m => m.email, sortable: false },
+        { key: 'department', title: 'Department', value: m => m.department ?? 'Unassigned', sortable: false },
+        { key: 'role', title: 'Role', value: m => m.role, sortable: false },
+        { key: 'added_at', title: 'Member since', value: m => m.added_at.slice(0, 10), sortable: false },
+      ], { pageSize: 25, searchLabel: 'Search idle members', searchOf: m => `${m.name} ${m.email} ${m.department ?? ''}`, note: `Preview includes the first ${s.idle.rows.length} of ${fmtInt(s.idle.total)} idle members.` })));
+  } },
+
+  { id: 'api', label: 'API response', render: () => {
+    const pre = h('pre', { class: 'json', 'data-testid': 'raw-json' });
+    const select = h('select', { class: 'control', id: 'endpoint', 'aria-label': 'Endpoint' },
+      h('option', { value: 'claude_code' }, 'usage_report/claude_code'), h('option', { value: 'cost' }, 'analytics/cost'));
+    const show = () => (pre.textContent = JSON.stringify(DATA.raw[select.value], null, 2));
+    select.addEventListener('change', show);
+    show();
+    return card('Raw API response', 'Untouched upstream rows for one day (first 3 rows shown in this preview)',
+      h('div', { class: 'row' },
+        h('div', { class: 'field', style: 'width:280px;max-width:100%' }, h('label', { for: 'endpoint' }, 'Endpoint'), select),
+        h('div', { class: 'field' }, h('span', { class: 'label' }, 'Day'), h('div', { class: 'control' }, usDate(DATA.raw.cost.day)))),
+      pre);
+  } },
+];
+
+// ---------- page wiring ----------
+document.getElementById('source-tag').textContent = `Data source: ${DATA.meta.dataSource}`;
+document.getElementById('holiday-label').textContent = `Exclude holidays (${DATA.meta.holidayCountry})`;
+document.querySelector('#range span').textContent = `${usDate(DATA.range.from)}  –  ${usDate(DATA.range.to)}`;
+
+const tabStrip = document.getElementById('tabs');
+const panel = document.getElementById('panel');
+let charts_ = [];
+let current = null;
+
+function renderCharts() {
+  charts_.forEach(c => c.destroy());
+  const c = colors();
+  Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+  Chart.defaults.font.size = 11;
+  charts_ = live.map(({ canvas, config }) => new Chart(canvas, config(c)));
+}
+
+function show(id) {
+  const tab = TABS.find(t => t.id === id) ?? TABS[0];
+  current = tab.id;
+  for (const b of tabStrip.children) b.setAttribute('aria-selected', String(b.dataset.id === tab.id));
+  panel.setAttribute('aria-label', tab.label);
+  live.length = 0;
+  panel.replaceChildren(tab.render());
+  renderCharts();
+}
+
+for (const t of TABS) {
+  tabStrip.append(h('button', { class: 'tab', role: 'tab', type: 'button', 'data-id': t.id, onclick: () => {
+    if (location.hash.slice(1) !== t.id) location.hash = t.id;
+    else show(t.id);
+  } }, t.label));
+}
+addEventListener('hashchange', () => show(location.hash.slice(1)));
+
+const rethemed = () => { syncToggle(); if (current) renderCharts(); };
+media.addEventListener('change', rethemed);
+new MutationObserver(rethemed).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+
+syncToggle();
+show(location.hash.slice(1));
+</script>
+
+</body>
+</html>

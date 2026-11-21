@@ -1,0 +1,303 @@
+{
+  "rows": [
+    {
+      "department": "Design",
+      "seats": 106,
+      "activeUsers": 18,
+      "adoption": 0.16981132075471697,
+      "sessions": 964,
+      "sessionsPerActive": 53.55555555555556,
+      "linesAdded": 175427,
+      "commits": 708,
+      "prs": 163,
+      "acceptRate": 0.8694227618772284,
+      "costCents": 22848,
+      "costPerActive": 1269.3333333333333,
+      "tiers": {
+        "power": 3,
+        "regular": 13,
+        "light": 2,
+        "inactive": 88
+      }
+    },
+    {
+      "department": "Product",
+      "seats": 97,
+      "activeUsers": 27,
+      "adoption": 0.27835051546391754,
+      "sessions": 1195,
+      "sessionsPerActive": 44.25925925925926,
+      "linesAdded": 218471,
+      "commits": 905,
+      "prs": 195,
+      "acceptRate": 0.8667814395802591,
+      "costCents": 28371,
+      "costPerActive": 1050.7777777777778,
+      "tiers": {
+        "power": 9,
+        "regular": 12,
+        "light": 6,
+        "inactive": 70
+      }
+    },
+    {
+      "department": "Support Eng",
+      "seats": 90,
+      "activeUsers": 33,
+      "adoption": 0.36666666666666664,
+      "sessions": 1050,
+      "sessionsPerActive": 31.818181818181817,
+      "linesAdded": 184913,
+      "commits": 815,
+      "prs": 154,
+      "acceptRate": 0.8688554326138219,
+      "costCents": 22902,
+      "costPerActive": 694,
+      "tiers": {
+        "power": 4,
+        "regular": 20,
+        "light": 9,
+        "inactive": 57
+      }
+    },
+    {
+      "department": "QA",
+      "seats": 94,
+      "activeUsers": 44,
+      "adoption": 0.46808510638297873,
+      "sessions": 1766,
+      "sessionsPerActive": 40.13636363636363,
+      "linesAdded": 307126,
+      "commits": 1221,
+      "prs": 268,
+      "acceptRate": 0.8712543457866564,
+      "costCents": 40250,
+      "costPerActive": 914.7727272727273,
+      "tiers": {
+        "power": 10,
+        "regular": 26,
+        "light": 8,
+        "inactive": 50
+      }
+    },
+    {
+      "department": "Security",
+      "seats": 106,
+      "activeUsers": 63,
+      "adoption": 0.5943396226415094,
+      "sessions": 2042,
+      "sessionsPerActive": 32.41269841269841,
+      "linesAdded": 359994,
+      "commits": 1458,
+      "prs": 295,
+      "acceptRate": 0.8768302381063761,
+      "costCents": 49944,
+      "costPerActive": 792.7619047619048,
+      "tiers": {
+        "power": 7,
+        "regular": 40,
+        "light": 16,
+        "inactive": 43
+      }
+    },
+    {
+      "department": "Mobile",
+      "seats": 105,
+      "activeUsers": 65,
+      "adoption": 0.6190476190476191,
+      "sessions": 2189,
+      "sessionsPerActive": 33.676923076923075,
+      "linesAdded": 378804,
+      "commits": 1552,
+      "prs": 299,
+      "acceptRate": 0.8743559990717104,
+      "costCents": 51759,
+      "costPerActive": 796.2923076923076,
+      "tiers": {
+        "power": 11,
+        "regular": 38,
+        "light": 16,
+        "inactive": 40
+      }
+    },
+    {
+      "department": "SRE",
+      "seats": 90,
+      "activeUsers": 62,
+      "adoption": 0.6888888888888889,
+      "sessions": 2505,
+      "sessionsPerActive": 40.403225806451616,
+      "linesAdded": 470241,
+      "commits": 1890,
+      "prs": 411,
+      "acceptRate": 0.8736499869202885,
+      "costCents": 58343,
+      "costPerActive": 941.016129032258,
+      "tiers": {
+        "power": 19,
+        "regular": 32,
+        "light": 11,
+        "inactive": 28
+      }
+    },
+    {
+      "department": "Data",
+      "seats": 103,
+      "activeUsers": 74,
+      "adoption": 0.7184466019417476,
+      "sessions": 2708,
+      "sessionsPerActive": 36.5945945945946,
+      "linesAdded": 474361,
+      "commits": 1937,
+      "prs": 336,
+      "acceptRate": 0.8769826767049193,
+      "costCents": 59570,
+      "costPerActive": 805,
+      "tiers": {
+        "power": 14,
+        "regular": 47,
+        "light": 13,
+        "inactive": 29
+      }
+    },
+    {
+      "department": "Frontend",
+      "seats": 100,
+      "activeUsers": 72,
+      "adoption": 0.72,
+      "sessions": 2481,
+      "sessionsPerActive": 34.458333333333336,
+      "linesAdded": 422720,
+      "commits": 1675,
+      "prs": 285,
+      "acceptRate": 0.8694300953340893,
+      "costCents": 57110,
+      "costPerActive": 793.1944444444445,
+      "tiers": {
+        "power": 11,
+        "regular": 44,
+        "light": 17,
+        "inactive": 28
+      }
+    },
+    {
+      "department": "Backend",
+      "seats": 88,
+      "activeUsers": 68,
+      "adoption": 0.7727272727272727,
+      "sessions": 2929,
+      "sessionsPerActive": 43.0735294117647,
+      "linesAdded": 517304,
+      "commits": 2035,
+      "prs": 400,
+      "acceptRate": 0.8756195889234023,
+      "costCents": 67455,
+      "costPerActive": 991.9852941176471,
+      "tiers": {
+        "power": 17,
+        "regular": 41,
+        "light": 10,
+        "inactive": 20
+      }
+    },
+    {
+      "department": "ML Research",
+      "seats": 96,
+      "activeUsers": 86,
+      "adoption": 0.8958333333333334,
+      "sessions": 3564,
+      "sessionsPerActive": 41.44186046511628,
+      "linesAdded": 629591,
+      "commits": 2584,
+      "prs": 545,
+      "acceptRate": 0.8689810542315836,
+      "costCents": 72944,
+      "costPerActive": 848.1860465116279,
+      "tiers": {
+        "power": 20,
+        "regular": 52,
+        "light": 14,
+        "inactive": 10
+      }
+    },
+    {
+      "department": "Platform",
+      "seats": 125,
+      "activeUsers": 114,
+      "adoption": 0.912,
+      "sessions": 3904,
+      "sessionsPerActive": 34.24561403508772,
+      "linesAdded": 721042,
+      "commits": 2828,
+      "prs": 531,
+      "acceptRate": 0.8717708769423991,
+      "costCents": 92277,
+      "costPerActive": 809.4473684210526,
+      "tiers": {
+        "power": 20,
+        "regular": 68,
+        "light": 26,
+        "inactive": 11
+      }
+    }
+  ],
+  "weekly": [
+    {
+      "week": "2026-10-26",
+      "Design": 0.16037735849056603,
+      "Product": 0.25773195876288657,
+      "Support Eng": 0.34444444444444444,
+      "QA": 0.43617021276595747,
+      "Security": 0.5377358490566038,
+      "Mobile": 0.5619047619047619,
+      "SRE": 0.5888888888888889,
+      "Data": 0.6601941747572816,
+      "Frontend": 0.67,
+      "Backend": 0.7386363636363636,
+      "ML Research": 0.84375,
+      "Platform": 0.856
+    },
+    {
+      "week": "2026-11-02",
+      "Design": 0.16037735849056603,
+      "Product": 0.27835051546391754,
+      "Support Eng": 0.34444444444444444,
+      "QA": 0.43617021276595747,
+      "Security": 0.5471698113207547,
+      "Mobile": 0.5523809523809524,
+      "SRE": 0.6777777777777778,
+      "Data": 0.6796116504854369,
+      "Frontend": 0.65,
+      "Backend": 0.75,
+      "ML Research": 0.8541666666666666,
+      "Platform": 0.856
+    },
+    {
+      "week": "2026-11-09",
+      "Design": 0.16981132075471697,
+      "Product": 0.26804123711340205,
+      "Support Eng": 0.3333333333333333,
+      "QA": 0.44680851063829785,
+      "Security": 0.5471698113207547,
+      "Mobile": 0.5904761904761905,
+      "SRE": 0.6333333333333333,
+      "Data": 0.6407766990291263,
+      "Frontend": 0.67,
+      "Backend": 0.75,
+      "ML Research": 0.8333333333333334,
+      "Platform": 0.832
+    }
+  ],
+  "totals": {
+    "departments": 12,
+    "seats": 1200,
+    "activeUsers": 726,
+    "adoption": 0.605,
+    "tiers": {
+      "power": 145,
+      "regular": 433,
+      "light": 148,
+      "inactive": 474
+    }
+  }
+}

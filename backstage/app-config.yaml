@@ -1,0 +1,15 @@
+# Used by the plugins' dev harnesses (`yarn start` inside a plugin).
+app:
+  title: Claude Metrics (dev)
+  baseUrl: http://localhost:3001
+
+backend:
+  baseUrl: http://localhost:7007
+  listen:
+    port: 7007
+  cors:
+    origin: http://localhost:3001
+    credentials: true
+
+claudeMetrics:
+  dataSource: mock

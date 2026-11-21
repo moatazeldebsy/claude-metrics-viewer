@@ -1,6 +1,6 @@
 import type { ChartOptions } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import type { SeriesDef } from '../../lib';
+import type { SeriesDef } from '@internal/claude-metrics-lib';
 import { registerCharts } from './register';
 import { tooltipColors } from './tooltip';
 import { useChartColors } from './useChartColors';

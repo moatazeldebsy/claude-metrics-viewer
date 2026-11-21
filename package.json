@@ -33,9 +33,5 @@
     "vitest": "^5.1.0",
     "vue-tsc": "^3.3.14"
   },
-  "type": "module",
-  "imports": {
-    "#lib/sources": "./lib/sources/index.ts",
-    "#lib/*": "./lib/*.ts"
-  }
+  "type": "module"
 }

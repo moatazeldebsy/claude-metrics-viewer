@@ -15,7 +15,7 @@ import {
   userSearch,
   usersPage,
   type UserRow,
-} from './lib';
+} from '@internal/claude-metrics-lib/server';
 
 const SORTABLE = new Set<keyof UserRow>([
   'label',

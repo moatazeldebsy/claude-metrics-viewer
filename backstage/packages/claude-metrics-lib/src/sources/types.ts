@@ -2,7 +2,7 @@ import type {
   BetaAnalyticsCostGroupBy,
   BetaAnalyticsCostItem,
 } from "@anthropic-ai/sdk/resources/beta/organization/analytics/cost";
-import type { ClaudeCodeRecord } from "#lib/anthropic-types";
+import type { ClaudeCodeRecord } from "../anthropic-types";
 
 export type CostItem = BetaAnalyticsCostItem;
 export type CostGroupBy = BetaAnalyticsCostGroupBy;

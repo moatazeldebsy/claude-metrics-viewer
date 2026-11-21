@@ -9,7 +9,7 @@ import {
 } from '@backstage/ui';
 import { parseDay } from '../dates';
 import { useFilters } from '../hooks/useFilters';
-import { addDays } from '../lib';
+import { addDays } from '@internal/claude-metrics-lib';
 import { UserPicker } from './UserPicker';
 
 const ALL = '__all';

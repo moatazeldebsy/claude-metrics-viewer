@@ -7,7 +7,7 @@ import { KpiTile } from '../components/KpiTile';
 import { ChartGrid, KpiGrid, Stack } from '../components/layout';
 import { useDashboard } from '../hooks/useDashboard';
 import { useFilters } from '../hooks/useFilters';
-import { fmtUsd } from '../lib';
+import { fmtUsd } from '@internal/claude-metrics-lib';
 
 const DIMS = {
   model: 'model',

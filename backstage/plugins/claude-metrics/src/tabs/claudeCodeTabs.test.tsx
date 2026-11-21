@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import type { FC } from 'react';
 import { claudeMetricsApiRef } from '../api';
 import claudeCode from '../__fixtures__/claude-code.json';
-import { fmtInt, fmtPct, fmtUsd } from '../lib';
+import { fmtInt, fmtPct, fmtUsd } from '@internal/claude-metrics-lib';
 import { fakeApi } from '../testUtils';
 import { CommitsTab } from './CommitsTab';
 import { EnvironmentsTab } from './EnvironmentsTab';

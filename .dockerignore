@@ -7,3 +7,10 @@ node_modules
 test-results
 playwright-report
 .playwright-mcp
+# The app only needs the shared data layer from the Backstage workspace
+backstage/*
+!backstage/packages
+backstage/packages/*
+!backstage/packages/claude-metrics-lib
+backstage/packages/claude-metrics-lib/*
+!backstage/packages/claude-metrics-lib/src

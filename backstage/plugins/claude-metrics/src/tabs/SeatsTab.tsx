@@ -6,7 +6,12 @@ import { ServerGrid, type PageRequest } from '../components/DataGrid';
 import { KpiTile } from '../components/KpiTile';
 import { KpiGrid, Stack } from '../components/layout';
 import { useFilters } from '../hooks/useFilters';
-import { fmtInt, fmtPct, type GridColumn, type Member } from '../lib';
+import {
+  fmtInt,
+  fmtPct,
+  type GridColumn,
+  type Member,
+} from '@internal/claude-metrics-lib';
 
 interface SeatSummary {
   totalSeats: number;

@@ -1,7 +1,7 @@
 import { coreApis } from '@backstage/frontend-plugin-api';
 import { renderInTestApp } from '@backstage/frontend-test-utils';
 import { act, screen } from '@testing-library/react';
-import { addDays, toDay } from '../lib';
+import { addDays, toDay } from '@internal/claude-metrics-lib';
 import { useFilters } from './useFilters';
 
 let filters: ReturnType<typeof useFilters>;

@@ -1,5 +1,5 @@
-import type { ClaudeCodeModelBreakdown, ClaudeCodeRecord } from "#lib/anthropic-types";
-import { eachDay, isWeekend } from "#lib/dates";
+import type { ClaudeCodeModelBreakdown, ClaudeCodeRecord } from "../anthropic-types";
+import { eachDay, isWeekend } from "../dates";
 import type { CostItem, CostGroupBy, CostQuery, Member, MetricsSource } from "./types";
 
 // Deterministic fake organization. Every value is derived from a seed so the

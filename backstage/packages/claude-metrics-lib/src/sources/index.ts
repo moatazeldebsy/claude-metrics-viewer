@@ -1,4 +1,4 @@
-import { loadDepartmentsFile } from "#lib/departments";
+import { loadDepartmentsFile } from "../departments";
 import { AnthropicSource } from "./anthropic";
 import { MockSource } from "./mock";
 import type { MetricsSource } from "./types";

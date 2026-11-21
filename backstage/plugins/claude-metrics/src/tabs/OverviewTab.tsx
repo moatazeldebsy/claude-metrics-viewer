@@ -3,7 +3,12 @@ import { ChartCard } from '../components/ChartCard';
 import { TrendChart } from '../components/charts/TrendChart';
 import { KpiTile } from '../components/KpiTile';
 import { ChartGrid, KpiGrid, Stack } from '../components/layout';
-import { fmtCompact, fmtInt, fmtPct, fmtUsd } from '../lib';
+import {
+  fmtCompact,
+  fmtInt,
+  fmtPct,
+  fmtUsd,
+} from '@internal/claude-metrics-lib';
 import { useClaudeCode } from './useClaudeCode';
 
 export const OverviewTab = () => (

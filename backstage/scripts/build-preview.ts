@@ -1,17 +1,26 @@
 /**
  * Builds backstage/preview/index.html: a static picture of the Claude Metrics plugin inside
- * Backstage. The numbers are real output of lib/ on the seeded mock org, for a fixed range so
+ * Backstage. The numbers are real output of @internal/claude-metrics-lib on the seeded mock org, for a fixed range so
  * the file only changes when the data layer does.
  *
  *   npx tsx backstage/scripts/build-preview.ts      (from the repo root)
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { PALETTE } from '../../app/utils/palette';
-import { holidayCountry } from '../../lib/holidays';
-import type { DashboardQuery } from '../../lib/query';
-import { claudeCodeSummary, costSummary, COST_DIMENSIONS, departmentList, departmentSummary, seatSummary, usersPage } from '../../lib/service';
-import { dataSourceName, getSource } from '../../lib/sources';
+import {
+  claudeCodeSummary,
+  costSummary,
+  COST_DIMENSIONS,
+  dataSourceName,
+  departmentList,
+  departmentSummary,
+  getSource,
+  holidayCountry,
+  PALETTE,
+  seatSummary,
+  usersPage,
+  type DashboardQuery,
+} from '../packages/claude-metrics-lib/src/server';
 
 const FROM = '2026-10-24';
 const TO = '2026-11-20';

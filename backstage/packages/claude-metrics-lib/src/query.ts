@@ -1,5 +1,5 @@
-import { addDays, eachDay, filterDays, toDay } from "#lib/dates";
-import { holidayCountry, holidaysFor } from "#lib/holidays";
+import { addDays, eachDay, filterDays, toDay } from "./dates";
+import { holidayCountry, holidaysFor } from "./holidays";
 
 export interface DashboardQuery {
   from: string;

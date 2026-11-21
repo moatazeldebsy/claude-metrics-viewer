@@ -1,0 +1,49 @@
+{
+  "name": "@internal/claude-metrics-lib",
+  "version": "0.1.0",
+  "description": "Claude Metrics data layer: Anthropic Admin API and mock sources, aggregation, departments, holidays. Shared by the Nuxt app and the Backstage plugins.",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./server": "./src/server.ts",
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "server": [
+        "src/server.ts"
+      ],
+      "package.json": [
+        "package.json"
+      ]
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "backstage": {
+    "role": "common-library"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "backstage-cli package build",
+    "lint": "backstage-cli package lint",
+    "test": "backstage-cli package test",
+    "clean": "backstage-cli package clean",
+    "prepack": "backstage-cli package prepack",
+    "postpack": "backstage-cli package postpack"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "1.5.0",
+    "date-holidays": "3.38.0"
+  },
+  "devDependencies": {
+    "@backstage/cli": "^0.36.8"
+  },
+  "files": [
+    "dist"
+  ]
+}

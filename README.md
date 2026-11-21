@@ -87,7 +87,7 @@ Claude Enterprise organizations have teams built in (RBAC groups), and their Ent
 
 ## Backstage plugin
 
-The dashboard also ships as a Backstage frontend and backend plugin pair in [`backstage/`](backstage/README.md): a **Claude Metrics** sidebar page with the same tabs, served by a backend plugin that reuses `lib/`. Open [`backstage/preview/index.html`](backstage/preview/index.html) to see how it looks inside Backstage.
+The dashboard also ships as a Backstage frontend and backend plugin pair in [`backstage/`](backstage/README.md): a **Claude Metrics** sidebar page with the same tabs, served by a backend plugin that uses the same data layer as this app. Open [`backstage/preview/index.html`](backstage/preview/index.html) to see how it looks inside Backstage, and read the [integration guide](docs/backstage-integration.md) to add it to an existing Backstage app.
 
 ![Departments tab inside Backstage, dark theme](docs/screenshots/backstage-departments-dark.png)
 
@@ -134,19 +134,24 @@ Without Docker: `npm run build && node .output/server/index.mjs`.
 ## Layout
 
 ```
-lib/                framework-free data layer (imported as #lib), shared by server routes and unit tests
+backstage/packages/claude-metrics-lib/src/
+                    framework-free data layer (imported as #lib), shared by server routes, unit tests
+                    and the Backstage plugins (as @internal/claude-metrics-lib)
   sources/          MetricsSource interface; mock.ts (seeded 1,200-person org) and anthropic.ts (Admin API)
   aggregate.ts      raw records → dashboard view models
   departments*.ts   department CSV parsing and per-department rollups
   users.ts          user typeahead and server-side paging
   holidays.ts       date-holidays wrapper
   service.ts        loads data for a query and aggregates it
+  palette.ts        validated light/dark chart palette (app/utils/palette.ts re-exports it)
+  format.ts         number, currency and percentage formatters
+backstage/          Backstage plugins, preview page and the package above (see backstage/README.md)
 server/api/         Nitro routes: claude-code, departments, users, user-search, seats, cost, meta, raw
 app/
   pages/index.vue   tabs + filter bar; filters live in the URL
   components/tabs/  one component per tab
   components/       KpiTile, DataGrid (v-data-table), UserPicker (v-autocomplete), charts/ (Chart.js)
-  utils/palette.ts  validated light/dark chart palette shared by Chart.js and the Vuetify theme
+  utils/            re-exports of the shared palette, formatters and grid column type
 vuetify.config.ts   light/dark themes (system by default, switchable in the header) and component defaults
 ```
 

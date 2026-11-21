@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { useAppSearchParams } from '@backstage/frontend-plugin-api';
 import { parseDay } from '../dates';
-import { addDays, toDay } from '../lib';
+import { addDays, toDay } from '@internal/claude-metrics-lib';
 
 const FILTER_KEYS = [
   'excludeWeekends',

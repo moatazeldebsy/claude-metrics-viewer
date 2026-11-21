@@ -19,9 +19,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@anthropic-ai/sdk@npm:^1.5.0":
-  version: 1.10.0
-  resolution: "@anthropic-ai/sdk@npm:1.10.0"
+"@anthropic-ai/sdk@npm:1.5.0":
+  version: 1.5.0
+  resolution: "@anthropic-ai/sdk@npm:1.5.0"
   dependencies:
     "@opentelemetry/api": "npm:^1.4.1"
     json-schema-to-ts: "npm:^3.1.1"
@@ -33,7 +33,7 @@ __metadata:
       optional: true
   bin:
     anthropic-ai-sdk: bin/cli
-  checksum: 10c0/d71ef532d80d9ce15a9ed2b20ff3d8e872ef68a8b635fb0c7095da6b0d9cdedfc73487db5a1cf9f7b6a05e37d1fd1f968df8f83eb847b7e46957027aad2b2d1b
+  checksum: 10c0/3f6f0ebd71162595cacd577a83a77579bf2b5d0e54c70ba01837122c07a0255d62b2ea5332c15bf1c667aead2ba4996d5f57a77aca56b083b1fa69837773d0e0
   languageName: node
   linkType: hard
 
@@ -3225,7 +3225,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@internal/backstage-plugin-claude-metrics-backend@workspace:plugins/claude-metrics-backend"
   dependencies:
-    "@anthropic-ai/sdk": "npm:^1.5.0"
     "@backstage/backend-defaults": "npm:^0.19.0"
     "@backstage/backend-plugin-api": "npm:^1.12.0"
     "@backstage/backend-test-utils": "npm:^1.12.0"
@@ -3233,9 +3232,9 @@ __metadata:
     "@backstage/config": "npm:^1.3.11"
     "@backstage/errors": "npm:^1.4.0"
     "@backstage/types": "npm:^1.2.2"
+    "@internal/claude-metrics-lib": "workspace:^"
     "@types/express": "npm:^4.17.25"
     "@types/supertest": "npm:^2.0.12"
-    date-holidays: "npm:^3.38.0"
     express: "npm:^4.22.1"
     express-promise-router: "npm:^4.1.0"
     supertest: "npm:^6.2.4"
@@ -3255,6 +3254,7 @@ __metadata:
     "@backstage/frontend-test-utils": "npm:^1.0.0"
     "@backstage/theme": "npm:^0.7.4"
     "@backstage/ui": "npm:^0.20.0"
+    "@internal/claude-metrics-lib": "workspace:^"
     "@internationalized/date": "npm:^3.12.0"
     "@testing-library/dom": "npm:^10.0.0"
     "@testing-library/jest-dom": "npm:^6.0.0"
@@ -3271,6 +3271,16 @@ __metadata:
     react-use: "npm:^17.2.4"
   peerDependencies:
     react: ^16.13.1 || ^17.0.0 || ^18.0.0
+  languageName: unknown
+  linkType: soft
+
+"@internal/claude-metrics-lib@workspace:^, @internal/claude-metrics-lib@workspace:packages/claude-metrics-lib":
+  version: 0.0.0-use.local
+  resolution: "@internal/claude-metrics-lib@workspace:packages/claude-metrics-lib"
+  dependencies:
+    "@anthropic-ai/sdk": "npm:1.5.0"
+    "@backstage/cli": "npm:^0.36.8"
+    date-holidays: "npm:3.38.0"
   languageName: unknown
   linkType: soft
 
@@ -10312,7 +10322,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"date-holidays-parser@npm:^3.7.0":
+"date-holidays-parser@npm:^3.4.7":
   version: 3.7.0
   resolution: "date-holidays-parser@npm:3.7.0"
   dependencies:
@@ -10329,17 +10339,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"date-holidays@npm:^3.38.0":
-  version: 3.39.2
-  resolution: "date-holidays@npm:3.39.2"
+"date-holidays@npm:3.38.0":
+  version: 3.38.0
+  resolution: "date-holidays@npm:3.38.0"
   dependencies:
-    date-holidays-parser: "npm:^3.7.0"
+    date-holidays-parser: "npm:^3.4.7"
     js-yaml: "npm:^5.5.0"
     lodash: "npm:^4.18.1"
     prepin: "npm:^1.0.3"
   bin:
     holidays2json: scripts/holidays2json.cjs
-  checksum: 10c0/3847eec225f740419d9fc9ba6223441cbc7f72965e8290ca1c413d0af3b2b4758399c07bd9e4ab03bbb43614ce905d12d359a7bb10631d1efc77955d27fd6dc0
+  checksum: 10c0/9eb37f6ee355c04acb1b385c3a2a55bcf87ea531c3f3a63db44f002a60b1e88eb6f38541fc32d4765bf4584dbcbb4eb1090e7f6f161321323107b5d61c09f62a
   languageName: node
   linkType: hard
 

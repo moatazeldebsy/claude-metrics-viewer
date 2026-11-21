@@ -1,5 +1,5 @@
-import { TOOL_NAMES, type ClaudeCodeActor, type ClaudeCodeRecord, type ToolName } from "#lib/anthropic-types";
-import type { CostItem, CostGroupBy, Member } from "#lib/sources/types";
+import { TOOL_NAMES, type ClaudeCodeActor, type ClaudeCodeRecord, type ToolName } from "./anthropic-types";
+import type { CostItem, CostGroupBy, Member } from "./sources/types";
 
 export const acceptRate = (accepted: number, rejected: number): number | null =>
   accepted + rejected === 0 ? null : accepted / (accepted + rejected);

@@ -3,7 +3,11 @@ import { ChartCard } from '../components/ChartCard';
 import { TrendChart } from '../components/charts/TrendChart';
 import { DataGrid } from '../components/DataGrid';
 import { Stack } from '../components/layout';
-import { fmtCompact, fmtUsd, type GridColumn } from '../lib';
+import {
+  fmtCompact,
+  fmtUsd,
+  type GridColumn,
+} from '@internal/claude-metrics-lib';
 import { useClaudeCode, type ClaudeCodeResponse } from './useClaudeCode';
 
 type Model = ClaudeCodeResponse['models'][number];

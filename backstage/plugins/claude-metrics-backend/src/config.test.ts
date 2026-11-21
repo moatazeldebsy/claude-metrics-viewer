@@ -50,4 +50,34 @@ describe('applyConfig', () => {
       /adminKey is required/,
     );
   });
+
+  it('treats empty values (e.g. Docker Compose ${VAR:-}) as unset on mock', () => {
+    const env: NodeJS.ProcessEnv = {};
+    applyConfig(
+      new ConfigReader({
+        claudeMetrics: {
+          dataSource: 'mock',
+          adminKey: '',
+          departmentsFile: '',
+          holidayCountry: '',
+        },
+      }),
+      env,
+    );
+    expect(env).toEqual({ DATA_SOURCE: 'mock' });
+  });
+
+  it('still requires a key on anthropic when adminKey is an empty string', () => {
+    const env: NodeJS.ProcessEnv = {};
+    expect(() =>
+      applyConfig(
+        new ConfigReader({
+          claudeMetrics: { dataSource: 'anthropic', adminKey: '' },
+        }),
+        env,
+      ),
+    ).toThrow(
+      'claudeMetrics.adminKey is required when dataSource is anthropic',
+    );
+  });
 });

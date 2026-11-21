@@ -57,7 +57,7 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      # The plugins load lib/ and its npm dependencies from the repo root.
+      # Root dependencies provide tsx and Playwright for the preview steps.
       - run: npm ci
       - run: corepack enable
       - name: Install, typecheck, lint, test
@@ -67,6 +67,7 @@ jobs:
           yarn tsc
           yarn lint
           yarn test
+          yarn build
       - name: Preview page is up to date
         run: |
           npx tsx backstage/scripts/build-preview.ts

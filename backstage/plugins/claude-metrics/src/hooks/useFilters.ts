@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
-import { useAppSearchParams } from '@backstage/frontend-plugin-api';
+import { useSearchParams } from 'react-router-dom';
 import { parseDay } from '../dates';
-import { addDays, toDay } from '../lib';
+import { addDays, toDay } from '@internal/claude-metrics-lib';
 
 const FILTER_KEYS = [
   'excludeWeekends',
@@ -12,7 +12,7 @@ const FILTER_KEYS = [
 
 /** Dashboard filters live in the URL so any view can be shared (same keys as the Nuxt app). */
 export function useFilters() {
-  const [params, setParams] = useAppSearchParams();
+  const [params, setParams] = useSearchParams();
   const yesterday = addDays(toDay(new Date()), -1);
   const param = useCallback((k: string) => params.get(k) || null, [params]);
 
@@ -34,7 +34,7 @@ export function useFilters() {
   const set = useCallback(
     (patch: Record<string, string | null>) =>
       setParams(
-        prev => {
+        (prev: URLSearchParams) => {
           const next = new URLSearchParams(prev);
           for (const [k, v] of Object.entries(patch)) {
             if (v === null || v === '') next.delete(k);

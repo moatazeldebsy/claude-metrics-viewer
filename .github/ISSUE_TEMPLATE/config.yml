@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/moatazeldebsy/claude-metrics-viewer/security/advisories/new
+    about: Please report security issues privately, not as public issues.
+  - name: Backstage integration guide
+    url: https://github.com/moatazeldebsy/claude-metrics-viewer/blob/main/docs/backstage-integration.md
+    about: Requirements, install, the Admin API key, access control and troubleshooting.

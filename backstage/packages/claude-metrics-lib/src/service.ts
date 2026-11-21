@@ -1,12 +1,12 @@
-import { aggregateClaudeCode, aggregateCost, idleSeats, type DayRecords } from "#lib/aggregate";
-import { actorLabel } from "#lib/aggregate";
-import type { ClaudeCodeRecord } from "#lib/anthropic-types";
-import { aggregateDepartments, UNASSIGNED } from "#lib/departments-agg";
-import type { DashboardQuery } from "#lib/query";
-import { selectedDays } from "#lib/query";
-import { getSource } from "#lib/sources";
-import type { CostGroupBy, Member } from "#lib/sources/types";
-import { pageUsers, searchUsers, type UserPageQuery } from "#lib/users";
+import { aggregateClaudeCode, aggregateCost, idleSeats, type DayRecords } from "./aggregate";
+import { actorLabel } from "./aggregate";
+import type { ClaudeCodeRecord } from "./anthropic-types";
+import { aggregateDepartments, UNASSIGNED } from "./departments-agg";
+import type { DashboardQuery } from "./query";
+import { selectedDays } from "./query";
+import { getSource } from "./sources";
+import type { CostGroupBy, Member } from "./sources/types";
+import { pageUsers, searchUsers, type UserPageQuery } from "./users";
 
 /** Run async work over items with at most `limit` in flight, keeping order. */
 async function mapLimit<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R>): Promise<R[]> {

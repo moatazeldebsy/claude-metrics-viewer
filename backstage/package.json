@@ -9,24 +9,26 @@
     "tsc": "tsc",
     "test": "backstage-cli repo test",
     "lint": "backstage-cli repo lint",
-    "new": "backstage-cli new"
+    "new": "backstage-cli new",
+    "build": "backstage-cli repo build --all"
   },
   "backstage": {
     "cli": {
       "new": {
         "globals": {
-          "license": "UNLICENSED",
+          "license": "MIT",
           "namePrefix": "@internal/"
         }
       }
     }
   },
   "workspaces": [
+    "packages/*",
     "plugins/*"
   ],
   "devDependencies": {
-    "@backstage/cli": "^0.36.8",
-    "@backstage/cli-defaults": "^0.1.8",
+    "@backstage/cli": "^0.36.7",
+    "@backstage/cli-defaults": "^0.1.7",
     "@jest/environment-jsdom-abstract": "^30.5.0",
     "@types/jest": "^30.0.0",
     "jest": "^30.5.0",

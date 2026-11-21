@@ -1,0 +1,37 @@
+version: 2
+updates:
+  # Standalone dashboard (npm)
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # Kept at the same exact version as backstage/packages/claude-metrics-lib, whose types
+      # (the mock source's cost rows) follow it. Bump both together, by hand.
+      - dependency-name: "@anthropic-ai/sdk"
+
+  # Backstage workspace (Yarn 4)
+  - package-ecosystem: npm
+    directory: /backstage
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # Pinned to the 1.56.2 release on purpose: newer Backstage apps accept plugins built
+      # for older releases, not the reverse. See CONTRIBUTING.md before bumping.
+      - dependency-name: "@backstage/*"
+      # Exact-pinned in claude-metrics-lib to match the root lockfile.
+      - dependency-name: "@anthropic-ai/sdk"
+      - dependency-name: "date-holidays"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

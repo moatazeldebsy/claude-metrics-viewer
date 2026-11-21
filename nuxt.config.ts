@@ -11,7 +11,7 @@ export default defineNuxtConfig({
   modules: ["vuetify-nuxt-module", "@nuxt/eslint"],
 
   // Framework-free data layer shared by server routes, the client (types only) and unit tests.
-  alias: { "#lib": fileURLToPath(new URL("./lib", import.meta.url)) },
+  alias: { "#lib": fileURLToPath(new URL("./backstage/packages/claude-metrics-lib/src", import.meta.url)) },
 
   // Register components by file name (TrendChart, not ChartsTrendChart).
   components: [{ path: "~/components", pathPrefix: false }],

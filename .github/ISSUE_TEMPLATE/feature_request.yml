@@ -1,0 +1,50 @@
+name: Feature request
+description: Suggest a new chart, tab, filter, data source or integration.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: Tell us about the problem first. A clear problem makes it easier to find the right solution, which may be different from the first idea.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: Who is it for (engineering managers, platform team, finance…) and what question can't they answer today?
+      placeholder: As a platform lead I can't tell which teams stopped using Claude Code after their first week…
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like to happen?
+      description: Describe the change. Sketches or mock-ups are welcome.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part?
+      multiple: true
+      options:
+        - Standalone dashboard (Nuxt)
+        - Backstage plugin
+        - Data layer / new data source
+        - Access control
+        - Docs
+    validations:
+      required: true
+  - type: textarea
+    id: data
+    attributes:
+      label: Data needed
+      description: Does the Anthropic Admin API already provide it (Claude Code usage report, cost report, members)? Link the API docs if you know.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you've considered
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contributing
+      options:
+        - label: I'd like to work on this myself (see CONTRIBUTING.md).

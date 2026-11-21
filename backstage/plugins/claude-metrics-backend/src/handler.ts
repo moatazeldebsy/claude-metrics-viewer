@@ -1,7 +1,11 @@
 import { LoggerService } from '@backstage/backend-plugin-api';
 import { InputError, ServiceUnavailableError } from '@backstage/errors';
 import { Request, RequestHandler } from 'express';
-import { DashboardQuery, parseQuery, QueryError } from './lib';
+import {
+  DashboardQuery,
+  parseQuery,
+  QueryError,
+} from '@internal/claude-metrics-lib/server';
 
 /** Search params of a request, as the Nuxt routes saw them. */
 const searchParams = (req: Request) =>

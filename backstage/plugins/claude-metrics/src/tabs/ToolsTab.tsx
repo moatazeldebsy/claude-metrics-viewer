@@ -12,7 +12,7 @@ import {
   TOOL_NAMES,
   type GridColumn,
   type ToolName,
-} from '../lib';
+} from '@internal/claude-metrics-lib';
 import { useClaudeCode, type ClaudeCodeResponse } from './useClaudeCode';
 
 const LABELS: Record<ToolName, string> = {

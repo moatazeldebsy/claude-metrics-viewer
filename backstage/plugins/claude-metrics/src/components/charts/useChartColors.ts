@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { PALETTE, type ChartColors } from '../../lib';
+import { PALETTE, type ChartColors } from '@internal/claude-metrics-lib';
 
 // Backstage's theme provider puts `data-theme-mode` on <body>; Backstage UI's CSS keys off it too.
 const MODE_ATTR = 'data-theme-mode';

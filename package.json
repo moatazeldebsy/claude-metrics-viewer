@@ -2,6 +2,7 @@
   "name": "claude-metrics-viewer",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "dev": "nuxt dev",
     "build": "nuxt build",
@@ -33,9 +34,5 @@
     "vitest": "^5.1.0",
     "vue-tsc": "^3.3.14"
   },
-  "type": "module",
-  "imports": {
-    "#lib/sources": "./lib/sources/index.ts",
-    "#lib/*": "./lib/*.ts"
-  }
+  "type": "module"
 }

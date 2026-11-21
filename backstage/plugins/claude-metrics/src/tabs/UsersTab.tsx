@@ -4,7 +4,12 @@ import { claudeMetricsApiRef } from '../api';
 import { ChartCard } from '../components/ChartCard';
 import { ServerGrid, type PageRequest } from '../components/DataGrid';
 import { useFilters } from '../hooks/useFilters';
-import { fmtPct, fmtUsd, type GridColumn, type UserRow } from '../lib';
+import {
+  fmtPct,
+  fmtUsd,
+  type GridColumn,
+  type UserRow,
+} from '@internal/claude-metrics-lib';
 
 type Row = UserRow & { department: string | null };
 

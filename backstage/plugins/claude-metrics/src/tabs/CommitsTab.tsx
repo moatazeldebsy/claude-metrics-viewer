@@ -4,7 +4,12 @@ import { TrendChart } from '../components/charts/TrendChart';
 import { DataGrid } from '../components/DataGrid';
 import { KpiTile } from '../components/KpiTile';
 import { KpiGrid, Stack } from '../components/layout';
-import { fmtFixed1, fmtInt, type GridColumn, type UserRow } from '../lib';
+import {
+  fmtFixed1,
+  fmtInt,
+  type GridColumn,
+  type UserRow,
+} from '@internal/claude-metrics-lib';
 import { useClaudeCode } from './useClaudeCode';
 
 const columns: GridColumn<UserRow>[] = [

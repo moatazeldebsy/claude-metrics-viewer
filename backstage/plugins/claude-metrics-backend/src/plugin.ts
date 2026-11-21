@@ -2,6 +2,7 @@ import {
   coreServices,
   createBackendPlugin,
 } from '@backstage/backend-plugin-api';
+import { applyConfig } from './config';
 import { createRouter } from './router';
 
 /**
@@ -14,11 +15,13 @@ export const claudeMetricsPlugin = createBackendPlugin({
   register(env) {
     env.registerInit({
       deps: {
+        config: coreServices.rootConfig,
         logger: coreServices.logger,
         httpAuth: coreServices.httpAuth,
         httpRouter: coreServices.httpRouter,
       },
-      async init({ logger, httpAuth, httpRouter }) {
+      async init({ config, logger, httpAuth, httpRouter }) {
+        applyConfig(config);
         httpRouter.use(await createRouter({ logger, httpAuth }));
       },
     });

@@ -2528,6 +2528,7 @@ __metadata:
     "@backstage/backend-plugin-api": "npm:^1.12.0"
     "@backstage/backend-test-utils": "npm:^1.12.0"
     "@backstage/cli": "npm:^0.36.8"
+    "@backstage/config": "npm:^1.3.11"
     "@backstage/errors": "npm:^1.4.0"
     "@backstage/types": "npm:^1.2.2"
     "@types/express": "npm:^4.17.25"

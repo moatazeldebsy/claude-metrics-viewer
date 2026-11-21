@@ -35,7 +35,7 @@ for (const scheme of ['light', 'dark'] as const) {
       await page.getByRole('tab', { name: label, exact: true }).click();
       await expect(page.getByText(card, { exact: true }).first()).toBeVisible();
       const slug = label.toLowerCase().replace(/[^a-z]+/g, '-').replace(/-$/, '');
-      await page.screenshot({ path: path.join(__dirname, 'screenshots', `${slug}-${scheme}.png`), fullPage: true });
+      await page.screenshot({ path: path.join(__dirname, 'test-results', 'screenshots', `${slug}-${scheme}.png`), fullPage: true });
     }
     expect(errors).toEqual([]);
   });

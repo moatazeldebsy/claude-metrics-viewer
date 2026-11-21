@@ -13,6 +13,6 @@ const { data, status, error } = useFetch("/api/raw", { query });
       <v-text-field v-model="day" type="date" label="Day" max-width="180" />
     </div>
     <ApiState :pending="status === 'pending'" :error="error" />
-    <pre class="pa-3 rounded bg-surface-variant overflow-auto text-caption" style="max-height: 600px" data-testid="raw-json">{{ JSON.stringify(data, null, 2) }}</pre>
+    <pre class="pa-3 rounded overflow-auto text-caption raw-json" data-testid="raw-json">{{ JSON.stringify(data, null, 2) }}</pre>
   </ChartCard>
 </template>

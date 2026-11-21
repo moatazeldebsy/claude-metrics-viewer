@@ -8,3 +8,9 @@
 /* Sentence case instead of Material's all-caps buttons and tabs (Vuetify styles load after this file). */
 .v-btn { text-transform: none !important; letter-spacing: normal !important; }
 .cursor-pointer tbody tr { cursor: pointer; }
+/* Code block: subtle panel with full-contrast text in both themes. */
+.raw-json {
+  max-height: 600px;
+  background: rgb(var(--v-theme-surface-variant));
+  color: rgb(var(--v-theme-on-surface));
+}

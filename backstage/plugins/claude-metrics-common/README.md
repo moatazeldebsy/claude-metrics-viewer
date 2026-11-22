@@ -1,5 +1,5 @@
-# @internal/backstage-plugin-claude-metrics-common
+# @moatazeldebsy/backstage-plugin-claude-metrics-common
 
-Welcome to the common package for the claude-metrics plugin!
+Shared code for the [Claude Metrics](https://github.com/moatazeldebsy/claude-metrics-viewer) Backstage plugins: the `claude-metrics.dashboard.read` permission. The backend checks it on every route and the frontend checks it before loading the page.
 
-_This plugin was created through the Backstage CLI_
+You don't install this directly; the frontend and backend plugins depend on it. Import it in your permission policy to decide who may see the dashboard. See [Access control](https://github.com/moatazeldebsy/claude-metrics-viewer/blob/main/docs/backstage-integration.md#access-control).

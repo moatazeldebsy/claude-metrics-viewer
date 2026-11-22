@@ -3,7 +3,7 @@ import {
   mockErrorHandler,
   mockServices,
 } from '@backstage/backend-test-utils';
-import { MemoryTelemetryStore } from '@internal/claude-metrics-lib/server';
+import { MemoryTelemetryStore } from '@moatazeldebsy/claude-metrics-lib/server';
 import { readFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 import { resolve } from 'node:path';

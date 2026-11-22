@@ -1,8 +1,25 @@
 {
-  "name": "@internal/backstage-plugin-claude-metrics-common",
+  "name": "@moatazeldebsy/backstage-plugin-claude-metrics-common",
   "version": "0.1.0",
   "license": "MIT",
-  "private": true,
+  "author": "Moataz Nabil",
+  "homepage": "https://github.com/moatazeldebsy/claude-metrics-viewer/tree/main/backstage#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moatazeldebsy/claude-metrics-viewer.git",
+    "directory": "backstage/plugins/claude-metrics-common"
+  },
+  "bugs": {
+    "url": "https://github.com/moatazeldebsy/claude-metrics-viewer/issues"
+  },
+  "keywords": [
+    "backstage",
+    "backstage-plugin",
+    "claude",
+    "claude-code",
+    "anthropic",
+    "common-library"
+  ],
   "description": "Common functionalities for the claude-metrics plugin",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -16,9 +33,9 @@
     "role": "common-library",
     "pluginId": "claude-metrics",
     "pluginPackages": [
-      "@internal/backstage-plugin-claude-metrics",
-      "@internal/backstage-plugin-claude-metrics-backend",
-      "@internal/backstage-plugin-claude-metrics-common"
+      "@moatazeldebsy/backstage-plugin-claude-metrics",
+      "@moatazeldebsy/backstage-plugin-claude-metrics-backend",
+      "@moatazeldebsy/backstage-plugin-claude-metrics-common"
     ]
   },
   "sideEffects": false,

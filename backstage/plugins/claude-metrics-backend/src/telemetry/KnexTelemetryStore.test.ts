@@ -1,5 +1,5 @@
 import { TestDatabases } from '@backstage/backend-test-utils';
-import type { TelemetryBatch } from '@internal/claude-metrics-lib/server';
+import type { TelemetryBatch } from '@moatazeldebsy/claude-metrics-lib/server';
 import { KnexTelemetryStore } from './KnexTelemetryStore';
 
 jest.setTimeout(60_000);

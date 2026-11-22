@@ -1,6 +1,6 @@
 import { renderInTestApp } from '@backstage/frontend-test-utils';
 import { act, screen } from '@testing-library/react';
-import { addDays, toDay } from '@internal/claude-metrics-lib';
+import { addDays, toDay } from '@moatazeldebsy/claude-metrics-lib';
 import { router, RouterSpy } from '../testRouter';
 import { useFilters } from './useFilters';
 

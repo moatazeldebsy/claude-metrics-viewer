@@ -9,7 +9,7 @@ import { useDashboard } from '../hooks/useDashboard';
 import { useFilters } from '../hooks/useFilters';
 import { useCapabilities } from '../hooks/useMeta';
 import { NotAvailable } from '../components/NotAvailable';
-import { fmtUsd } from '@internal/claude-metrics-lib';
+import { fmtUsd } from '@moatazeldebsy/claude-metrics-lib';
 
 const DIMS = {
   model: 'model',

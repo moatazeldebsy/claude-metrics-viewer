@@ -1,6 +1,6 @@
 /**
  * Builds backstage/preview/index.html: a static picture of the Claude Metrics plugin inside
- * Backstage. The numbers are real output of @internal/claude-metrics-lib on the seeded mock org, for a fixed range so
+ * Backstage. The numbers are real output of @moatazeldebsy/claude-metrics-lib on the seeded mock org, for a fixed range so
  * the file only changes when the data layer does.
  *
  *   npx tsx backstage/scripts/build-preview.ts      (from the repo root)

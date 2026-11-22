@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { parseDay } from '../dates';
-import { addDays, toDay } from '@internal/claude-metrics-lib';
+import { addDays, toDay } from '@moatazeldebsy/claude-metrics-lib';
 import { useCapabilities } from './useMeta';
 
 const FILTER_KEYS = [

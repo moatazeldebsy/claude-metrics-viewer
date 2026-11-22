@@ -5,7 +5,7 @@ import { HBarChart } from '../components/charts/HBarChart';
 import { DataGrid } from '../components/DataGrid';
 import { KpiTile } from '../components/KpiTile';
 import { ChartGrid, KpiGrid, Stack } from '../components/layout';
-import { fmtInt, fmtPct, type GridColumn } from '@internal/claude-metrics-lib';
+import { fmtInt, fmtPct, type GridColumn } from '@moatazeldebsy/claude-metrics-lib';
 import { useClaudeCode, type ClaudeCodeResponse } from './useClaudeCode';
 
 type Term = ClaudeCodeResponse['terminals'][number];

@@ -9,7 +9,7 @@ import {
   fmtInt,
   type GridColumn,
   type UserRow,
-} from '@internal/claude-metrics-lib';
+} from '@moatazeldebsy/claude-metrics-lib';
 import { useClaudeCode } from './useClaudeCode';
 
 const columns: GridColumn<UserRow>[] = [

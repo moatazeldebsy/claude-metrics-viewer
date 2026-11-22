@@ -8,7 +8,7 @@ import {
   fmtInt,
   fmtPct,
   fmtUsd,
-} from '@internal/claude-metrics-lib';
+} from '@moatazeldebsy/claude-metrics-lib';
 import { useClaudeCode } from './useClaudeCode';
 
 export const OverviewTab = () => (

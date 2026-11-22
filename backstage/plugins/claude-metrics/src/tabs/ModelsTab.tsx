@@ -8,7 +8,7 @@ import {
   fmtUsd,
   modelCostRows,
   type GridColumn,
-} from '@internal/claude-metrics-lib';
+} from '@moatazeldebsy/claude-metrics-lib';
 import { useClaudeCode, type ClaudeCodeResponse } from './useClaudeCode';
 
 type Model = ClaudeCodeResponse['models'][number];

@@ -3,7 +3,7 @@ import { Combobox } from '@backstage/ui';
 import { useEffect, useState } from 'react';
 import { claudeMetricsApiRef } from '../api';
 import { useDebounced } from '../hooks/useDebounced';
-import type { UserOption } from '@internal/claude-metrics-lib';
+import type { UserOption } from '@moatazeldebsy/claude-metrics-lib';
 
 /** Typeahead user filter: the server returns at most 20 matches per search, never the full member list. */
 export function UserPicker({

@@ -38,7 +38,7 @@ Run the checks for every part you touched and quote their real output. CI (`.git
 
 ## Rules the code doesn't tell you
 
-### Data layer (`@internal/claude-metrics-lib`)
+### Data layer (`@moatazeldebsy/claude-metrics-lib`)
 - No framework imports. `.` (`src/index.ts`) must stay browser-safe; anything using the network, `fs` or env vars belongs behind `./server` (`src/server.ts`).
 - Use **relative** imports inside the package. A `#lib/...` import would be left unresolved in the built `dist/`. The Nuxt app and the root tests import the package as `#lib` through aliases in `nuxt.config.ts` and `vitest.config.mts`.
 - The package has its own self-contained `tsconfig.json`. Don't make it extend `@backstage/cli/config/tsconfig.json`: Vite compiles these files for the Nuxt app using the nearest tsconfig, and CI's root job has no `backstage/node_modules`.

@@ -1,8 +1,25 @@
 {
-  "name": "@internal/backstage-plugin-claude-metrics-backend",
+  "name": "@moatazeldebsy/backstage-plugin-claude-metrics-backend",
   "version": "0.1.0",
   "license": "MIT",
-  "private": true,
+  "author": "Moataz Nabil",
+  "homepage": "https://github.com/moatazeldebsy/claude-metrics-viewer/tree/main/backstage#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moatazeldebsy/claude-metrics-viewer.git",
+    "directory": "backstage/plugins/claude-metrics-backend"
+  },
+  "bugs": {
+    "url": "https://github.com/moatazeldebsy/claude-metrics-viewer/issues"
+  },
+  "keywords": [
+    "backstage",
+    "backstage-plugin",
+    "claude",
+    "claude-code",
+    "anthropic",
+    "backend-plugin"
+  ],
   "main": "src/index.ts",
   "types": "src/index.ts",
   "publishConfig": {
@@ -14,9 +31,9 @@
     "role": "backend-plugin",
     "pluginId": "claude-metrics",
     "pluginPackages": [
-      "@internal/backstage-plugin-claude-metrics",
-      "@internal/backstage-plugin-claude-metrics-backend",
-      "@internal/backstage-plugin-claude-metrics-common"
+      "@moatazeldebsy/backstage-plugin-claude-metrics",
+      "@moatazeldebsy/backstage-plugin-claude-metrics-backend",
+      "@moatazeldebsy/backstage-plugin-claude-metrics-common"
     ]
   },
   "scripts": {
@@ -35,8 +52,8 @@
     "@backstage/errors": "^1.3.2",
     "@backstage/plugin-permission-common": "^0.9.12",
     "@backstage/types": "^1.2.2",
-    "@internal/backstage-plugin-claude-metrics-common": "workspace:^",
-    "@internal/claude-metrics-lib": "workspace:^",
+    "@moatazeldebsy/backstage-plugin-claude-metrics-common": "workspace:^",
+    "@moatazeldebsy/claude-metrics-lib": "workspace:^",
     "express": "^4.22.1",
     "express-promise-router": "^4.1.0",
     "knex": "^3.1.0"

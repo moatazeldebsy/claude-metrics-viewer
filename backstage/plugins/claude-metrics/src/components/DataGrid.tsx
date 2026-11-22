@@ -7,7 +7,7 @@ import {
   type SortDescriptor,
 } from '@backstage/ui';
 import { useCallback, useMemo } from 'react';
-import { fmtInt, type GridColumn } from '@internal/claude-metrics-lib';
+import { fmtInt, type GridColumn } from '@moatazeldebsy/claude-metrics-lib';
 import { errorMessage } from './ApiState';
 
 type Item<R> = { id: string; row: R };

@@ -2,7 +2,7 @@ import { ResponseError } from '@backstage/errors';
 import { renderInTestApp } from '@backstage/frontend-test-utils';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { claudeMetricsApiRef } from '../api';
-import { addDays, toDay } from '@internal/claude-metrics-lib';
+import { addDays, toDay } from '@moatazeldebsy/claude-metrics-lib';
 import { fakeApi, META } from '../testUtils';
 import { ClaudeMetricsPage } from './ClaudeMetricsPage';
 

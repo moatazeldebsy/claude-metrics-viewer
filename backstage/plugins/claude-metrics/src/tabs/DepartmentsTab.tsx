@@ -18,7 +18,7 @@ import {
   type DepartmentRow,
   type GridColumn,
   type SeriesDef,
-} from '@internal/claude-metrics-lib';
+} from '@moatazeldebsy/claude-metrics-lib';
 
 interface DepartmentSummary {
   rows: DepartmentRow[];

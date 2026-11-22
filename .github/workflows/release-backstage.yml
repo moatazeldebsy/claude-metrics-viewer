@@ -1,0 +1,38 @@
+name: Release Backstage packages
+
+# Push a tag like backstage-v0.1.0 to publish the four packages in backstage/ to npm.
+on:
+  push:
+    tags: ["backstage-v*"]
+
+permissions:
+  contents: read
+  id-token: write # npm provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backstage
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: corepack enable
+      - name: Tag matches package versions
+        run: |
+          tag="${GITHUB_REF_NAME#backstage-v}"
+          for p in packages/*/package.json plugins/*/package.json; do
+            v=$(node -p "require('./$p').version")
+            [ "$v" = "$tag" ] || { echo "::error::$p is $v, tag is $tag"; exit 1; }
+          done
+      - run: yarn install --immutable
+      - run: yarn tsc
+      - run: CI=true yarn test
+      - run: yarn build
+      - name: Publish
+        env:
+          YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: yarn workspaces foreach -A --no-private --topological npm publish --access public --provenance --tolerate-republish

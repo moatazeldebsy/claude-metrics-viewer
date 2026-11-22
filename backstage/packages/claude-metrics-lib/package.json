@@ -1,9 +1,26 @@
 {
-  "name": "@internal/claude-metrics-lib",
+  "name": "@moatazeldebsy/claude-metrics-lib",
   "version": "0.1.0",
   "description": "Claude Metrics data layer: Anthropic Admin API and mock sources, aggregation, departments, holidays. Shared by the Nuxt app and the Backstage plugins.",
   "license": "MIT",
-  "private": true,
+  "author": "Moataz Nabil",
+  "homepage": "https://github.com/moatazeldebsy/claude-metrics-viewer/tree/main/backstage#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moatazeldebsy/claude-metrics-viewer.git",
+    "directory": "backstage/packages/claude-metrics-lib"
+  },
+  "bugs": {
+    "url": "https://github.com/moatazeldebsy/claude-metrics-viewer/issues"
+  },
+  "keywords": [
+    "backstage",
+    "backstage-plugin",
+    "claude",
+    "claude-code",
+    "anthropic",
+    "admin-api"
+  ],
   "main": "src/index.ts",
   "types": "src/index.ts",
   "exports": {

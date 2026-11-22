@@ -33,20 +33,54 @@ function tokenMatches(authorization: string | undefined, tokens: string[]): bool
   return ok;
 }
 
+const failure = (contentType: string | undefined) => {
+  const isJson = (contentType ?? "").split(";")[0]!.trim().toLowerCase() === "application/json";
+  return (status: number, message: string): IngestResponse =>
+    isJson
+      ? { status, contentType: "application/json", body: JSON.stringify({ message }) }
+      : { status, contentType: "text/plain; charset=utf-8", body: message };
+};
+
+/**
+ * The token check on its own, from headers only: hosts call it before reading the body, so an
+ * unauthenticated client can't make the server buffer anything. Undefined means authorized.
+ */
+export function checkIngestAuth(req: Pick<IngestRequest, "contentType" | "authorization">, tokens: string[]): IngestResponse | undefined {
+  const fail = failure(req.contentType);
+  const usable = tokens.filter((t) => t.trim() !== "");
+  if (usable.length === 0) return fail(503, "OTLP ingest is disabled: no ingest tokens are configured.");
+  if (!tokenMatches(req.authorization, usable)) return fail(401, "Missing or invalid ingest token.");
+  return undefined;
+}
+
+/** Collect a request body, giving up (null) as soon as it passes maxBytes. */
+export async function readBodyCapped(chunks: AsyncIterable<Uint8Array>, maxBytes: number): Promise<Uint8Array | null> {
+  const parts: Uint8Array[] = [];
+  let total = 0;
+  for await (const chunk of chunks) {
+    total += chunk.byteLength;
+    if (total > maxBytes) return null;
+    parts.push(chunk);
+  }
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const p of parts) {
+    out.set(p, offset);
+    offset += p.byteLength;
+  }
+  return out;
+}
+
 export async function handleOtlpIngest(
   req: IngestRequest,
   opts: { tokens: string[]; store: TelemetryStore; now?: Date },
 ): Promise<IngestResponse> {
   const type = (req.contentType ?? "").split(";")[0]!.trim().toLowerCase();
   const isJson = type === "application/json";
-  const fail = (status: number, message: string): IngestResponse =>
-    isJson
-      ? { status, contentType: "application/json", body: JSON.stringify({ message }) }
-      : { status, contentType: "text/plain; charset=utf-8", body: message };
+  const fail = failure(req.contentType);
 
-  const tokens = opts.tokens.filter((t) => t.trim() !== "");
-  if (tokens.length === 0) return fail(503, "OTLP ingest is disabled: no ingest tokens are configured.");
-  if (!tokenMatches(req.authorization, tokens)) return fail(401, "Missing or invalid ingest token.");
+  const denied = checkIngestAuth(req, opts.tokens);
+  if (denied) return denied;
   if (type !== "application/json" && type !== "application/x-protobuf") {
     return fail(415, "Unsupported content type. Send OTLP/HTTP with application/json or application/x-protobuf (gRPC isn't supported).");
   }

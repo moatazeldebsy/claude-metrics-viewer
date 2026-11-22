@@ -161,6 +161,13 @@ docker build -t claude-metrics-viewer .
 docker run -p 3000:3000 -e DATA_SOURCE=anthropic -e ANTHROPIC_ADMIN_KEY=sk-ant-admin... claude-metrics-viewer
 ```
 
+With OpenTelemetry, mount a volume for the telemetry database so it survives restarts and upgrades:
+
+```bash
+docker run -p 3000:3000 -v claude-metrics-data:/app/.data \
+  -e DATA_SOURCE=otel -e OTEL_INGEST_TOKENS=<token> claude-metrics-viewer
+```
+
 Without Docker: `npm run build && node .output/server/index.mjs`.
 
 ## Layout

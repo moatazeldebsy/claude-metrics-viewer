@@ -6,6 +6,13 @@ const kpi = (page: Page, label: string) =>
 
 test.describe.configure({ mode: "serial" });
 
+// The fixture was recorded on 2026-11-22; restamp it to now so it stays inside the default range.
+const nowNs = String(BigInt(Date.now()) * 1_000_000n);
+const fixture = readFileSync("tests/fixtures/otlp/claude-code-metrics.json", "utf8").replace(
+  /"(start)?[tT]imeUnixNano":\s*"\d+"/g,
+  (_m, start) => `"${start ? "startTimeUnixNano" : "timeUnixNano"}":"${nowNs}"`,
+);
+
 test("shows the setup panel before any telemetry arrives", async ({ page, baseURL }) => {
   await page.goto("/");
   const panel = page.getByTestId("telemetry-setup");
@@ -18,7 +25,7 @@ test("shows the setup panel before any telemetry arrives", async ({ page, baseUR
 test("shows the posted telemetry on Overview", async ({ page, request }) => {
   const res = await request.post("/v1/metrics", {
     headers: { "content-type": "application/json", authorization: "Bearer e2e" },
-    data: readFileSync("tests/fixtures/otlp/claude-code-metrics.json", "utf8"),
+    data: fixture,
   });
   expect(res.status()).toBe(200);
   await page.goto("/");
@@ -48,4 +55,14 @@ test("hides seat-based department numbers without a departments CSV", async ({ p
   await expect(page.getByText("Add a departments CSV to see adoption and inactive seats.")).toBeVisible();
   await expect(page.getByText("Org adoption", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Inactive seats", { exact: true })).toHaveCount(0);
+});
+
+test("ingest refuses a missing token and an oversized body before storing anything", async ({ request }) => {
+  const noToken = await request.post("/v1/metrics", { headers: { "content-type": "application/json" }, data: fixture });
+  expect(noToken.status()).toBe(401);
+  const big = await request.post("/v1/metrics", {
+    headers: { "content-type": "application/x-protobuf", authorization: "Bearer e2e" },
+    data: Buffer.alloc(6 * 1024 * 1024),
+  });
+  expect(big.status()).toBe(413);
 });

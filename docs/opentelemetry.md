@@ -18,7 +18,7 @@ DATA_SOURCE=otel OTEL_INGEST_TOKENS=$(openssl rand -hex 24) npm run dev
 | Variable | Default | |
 |---|---|---|
 | `OTEL_INGEST_TOKENS` | none | Comma-separated bearer tokens. Ingest returns `503` until one is set. |
-| `TELEMETRY_DB` | `./.data/telemetry.db` | SQLite file holding the daily totals. Put it on a persistent volume in Docker. |
+| `TELEMETRY_DB` | `./.data/telemetry.db` | SQLite file holding the daily totals. In Docker it's `/app/.data/telemetry.db`: mount a volume there (`-v claude-metrics-data:/app/.data`), see the README. |
 | `TELEMETRY_RETENTION_DAYS` | `400` | Days of totals to keep. `0` keeps everything. |
 
 The ingest endpoint is `POST /v1/metrics` on the app's origin, so Claude Code's endpoint is the origin itself, e.g. `http://localhost:3000`.

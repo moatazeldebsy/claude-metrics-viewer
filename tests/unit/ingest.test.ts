@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
-import { handleOtlpIngest, OTLP_MAX_BODY_BYTES, type IngestRequest } from "#lib/telemetry/ingest";
+import { checkIngestAuth, handleOtlpIngest, OTLP_MAX_BODY_BYTES, readBodyCapped, type IngestRequest } from "#lib/telemetry/ingest";
 import { MemoryTelemetryStore } from "#lib/telemetry/store";
 
 const json = new Uint8Array(readFileSync("tests/fixtures/otlp/claude-code-metrics.json"));
@@ -102,5 +102,27 @@ describe("handleOtlpIngest", () => {
     expect((await handleOtlpIngest(req({ body: other }), { tokens: ["tok"], store })).status).toBe(200);
     expect(await store.users()).toEqual([]);
     expect(await store.lastReceivedAt()).toBeNull();
+  });
+});
+
+describe("ingest before reading the body", () => {
+  it("checkIngestAuth answers 503/401 from headers alone and passes a valid token", () => {
+    expect(checkIngestAuth({ contentType: "application/json", authorization: "Bearer tok" }, [])?.status).toBe(503);
+    expect(checkIngestAuth({ contentType: "application/json", authorization: "Bearer nope" }, ["tok"])?.status).toBe(401);
+    expect(checkIngestAuth({ contentType: "application/json", authorization: "bearer tok" }, ["tok"])).toBeUndefined();
+  });
+
+  it("readBodyCapped returns the bytes under the cap and stops reading once past it", async () => {
+    let pulled = 0;
+    async function* chunks(n: number) {
+      for (let i = 0; i < n; i++) {
+        pulled++;
+        yield new Uint8Array(1024);
+      }
+    }
+    expect((await readBodyCapped(chunks(3), 4096))?.byteLength).toBe(3072);
+    pulled = 0;
+    expect(await readBodyCapped(chunks(1_000_000), 4096)).toBeNull();
+    expect(pulled).toBeLessThan(10);
   });
 });

@@ -42,8 +42,10 @@ export {
 } from './telemetry/rows';
 export { MemoryTelemetryStore, type TelemetryStore } from './telemetry/store';
 export {
+  checkIngestAuth,
   handleOtlpIngest,
   OTLP_MAX_BODY_BYTES,
+  readBodyCapped,
   type IngestRequest,
   type IngestResponse,
 } from './telemetry/ingest';

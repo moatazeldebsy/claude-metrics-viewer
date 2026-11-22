@@ -2,10 +2,11 @@
 import type { GridColumn } from "~/utils/grid";
 import type { SeriesDef } from "~/utils/palette";
 import type { ClaudeCodeSummary } from "#lib/aggregate";
+import { modelCostRows } from "#lib/chart-data";
 
 const f = useFilters();
 const { data: d, status, error } = useFetch("/api/claude-code", { query: f.query });
-const daily = computed(() => (d.value?.daily ?? []).map((p) => ({ day: p.day, ...p.modelCost })));
+const daily = computed(() => modelCostRows(d.value?.daily ?? [], (d.value?.models ?? []).map((m) => m.model)));
 const series = computed<SeriesDef[]>(() => (d.value?.models ?? []).map((m) => ({ key: m.model, label: m.model })));
 type Model = ClaudeCodeSummary["models"][number];
 const compact = fmtCompact as (v: never) => string;

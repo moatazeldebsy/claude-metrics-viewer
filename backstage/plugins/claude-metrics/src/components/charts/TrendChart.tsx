@@ -1,6 +1,9 @@
 import type { ChartOptions } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import type { SeriesDef } from '@internal/claude-metrics-lib';
+import {
+  isolatedPointRadius,
+  type SeriesDef,
+} from '@internal/claude-metrics-lib';
 import { registerCharts } from './register';
 import { tooltipColors } from './tooltip';
 import { useChartColors } from './useChartColors';
@@ -27,15 +30,17 @@ export function TrendChart({
     labels: rows.map(r => String(at(r, xKey)).slice(5)),
     datasets: series.map((s, i) => {
       const color = s.color ? c[s.color] : c.series[i];
+      const values = rows.map(
+        r => (at(r, s.key) as number | null | undefined) ?? null,
+      );
       return {
         label: s.label,
-        data: rows.map(
-          r => (at(r, s.key) as number | null | undefined) ?? null,
-        ),
+        data: values,
         borderColor: color,
         backgroundColor: color,
         borderWidth: 2,
-        pointRadius: 0,
+        // No points except where a value has no neighbours: a lone day would otherwise be invisible.
+        pointRadius: isolatedPointRadius(values),
         pointHoverRadius: 4,
         pointHoverBorderColor: c.surface,
         pointHoverBorderWidth: 2,

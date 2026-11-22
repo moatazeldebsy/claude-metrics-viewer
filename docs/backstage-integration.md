@@ -29,7 +29,18 @@ The plugins store nothing: no database tables, no migrations. Data comes from An
 
 - Node.js 22 or 24 and Yarn 4. The platform template's image runs the plugins on Node 22.
 
-**Anthropic**
+**Which data source**
+
+Pick one per Backstage deployment. What decides it is how Claude Code is paid for; the README's [Which setup is for me](../README.md#which-setup-is-for-me) has the full table.
+
+| You are | `claudeMetrics.dataSource` | You need |
+|---|---|---|
+| A team on Team or Enterprise seats, or one person on Pro/Max | `otel` | `claudeMetrics.otel.ingestTokens`, and Claude Code's env vars rolled out through managed settings. See [OpenTelemetry instead of the Admin API](#opentelemetry-instead-of-the-admin-api) |
+| An organization using Claude Code with Console API keys | `anthropic` | An Admin API key (below) |
+| A mix of both | `otel` | As above. Only OpenTelemetry sees subscription usage |
+| Trying it out | `mock` (default) | Nothing |
+
+**Anthropic Admin API (`dataSource: anthropic`)**
 
 - A Claude Console organization and an **Admin API key** (`sk-ant-admin…`, Console → Settings → Admin keys). Workspace API keys are rejected.
 - Outbound HTTPS from the Backstage backend to `api.anthropic.com`. The plugin doesn't configure an HTTP proxy.

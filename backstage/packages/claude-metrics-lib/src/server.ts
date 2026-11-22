@@ -40,3 +40,9 @@ export {
   type TelemetryUser,
 } from './telemetry/rows';
 export { MemoryTelemetryStore, type TelemetryStore } from './telemetry/store';
+export {
+  handleOtlpIngest,
+  OTLP_MAX_BODY_BYTES,
+  type IngestRequest,
+  type IngestResponse,
+} from './telemetry/ingest';

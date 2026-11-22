@@ -15,3 +15,10 @@ export {
   usersPage,
 } from './service';
 export { dataSourceName, getSource } from './sources';
+export {
+  decodeOtlpJson,
+  decodeOtlpProtobuf,
+  OtlpDecodeError,
+  type AttrValue,
+  type OtlpPoint,
+} from './telemetry/otlp';

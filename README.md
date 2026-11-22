@@ -95,14 +95,17 @@ The dashboard also ships as a Backstage frontend and backend plugin pair in [`ba
 
 ## Claude Code plugin
 
-This repository is also a Claude Code plugin marketplace. The `metrics-viewer` plugin connects your Claude Code's OpenTelemetry export to a running dashboard: it tests the endpoint and token, writes the settings and checks that data arrives.
+This repository is also a Claude Code plugin marketplace. The `metrics-viewer` plugin does two things:
+
+- connects your Claude Code's OpenTelemetry export to a running dashboard: it tests the endpoint and token, writes the settings and checks that data arrives;
+- lets you ask Claude about the dashboard's numbers through an [MCP server](mcp/README.md), for example "which departments have the lowest adoption this month?"
 
 ```text
 /plugin marketplace add moatazeldebsy/claude-metrics-viewer
 /plugin install metrics-viewer@metrics-viewer
 ```
 
-Then run `/metrics-viewer:connect-telemetry`. See [`claude-plugin/`](claude-plugin/README.md).
+Then run `/metrics-viewer:connect-telemetry`, or ask about your metrics. See [`claude-plugin/`](claude-plugin/README.md).
 
 ## Which setup is for me
 
@@ -212,7 +215,8 @@ backstage/packages/claude-metrics-lib/src/
 backstage/          Backstage plugins, preview page and the package above (see backstage/README.md)
 server/api/         Nitro routes: claude-code, departments, users, user-search, seats, cost, meta, raw
 .claude-plugin/     Claude Code marketplace manifest
-claude-plugin/      the metrics-viewer Claude Code plugin (connect-telemetry skill)
+claude-plugin/      the metrics-viewer Claude Code plugin (connect-telemetry skill, MCP server config)
+mcp/                MCP server over the dashboard's /api/* routes (@moatazeldebsy/claude-metrics-mcp)
 app/
   pages/index.vue   tabs + filter bar; filters live in the URL
   components/tabs/  one component per tab

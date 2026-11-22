@@ -1,0 +1,42 @@
+{
+  "name": "@moatazeldebsy/claude-metrics-mcp",
+  "version": "0.1.0",
+  "description": "MCP server that lets Claude query a running Claude Metrics dashboard: Claude Code adoption, departments, cost, seats and users.",
+  "license": "MIT",
+  "author": "Moataz Nabil",
+  "homepage": "https://github.com/moatazeldebsy/claude-metrics-viewer/tree/main/mcp#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moatazeldebsy/claude-metrics-viewer.git",
+    "directory": "mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/moatazeldebsy/claude-metrics-viewer/issues"
+  },
+  "keywords": ["mcp", "model-context-protocol", "claude", "claude-code", "metrics", "dashboard"],
+  "type": "module",
+  "bin": {
+    "claude-metrics-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "typescript": "^5",
+    "vitest": "^5.1.1"
+  }
+}

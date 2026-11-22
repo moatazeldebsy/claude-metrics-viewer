@@ -1,7 +1,7 @@
 {
   "name": "metrics-viewer",
-  "version": "0.1.0",
-  "description": "Connect Claude Code's OpenTelemetry export to a Claude Metrics dashboard (standalone or Backstage).",
+  "version": "0.2.0",
+  "description": "Connect Claude Code's OpenTelemetry export to a Claude Metrics dashboard, and ask Claude about your org's Claude Code adoption, departments, cost and users.",
   "author": {
     "name": "Moataz Nabil",
     "url": "https://github.com/moatazeldebsy"
@@ -9,5 +9,21 @@
   "homepage": "https://github.com/moatazeldebsy/claude-metrics-viewer/tree/main/claude-plugin#readme",
   "repository": "https://github.com/moatazeldebsy/claude-metrics-viewer",
   "license": "MIT",
-  "keywords": ["claude-code", "opentelemetry", "telemetry", "metrics", "dashboard", "backstage"]
+  "keywords": [
+    "claude-code",
+    "opentelemetry",
+    "telemetry",
+    "metrics",
+    "dashboard",
+    "backstage",
+    "mcp"
+  ],
+  "userConfig": {
+    "dashboard_url": {
+      "type": "string",
+      "title": "Dashboard URL",
+      "description": "Origin of your Claude Metrics dashboard (the standalone app), e.g. http://localhost:3000.",
+      "default": "http://localhost:3000"
+    }
+  }
 }

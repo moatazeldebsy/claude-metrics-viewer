@@ -2,6 +2,7 @@
 import type { SeriesDef } from "~/utils/palette";
 import type { ChartOptions } from "chart.js";
 import { Line } from "vue-chartjs";
+import { isolatedPointRadius } from "#lib/chart-data";
 
 // Daily line chart with one shared y-axis: only plot series of the same unit together.
 const props = withDefaults(
@@ -15,13 +16,15 @@ const data = computed(() => ({
   labels: props.rows.map((r) => String(at(r, props.xKey)).slice(5)),
   datasets: props.series.map((s, i) => {
     const color = s.color ? c.value[s.color] : c.value.series[i];
+    const values = props.rows.map((r) => (at(r, s.key) as number | null | undefined) ?? null);
     return {
       label: s.label,
-      data: props.rows.map((r) => (at(r, s.key) as number | null | undefined) ?? null),
+      data: values,
       borderColor: color,
       backgroundColor: color,
       borderWidth: 2,
-      pointRadius: 0,
+      // No points except where a value has no neighbours: a lone day would otherwise be invisible.
+      pointRadius: isolatedPointRadius(values),
       pointHoverRadius: 4,
       pointHoverBorderColor: c.value.surface,
       pointHoverBorderWidth: 2,

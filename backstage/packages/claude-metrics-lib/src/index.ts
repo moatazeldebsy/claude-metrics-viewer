@@ -2,6 +2,7 @@
 // Anything that talks to the Anthropic API or the filesystem lives in `./server`.
 export * from './dates';
 export * from './format';
+export { isolatedPointRadius, modelCostRows } from './chart-data';
 export { PALETTE, type ChartColors, type SeriesDef } from './palette';
 export type { GridColumn } from './grid';
 export * from './anthropic-types';

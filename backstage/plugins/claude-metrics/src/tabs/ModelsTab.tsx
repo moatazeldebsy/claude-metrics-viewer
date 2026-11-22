@@ -6,6 +6,7 @@ import { Stack } from '../components/layout';
 import {
   fmtCompact,
   fmtUsd,
+  modelCostRows,
   type GridColumn,
 } from '@internal/claude-metrics-lib';
 import { useClaudeCode, type ClaudeCodeResponse } from './useClaudeCode';
@@ -57,7 +58,10 @@ export const ModelsTab = () => (
       <Stack>
         <ChartCard title="Estimated Claude Code cost per model, daily">
           <TrendChart
-            rows={d.daily.map(p => ({ day: p.day, ...p.modelCost }))}
+            rows={modelCostRows(
+              d.daily,
+              d.models.map(m => m.model),
+            )}
             series={d.models.map(m => ({ key: m.model, label: m.model }))}
             format={fmtUsd}
           />

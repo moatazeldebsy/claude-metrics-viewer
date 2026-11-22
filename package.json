@@ -18,20 +18,20 @@
     "@anthropic-ai/sdk": "^1.5.0",
     "@mdi/font": "^7.4.47",
     "chart.js": "^4.6.1",
-    "date-holidays": "^3.38.0",
+    "date-holidays": "^3.39.2",
     "nuxt": "^4.6.4",
     "vue": "^3.5.45",
-    "vue-chartjs": "^5.3.4",
+    "vue-chartjs": "^5.3.6",
     "vuetify": "^3.13.7",
     "vuetify-nuxt-module": "^0.19.5"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.17.0",
-    "@playwright/test": "^1.65.0",
+    "@playwright/test": "^1.65.1",
     "@types/node": "^26.6.6",
     "eslint": "^10",
     "typescript": "^5",
-    "vitest": "^5.1.0",
+    "vitest": "^5.1.1",
     "vue-tsc": "^3.3.14"
   },
   "type": "module"

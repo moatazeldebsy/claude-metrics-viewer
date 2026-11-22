@@ -78,6 +78,8 @@ function counterFor(p: OtlpPoint): TelemetryCounter | undefined {
 
 const dayOf = (ns: bigint) => new Date(Number(ns / 1_000_000n)).toISOString().slice(0, 10);
 const str = (v: unknown) => (typeof v === "string" && v !== "" ? v : undefined);
+/** Column sizes in the Backstage store (Postgres enforces them): longer values are cut, not rejected. */
+const cap = (v: string, max: number) => (v.length > max ? v.slice(0, max) : v);
 
 /** A stable label for users without an email that doesn't reveal the raw user.id. */
 const pseudonym = (userId: string) => `user-${createHash("sha256").update(userId).digest("hex").slice(0, 10)}`;
@@ -93,15 +95,16 @@ export function toTelemetryBatch(points: OtlpPoint[]): TelemetryBatch {
 
     const email = str(p.attributes["user.email"]);
     const actorKind = email ? "user" : "api";
-    const actor = email ?? pseudonym(str(p.attributes["user.id"]) ?? "unknown");
+    const actor = cap(email ?? pseudonym(str(p.attributes["user.id"]) ?? "unknown"), 320);
     const day = dayOf(p.timeUnixNano);
-    const key: TelemetryKey = { day, actorKind, actor, terminal: str(p.attributes["terminal.type"]) ?? "unknown", model: str(p.attributes.model) ?? "" };
+    const key: TelemetryKey = { day, actorKind, actor, terminal: cap(str(p.attributes["terminal.type"]) ?? "unknown", 128), model: cap(str(p.attributes.model) ?? "", 128) };
     const id = JSON.stringify(key);
     const row = rows.get(id) ?? { ...key, counters: {} };
     row.counters[counter] = (row.counters[counter] ?? 0) + p.value;
     rows.set(id, row);
 
-    const department = str(p.attributes.department) ?? str(p.resource.department) ?? null;
+    const rawDepartment = str(p.attributes.department) ?? str(p.resource.department);
+    const department = rawDepartment === undefined ? null : cap(rawDepartment, 256);
     const prev = users.get(`${actorKind}:${actor}`);
     if (!prev || day >= prev.lastSeen) users.set(`${actorKind}:${actor}`, { actorKind, actor, department: department ?? prev?.department ?? null, lastSeen: day });
   }

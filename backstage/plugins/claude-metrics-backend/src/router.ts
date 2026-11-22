@@ -76,7 +76,9 @@ export async function createRouter({
             Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0),
           ),
           contentType: req.header('content-type'),
-          contentEncoding: req.header('content-encoding'),
+          // express.raw() has already inflated gzip/deflate bodies (its limit caps the inflated
+          // size) but leaves the header, so don't let the ingest handler gunzip them again.
+          contentEncoding: undefined,
           authorization: req.header('authorization'),
         },
         telemetry,

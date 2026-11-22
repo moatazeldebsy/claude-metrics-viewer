@@ -18,6 +18,15 @@ const point = (metric: string, value: number, attributes: Record<string, AttrVal
 });
 
 describe("toTelemetryBatch", () => {
+  it("caps over-long values at the stores' column sizes, so one bad attribute can't fail every batch", () => {
+    const long = (n: number) => "x".repeat(n);
+    const { rows, users } = toTelemetryBatch([
+      point("claude_code.session.count", 1, { "user.email": `${long(400)}@example.test`, "terminal.type": long(200), model: long(200), department: long(300) }),
+    ]);
+    expect([rows[0]!.actor.length, rows[0]!.terminal.length, rows[0]!.model.length]).toEqual([320, 128, 128]);
+    expect(users[0]!.department).toHaveLength(256);
+  });
+
   it("maps the fixture to the recorded totals", () => {
     const { rows, users } = toTelemetryBatch(fixture);
     const sum = (k: string) => rows.reduce((s, r) => s + ((r.counters as Record<string, number>)[k] ?? 0), 0);

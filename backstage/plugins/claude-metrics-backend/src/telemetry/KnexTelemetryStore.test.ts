@@ -29,10 +29,11 @@ const user = (
   lastSeen,
 });
 
-describe('KnexTelemetryStore', () => {
-  const databases = TestDatabases.create({ ids: ['SQLITE_3'] });
+const databases = TestDatabases.create({ ids: ['SQLITE_3', 'POSTGRES_16'] });
+
+describe.each(databases.eachSupportedId())('KnexTelemetryStore on %s', id => {
   const createStore = async () =>
-    KnexTelemetryStore.create(await databases.init('SQLITE_3'));
+    KnexTelemetryStore.create(await databases.init(id));
 
   it('sums rows per key and returns them per day', async () => {
     const store = await createStore();
@@ -112,5 +113,44 @@ describe('KnexTelemetryStore', () => {
     await store.prune('2026-01-01');
     expect(await store.records('2025-01-01')).toEqual([]);
     expect((await store.users()).map(u => u.actor)).toEqual(['new@x.test']);
+  });
+  it('does not deadlock when concurrent batches touch the same rows in opposite order', async () => {
+    const store = await createStore();
+    const a = row('a@x.test', { sessions: 1 }, 'opus');
+    const b = row('a@x.test', { sessions: 1 }, 'sonnet');
+    await Promise.all(
+      Array.from({ length: 40 }, (_, i) =>
+        store.add(
+          { rows: i % 2 ? [a, b] : [b, a], users: [user('a@x.test')] },
+          't',
+        ),
+      ),
+    );
+    const rows = await store.records(DAY);
+    expect(rows.map(r => r.counters.sessions)).toEqual(
+      [20 + 20, 20 + 20].map(() => 40),
+    );
+  });
+
+  it('keeps the newest last-seen day and department when old and new batches race', async () => {
+    const store = await createStore();
+    for (let round = 0; round < 20; round++) {
+      const actor = `u${round}@x.test`;
+      // The newer batch starts first, so a read-then-write upsert lets the older one overwrite it.
+      await Promise.all([
+        store.add({ rows: [], users: [user(actor, 'New', '2026-11-22')] }, 't'),
+        ...Array.from({ length: 5 }, () =>
+          store.add(
+            { rows: [], users: [user(actor, 'Old', '2026-11-01')] },
+            't',
+          ),
+        ),
+      ]);
+    }
+    const users = await store.users();
+    expect(users).toHaveLength(20);
+    expect(
+      users.filter(u => u.department !== 'New' || u.lastSeen !== '2026-11-22'),
+    ).toEqual([]);
   });
 });

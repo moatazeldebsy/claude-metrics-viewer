@@ -13,6 +13,11 @@ import { KnexTelemetryStore } from './telemetry/KnexTelemetryStore';
 import { claudeMetricsPermissions } from '@internal/backstage-plugin-claude-metrics-common';
 import { createRouter } from './router';
 
+const readTokens = (value: unknown): string[] =>
+  (Array.isArray(value) ? value : [value]).filter(
+    (t): t is string => typeof t === 'string' && t.trim() !== '',
+  );
+
 /**
  * Claude Metrics backend plugin: serves the dashboard's data routes under /api/claude-metrics.
  *
@@ -52,10 +57,11 @@ export const claudeMetricsPlugin = createBackendPlugin({
           );
           registerTelemetryStore(store);
           telemetry = {
-            tokens:
-              config.getOptionalStringArray(
-                'claudeMetrics.otel.ingestTokens',
-              ) ?? [],
+            // Read loosely: Compose's ${VAR:-} leaves '' when the token isn't set, and a strict
+            // string-array read would fail startup. Empty tokens are ignored (ingest answers 503).
+            tokens: readTokens(
+              config.getOptional('claudeMetrics.otel.ingestTokens'),
+            ),
             store,
           };
           const retentionDays =

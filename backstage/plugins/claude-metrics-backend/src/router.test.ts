@@ -5,6 +5,7 @@ import {
 } from '@backstage/backend-test-utils';
 import { MemoryTelemetryStore } from '@internal/claude-metrics-lib/server';
 import { readFileSync } from 'node:fs';
+import { gzipSync } from 'node:zlib';
 import { resolve } from 'node:path';
 import { AuthorizeResult } from '@backstage/plugin-permission-common';
 import express from 'express';
@@ -209,6 +210,21 @@ describe('OTLP ingest route', () => {
       .set('content-type', 'application/json')
       .set('authorization', 'Bearer ingest-token')
       .send(fixture);
+    expect(res.status).toBe(200);
+    expect((await store.users()).map(u => u.actor)).toEqual([
+      'ada.lovela@example.test',
+    ]);
+  });
+
+  it('accepts a gzip-compressed export (OTEL_EXPORTER_OTLP_COMPRESSION=gzip)', async () => {
+    const { app, store } = await appWith();
+    const res = await request(app)
+      .post('/otlp/v1/metrics')
+      .set('content-type', 'application/json')
+      .set('content-encoding', 'gzip')
+      .set('authorization', 'Bearer ingest-token')
+      .serialize(body => body) // send the gzip bytes as-is, not JSON-encoded
+      .send(gzipSync(fixture));
     expect(res.status).toBe(200);
     expect((await store.users()).map(u => u.actor)).toEqual([
       'ada.lovela@example.test',

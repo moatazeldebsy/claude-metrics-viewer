@@ -93,6 +93,17 @@ The dashboard also ships as a Backstage frontend and backend plugin pair in [`ba
 
 ![Departments tab inside Backstage, dark theme](docs/screenshots/backstage-departments-dark.png)
 
+## Claude Code plugin
+
+This repository is also a Claude Code plugin marketplace. The `metrics-viewer` plugin connects your Claude Code's OpenTelemetry export to a running dashboard: it tests the endpoint and token, writes the settings and checks that data arrives.
+
+```text
+/plugin marketplace add moatazeldebsy/claude-metrics-viewer
+/plugin install metrics-viewer@metrics-viewer
+```
+
+Then run `/metrics-viewer:connect-telemetry`. See [`claude-plugin/`](claude-plugin/README.md).
+
 ## Which setup is for me
 
 What decides it is how Claude Code is paid for. The Admin API's Claude Code report only covers usage billed to a Claude Console organization (API keys). Usage on Pro, Max, Team or Enterprise subscription seats isn't in it, so for those, Claude Code sends its metrics to the dashboard over OpenTelemetry.
@@ -200,6 +211,8 @@ backstage/packages/claude-metrics-lib/src/
   format.ts         number, currency and percentage formatters
 backstage/          Backstage plugins, preview page and the package above (see backstage/README.md)
 server/api/         Nitro routes: claude-code, departments, users, user-search, seats, cost, meta, raw
+.claude-plugin/     Claude Code marketplace manifest
+claude-plugin/      the metrics-viewer Claude Code plugin (connect-telemetry skill)
 app/
   pages/index.vue   tabs + filter bar; filters live in the URL
   components/tabs/  one component per tab

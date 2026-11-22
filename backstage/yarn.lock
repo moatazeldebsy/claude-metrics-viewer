@@ -3541,7 +3541,7 @@ __metadata:
   dependencies:
     "@anthropic-ai/sdk": "npm:1.5.0"
     "@backstage/cli": "npm:^0.36.7"
-    date-holidays: "npm:3.38.0"
+    date-holidays: "npm:3.39.2"
   languageName: unknown
   linkType: soft
 
@@ -10583,7 +10583,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"date-holidays-parser@npm:^3.4.7":
+"date-holidays-parser@npm:^3.7.0":
   version: 3.7.0
   resolution: "date-holidays-parser@npm:3.7.0"
   dependencies:
@@ -10600,17 +10600,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"date-holidays@npm:3.38.0":
-  version: 3.38.0
-  resolution: "date-holidays@npm:3.38.0"
+"date-holidays@npm:3.39.2":
+  version: 3.39.2
+  resolution: "date-holidays@npm:3.39.2"
   dependencies:
-    date-holidays-parser: "npm:^3.4.7"
+    date-holidays-parser: "npm:^3.7.0"
     js-yaml: "npm:^5.5.0"
     lodash: "npm:^4.18.1"
     prepin: "npm:^1.0.3"
   bin:
     holidays2json: scripts/holidays2json.cjs
-  checksum: 10c0/9eb37f6ee355c04acb1b385c3a2a55bcf87ea531c3f3a63db44f002a60b1e88eb6f38541fc32d4765bf4584dbcbb4eb1090e7f6f161321323107b5d61c09f62a
+  checksum: 10c0/3847eec225f740419d9fc9ba6223441cbc7f72965e8290ca1c413d0af3b2b4758399c07bd9e4ab03bbb43614ce905d12d359a7bb10631d1efc77955d27fd6dc0
   languageName: node
   linkType: hard
 

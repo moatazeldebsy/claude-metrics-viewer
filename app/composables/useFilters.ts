@@ -6,10 +6,13 @@ const FILTER_KEYS = ["excludeWeekends", "excludeHolidays", "user", "department"]
 export function useFilters() {
   const route = useRoute();
   const router = useRouter();
-  const yesterday = addDays(toDay(new Date()), -1);
+  const caps = useCapabilities();
+  const today = toDay(new Date());
+  // Live sources (OpenTelemetry) can show today; the Admin API's data for today is incomplete.
+  const latest = computed(() => (caps.value.includesToday ? today : addDays(today, -1)));
   const param = (k: string) => (typeof route.query[k] === "string" && route.query[k] !== "" ? (route.query[k] as string) : null);
 
-  const to = computed(() => param("to") ?? yesterday);
+  const to = computed(() => param("to") ?? latest.value);
   const from = computed(() => param("from") ?? addDays(to.value, -27));
   const tab = computed(() => param("tab") ?? "overview");
 
@@ -31,5 +34,5 @@ export function useFilters() {
     router.replace({ query: next });
   }
 
-  return { yesterday, from, to, tab, query, param, set };
+  return { latest, from, to, tab, query, param, set };
 }

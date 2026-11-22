@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const f = useFilters();
+const caps = useCapabilities();
 const search = ref("");
 const q = useDebounced(search);
 const page = ref(1);
@@ -16,7 +17,12 @@ const headers = [
 </script>
 
 <template>
-  <div class="stack">
+  <NotAvailable
+    v-if="!caps.seats"
+    title="Seats aren't available with this data"
+    reason="Seats need a member list. Add a departments CSV (DEPARTMENTS_FILE) to see members with no activity."
+  />
+  <div v-else class="stack">
     <ApiState :pending="false" :error="error" />
     <div v-if="d" class="kpi-grid">
       <KpiTile label="Members" :value="fmtInt(d.totalSeats)" />

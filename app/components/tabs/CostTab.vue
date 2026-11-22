@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const f = useFilters();
+const caps = useCapabilities();
 const { data: d, status, error } = useFetch("/api/cost", { query: f.query });
 const DIMS = { model: "model", workspace_id: "workspace", api_key_id: "API key", product: "product", service_tier: "service tier", cost_type: "cost type" } as const;
 const days = computed(() => d.value?.daily.filter((x) => x.cents > 0).length || 1);
@@ -7,7 +8,12 @@ const filtered = computed(() => Boolean(f.param("user") || f.param("department")
 </script>
 
 <template>
-  <div class="stack">
+  <NotAvailable
+    v-if="!caps.billedCost"
+    title="Cost & usage isn't available with OpenTelemetry data"
+    reason="Billed cost comes from the Admin API. With OpenTelemetry data, Overview and Models show Claude Code's estimated cost."
+  />
+  <div v-else class="stack">
     <ApiState :pending="status === 'pending'" :error="error" />
     <v-alert v-if="filtered" type="info" variant="tonal" density="compact" data-testid="cost-filter-note">
       Organization-wide figures: the department and user filters don’t apply here, because the cost API has no department dimension.

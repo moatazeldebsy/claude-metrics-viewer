@@ -24,8 +24,18 @@ const TABS = [
 ];
 
 const f = useFilters();
-const { data: meta } = useFetch("/api/meta");
-const active = computed(() => TABS.find((t) => t.id === f.tab.value) ?? TABS[0]!);
+const { data: meta, refresh: refreshMeta } = useMeta();
+const caps = useCapabilities();
+const tabs = computed(() => TABS.filter((t) => t.id !== "api" || caps.value.rawUpstream));
+const active = computed(() => tabs.value.find((t) => t.id === f.tab.value) ?? tabs.value[0]!);
+// OpenTelemetry mode before any data: show setup instructions and check again every 10 s.
+const waitingForTelemetry = computed(() => meta.value?.dataSource === "otel" && meta.value.telemetry?.lastReceivedAt === null);
+let poll: ReturnType<typeof setInterval> | undefined;
+watch(waitingForTelemetry, (waiting) => {
+  clearInterval(poll);
+  if (waiting) poll = setInterval(() => refreshMeta(), 10_000);
+}, { immediate: true });
+onBeforeUnmount(() => clearInterval(poll));
 </script>
 
 <template>
@@ -39,18 +49,22 @@ const active = computed(() => TABS.find((t) => t.id === f.tab.value) ?? TABS[0]!
         <v-chip v-if="meta?.dataSource === 'mock'" size="small" color="primary" data-testid="mock-badge">
           Mock data, set DATA_SOURCE=anthropic for real data
         </v-chip>
+        <v-chip v-else-if="meta?.dataSource === 'otel'" size="small" color="primary" data-testid="source-badge">OpenTelemetry</v-chip>
         <ThemeToggle />
       </div>
     </header>
 
-    <FilterBar :departments="meta?.departments ?? []" :holiday-country="meta?.holidayCountry" />
+    <TelemetrySetup v-if="waitingForTelemetry" />
+    <template v-else>
+      <FilterBar :departments="meta?.departments ?? []" :holiday-country="meta?.holidayCountry" />
 
-    <v-tabs :model-value="active.id" color="primary" show-arrows class="mt-4 border-b" @update:model-value="(t) => f.set({ tab: t === 'overview' ? null : String(t) })">
-      <v-tab v-for="t in TABS" :key="t.id" :value="t.id">{{ t.label }}</v-tab>
-    </v-tabs>
+      <v-tabs :model-value="active.id" color="primary" show-arrows class="mt-4 border-b" @update:model-value="(t) => f.set({ tab: t === 'overview' ? null : String(t) })">
+        <v-tab v-for="t in tabs" :key="t.id" :value="t.id">{{ t.label }}</v-tab>
+      </v-tabs>
 
-    <main class="mt-4">
-      <component :is="active.component" :key="active.id" />
-    </main>
+      <main class="mt-4">
+        <component :is="active.component" :key="active.id" />
+      </main>
+    </template>
   </v-container>
 </template>

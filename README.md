@@ -93,6 +93,20 @@ The dashboard also ships as a Backstage frontend and backend plugin pair in [`ba
 
 ![Departments tab inside Backstage, dark theme](docs/screenshots/backstage-departments-dark.png)
 
+## Which setup is for me
+
+What decides it is how Claude Code is paid for. The Admin API's Claude Code report only covers usage billed to a Claude Console organization (API keys). Usage on Pro, Max, Team or Enterprise subscription seats isn't in it, so for those, Claude Code sends its metrics to the dashboard over OpenTelemetry.
+
+| You are | Data source | Setup | What you get |
+|---|---|---|---|
+| **One person on Pro or Max** | `otel` | `DATA_SOURCE=otel OTEL_INGEST_TOKENS=…`, plus four env vars in your shell profile ([guide](docs/opentelemetry.md#one-person)) | Your own sessions, lines, commits, PRs, acceptance, models and estimated cost, including today |
+| **A team on Team or Enterprise seats** | `otel` | The same env vars rolled out through Claude Code's managed settings ([guide](docs/opentelemetry.md#a-team)). Add a departments CSV (`DEPARTMENTS_FILE`) for departments, adoption and inactive seats | Everyone you configure, by person and department. Cost is Claude Code's estimate, not your invoice |
+| **An organization using Claude Code with Console API keys** (pay as you go) | `anthropic` | An Admin API key (`ANTHROPIC_ADMIN_KEY`, Console → Settings → Admin keys), optionally a departments CSV | Every tab, including billed cost and seats from the Console member list. No setup on developers' machines. Data lags up to a day |
+| **A mix of subscription seats and API keys** | `otel` | As for a team | Everyone, whichever way they pay. The two sources can't be combined in one deployment, and only OpenTelemetry sees subscription usage |
+| **Just looking** | `mock` (default) | Nothing | A seeded 1,200-person organization |
+
+Claude Enterprise's Enterprise Analytics API (seats and activity across chat, Claude Code and Cowork) isn't supported yet. Enterprise organizations use `otel` for Claude Code today.
+
 ## Data sources
 
 | | `mock` (default) | `anthropic` | `otel` |

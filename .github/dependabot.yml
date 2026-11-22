@@ -30,6 +30,21 @@ updates:
       # Exact-pinned in claude-metrics-lib to match the root lockfile.
       - dependency-name: "@anthropic-ai/sdk"
       - dependency-name: "date-holidays"
+      # Backstage 1.56 is built on React 18, Express 4 and Prettier 2 (backstage-cli formats with
+      # it). Major versions of these move with a Backstage bump, not ahead of it; minor and patch
+      # updates still come through. Adjust these when bumping Backstage.
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "express"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/express"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "prettier"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /

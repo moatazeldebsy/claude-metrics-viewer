@@ -24,7 +24,22 @@ export interface CostQuery {
   daily?: boolean; // time_bucket_width=1d
 }
 
+/** What a source can provide. The UI hides or explains the parts a source can't fill. */
+export interface SourceCapabilities {
+  /** Billed cost from the Usage & Cost Analytics API (Cost & usage tab). */
+  billedCost: boolean;
+  /** A member list, so seats, adoption and idle members are real. */
+  seats: boolean;
+  /** Raw upstream rows for the API response tab. */
+  rawUpstream: boolean;
+  /** Local vs remote session split. */
+  remoteSplit: boolean;
+}
+
+export const ALL_CAPABILITIES: SourceCapabilities = { billedCost: true, seats: true, rawUpstream: true, remoteSplit: true };
+
 export interface MetricsSource {
+  capabilities(): SourceCapabilities;
   /** Claude Code records for one UTC day (all pages). */
   claudeCodeDay(day: string): Promise<ClaudeCodeRecord[]>;
   /** Cost rows from the Usage & Cost Analytics API. */

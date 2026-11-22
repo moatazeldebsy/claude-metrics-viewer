@@ -14,7 +14,14 @@ export {
   userSearch,
   usersPage,
 } from './service';
-export { dataSourceName, getSource } from './sources';
+export {
+  dataSourceName,
+  getSource,
+  registerTelemetryStore,
+  sourceCapabilities,
+  telemetryStatus,
+} from './sources';
+export { OtelSource } from './sources/otel';
 export {
   decodeOtlpJson,
   decodeOtlpProtobuf,
@@ -22,3 +29,14 @@ export {
   type AttrValue,
   type OtlpPoint,
 } from './telemetry/otlp';
+export {
+  CumulativeTemporalityError,
+  TELEMETRY_COUNTERS,
+  toTelemetryBatch,
+  type TelemetryBatch,
+  type TelemetryCounter,
+  type TelemetryKey,
+  type TelemetryRow,
+  type TelemetryUser,
+} from './telemetry/rows';
+export { MemoryTelemetryStore, type TelemetryStore } from './telemetry/store';

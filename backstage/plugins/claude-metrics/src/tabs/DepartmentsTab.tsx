@@ -8,6 +8,8 @@ import { KpiTile } from '../components/KpiTile';
 import { ChartGrid, KpiGrid, Stack } from '../components/layout';
 import { useDashboard } from '../hooks/useDashboard';
 import { useFilters } from '../hooks/useFilters';
+import { useCapabilities } from '../hooks/useMeta';
+import { Alert } from '@backstage/ui';
 import {
   fmtFixed1,
   fmtInt,
@@ -98,89 +100,123 @@ const trendSeries = (rows: DepartmentRow[]): SeriesDef[] =>
     .sort()
     .map(dep => ({ key: dep, label: dep }));
 
+// Without a member list (OpenTelemetry without a departments CSV), seats and adoption aren't real.
+const SEAT_COLUMNS = new Set(['seats', 'adoption', 'power', 'light']);
+
 export const DepartmentsTab = () => {
   const f = useFilters();
+  const { seats } = useCapabilities();
   return (
     <ApiState state={useDashboard<DepartmentSummary>('departments')}>
       {d => {
         const lowest = d.rows.slice(0, 15);
         return (
           <Stack>
-            <KpiGrid>
-              <KpiTile
-                label="Org adoption"
-                value={fmtPct(d.totals.adoption)}
-                hint={`${fmtInt(d.totals.activeUsers)} of ${fmtInt(
-                  d.totals.seats,
-                )} seats active`}
-              />
-              <KpiTile
-                label="Departments"
-                value={fmtInt(d.totals.departments)}
-              />
-              <KpiTile
-                label="Power users"
-                value={fmtInt(d.totals.tiers.power)}
-                hint="Active ≥60% of selected days"
-              />
-              <KpiTile
-                label="Inactive seats"
-                value={fmtInt(d.totals.tiers.inactive)}
-              />
-            </KpiGrid>
-            <ChartGrid>
-              <ChartCard
-                title="Adoption by department"
-                subtitle={
-                  d.rows.length > 15
-                    ? '15 lowest shown, lowest first'
-                    : 'Lowest first'
-                }
-              >
-                <HBarChart
-                  data={lowest.map(r => ({
-                    key: r.department,
-                    value: r.adoption,
-                  }))}
-                  format={fmtPct}
-                  max={15}
-                  foldOther={false}
+            {!seats && (
+              <>
+                <KpiGrid>
+                  <KpiTile
+                    label="Departments"
+                    value={fmtInt(d.totals.departments)}
+                  />
+                  <KpiTile
+                    label="Active users"
+                    value={fmtInt(d.totals.activeUsers)}
+                  />
+                </KpiGrid>
+                <Alert
+                  status="info"
+                  icon
+                  description="Add a departments CSV to see adoption and inactive seats."
                 />
-              </ChartCard>
-              <ChartCard
-                title="Engagement mix by department"
-                subtitle="Seats per engagement tier"
-              >
-                <StackedBarChart
-                  horizontal
-                  rows={lowest.map(r => ({ name: r.department, ...r.tiers }))}
-                  xKey="name"
-                  series={TIERS}
-                  format={fmtInt}
-                />
-              </ChartCard>
-            </ChartGrid>
-            <ChartCard
-              title="Weekly adoption"
-              subtitle="Share of seats active at least once that week · complete weeks · 8 largest departments"
-            >
-              <TrendChart
-                rows={d.weekly.map(w => ({ ...w, day: String(w.week) }))}
-                series={trendSeries(d.rows)}
-                format={fmtPct}
-                height={300}
-              />
-            </ChartCard>
+              </>
+            )}
+            {seats && (
+              <>
+                <KpiGrid>
+                  <KpiTile
+                    label="Org adoption"
+                    value={fmtPct(d.totals.adoption)}
+                    hint={`${fmtInt(d.totals.activeUsers)} of ${fmtInt(
+                      d.totals.seats,
+                    )} seats active`}
+                  />
+                  <KpiTile
+                    label="Departments"
+                    value={fmtInt(d.totals.departments)}
+                  />
+                  <KpiTile
+                    label="Power users"
+                    value={fmtInt(d.totals.tiers.power)}
+                    hint="Active ≥60% of selected days"
+                  />
+                  <KpiTile
+                    label="Inactive seats"
+                    value={fmtInt(d.totals.tiers.inactive)}
+                  />
+                </KpiGrid>
+                <ChartGrid>
+                  <ChartCard
+                    title="Adoption by department"
+                    subtitle={
+                      d.rows.length > 15
+                        ? '15 lowest shown, lowest first'
+                        : 'Lowest first'
+                    }
+                  >
+                    <HBarChart
+                      data={lowest.map(r => ({
+                        key: r.department,
+                        value: r.adoption,
+                      }))}
+                      format={fmtPct}
+                      max={15}
+                      foldOther={false}
+                    />
+                  </ChartCard>
+                  <ChartCard
+                    title="Engagement mix by department"
+                    subtitle="Seats per engagement tier"
+                  >
+                    <StackedBarChart
+                      horizontal
+                      rows={lowest.map(r => ({
+                        name: r.department,
+                        ...r.tiers,
+                      }))}
+                      xKey="name"
+                      series={TIERS}
+                      format={fmtInt}
+                    />
+                  </ChartCard>
+                </ChartGrid>
+                <ChartCard
+                  title="Weekly adoption"
+                  subtitle="Share of seats active at least once that week · complete weeks · 8 largest departments"
+                >
+                  <TrendChart
+                    rows={d.weekly.map(w => ({ ...w, day: String(w.week) }))}
+                    series={trendSeries(d.rows)}
+                    format={fmtPct}
+                    height={300}
+                  />
+                </ChartCard>
+              </>
+            )}
             <ChartCard
               title="All departments"
               subtitle="Click a row to filter the whole dashboard to that department"
             >
               <DataGrid
                 items={d.rows}
-                columns={columns}
+                columns={
+                  seats
+                    ? columns
+                    : columns.filter(c => !SEAT_COLUMNS.has(c.key))
+                }
                 rowKey={r => r.department}
-                sortKey="adoption"
-                sortDesc={false}
+                sortKey={seats ? 'adoption' : 'activeUsers'}
+                sortDesc={!seats}
                 onRowClick={r => f.set({ department: r.department, tab: null })}
               />
             </ChartCard>

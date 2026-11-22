@@ -1,3 +1,4 @@
+import { useCapabilities } from '../hooks/useMeta';
 import { ApiState } from '../components/ApiState';
 import { ChartCard } from '../components/ChartCard';
 import { HBarChart } from '../components/charts/HBarChart';
@@ -14,50 +15,57 @@ const columns: GridColumn<Term>[] = [
   { key: 'sessions', title: 'Sessions', value: t => t.sessions, numeric: true },
 ];
 
-export const EnvironmentsTab = () => (
-  <ApiState state={useClaudeCode()}>
-    {d => {
-      const { localSessions, remoteSessions } = d.remoteSplit;
-      const total = localSessions + remoteSessions;
-      return (
-        <Stack>
-          <KpiGrid>
-            <KpiTile
-              label="Terminals in use"
-              value={fmtInt(d.terminals.length)}
-            />
-            <KpiTile
-              label="Local sessions"
-              value={fmtInt(localSessions)}
-              hint={total ? fmtPct(localSessions / total) : undefined}
-            />
-            <KpiTile
-              label="Remote sessions"
-              value={fmtInt(remoteSessions)}
-              hint={total ? fmtPct(remoteSessions / total) : undefined}
-            />
-          </KpiGrid>
-          <ChartGrid>
-            <ChartCard title="Sessions by terminal">
-              <HBarChart
-                data={d.terminals.map(t => ({
-                  key: t.terminal,
-                  value: t.sessions,
-                }))}
-                format={fmtInt}
+export const EnvironmentsTab = () => {
+  const { remoteSplit } = useCapabilities();
+  return (
+    <ApiState state={useClaudeCode()}>
+      {d => {
+        const { localSessions, remoteSessions } = d.remoteSplit;
+        const total = localSessions + remoteSessions;
+        return (
+          <Stack>
+            <KpiGrid>
+              <KpiTile
+                label="Terminals in use"
+                value={fmtInt(d.terminals.length)}
               />
-            </ChartCard>
-            <ChartCard title="Users by terminal">
-              <DataGrid
-                items={d.terminals}
-                columns={columns}
-                sortKey="sessions"
-                rowKey={t => t.terminal}
-              />
-            </ChartCard>
-          </ChartGrid>
-        </Stack>
-      );
-    }}
-  </ApiState>
-);
+              {remoteSplit && (
+                <>
+                  <KpiTile
+                    label="Local sessions"
+                    value={fmtInt(localSessions)}
+                    hint={total ? fmtPct(localSessions / total) : undefined}
+                  />
+                  <KpiTile
+                    label="Remote sessions"
+                    value={fmtInt(remoteSessions)}
+                    hint={total ? fmtPct(remoteSessions / total) : undefined}
+                  />
+                </>
+              )}
+            </KpiGrid>
+            <ChartGrid>
+              <ChartCard title="Sessions by terminal">
+                <HBarChart
+                  data={d.terminals.map(t => ({
+                    key: t.terminal,
+                    value: t.sessions,
+                  }))}
+                  format={fmtInt}
+                />
+              </ChartCard>
+              <ChartCard title="Users by terminal">
+                <DataGrid
+                  items={d.terminals}
+                  columns={columns}
+                  sortKey="sessions"
+                  rowKey={t => t.terminal}
+                />
+              </ChartCard>
+            </ChartGrid>
+          </Stack>
+        );
+      }}
+    </ApiState>
+  );
+};

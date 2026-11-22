@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { parseDay } from '../dates';
 import { addDays, toDay } from '@internal/claude-metrics-lib';
+import { useCapabilities } from './useMeta';
 
 const FILTER_KEYS = [
   'excludeWeekends',
@@ -13,10 +14,14 @@ const FILTER_KEYS = [
 /** Dashboard filters live in the URL so any view can be shared (same keys as the Nuxt app). */
 export function useFilters() {
   const [params, setParams] = useSearchParams();
-  const yesterday = addDays(toDay(new Date()), -1);
+  // Live sources (OpenTelemetry) can show today; the Admin API's data for today is incomplete.
+  const latest = addDays(
+    toDay(new Date()),
+    useCapabilities().includesToday ? 0 : -1,
+  );
   const param = useCallback((k: string) => params.get(k) || null, [params]);
 
-  const to = param('to') ?? yesterday;
+  const to = param('to') ?? latest;
   // A malformed `to` from a shared link is left for the server to reject with a clear message.
   const from = param('from') ?? (parseDay(to) ? addDays(to, -27) : to);
   const tab = param('tab') ?? 'overview';
@@ -47,5 +52,5 @@ export function useFilters() {
     [setParams],
   );
 
-  return { yesterday, from, to, tab, query, param, set };
+  return { latest, from, to, tab, query, param, set };
 }

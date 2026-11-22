@@ -15,13 +15,18 @@ export const MAX_RANGE_DAYS = 365;
 
 export class QueryError extends Error {}
 
-/** Parse and validate dashboard filters. Defaults to the last 28 complete UTC days. */
-export function parseQuery(sp: URLSearchParams, today = toDay(new Date())): DashboardQuery {
-  const to = sp.get("to") ?? addDays(today, -1);
+/**
+ * Parse and validate dashboard filters. Defaults to the last 28 complete UTC days. With
+ * includeToday (live sources such as OpenTelemetry), the range may end today and defaults to it.
+ */
+export function parseQuery(sp: URLSearchParams, today = toDay(new Date()), opts: { includeToday?: boolean } = {}): DashboardQuery {
+  const to = sp.get("to") ?? (opts.includeToday ? today : addDays(today, -1));
   const from = sp.get("from") ?? addDays(to, -27);
   if (!DAY_RE.test(from) || !DAY_RE.test(to)) throw new QueryError("from/to must be YYYY-MM-DD");
   if (from > to) throw new QueryError("from must be on or before to");
-  if (to >= today) throw new QueryError("to must be before today (UTC); today's data is incomplete");
+  if (opts.includeToday) {
+    if (to > today) throw new QueryError("to can't be in the future (UTC)");
+  } else if (to >= today) throw new QueryError("to must be before today (UTC); today's data is incomplete");
   if (eachDay(from, to).length > MAX_RANGE_DAYS) throw new QueryError(`range is limited to ${MAX_RANGE_DAYS} days`);
   return {
     from,

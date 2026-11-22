@@ -4,6 +4,7 @@ import type { SeriesDef } from "~/utils/palette";
 import type { DepartmentRow } from "#lib/departments-agg";
 
 const f = useFilters();
+const caps = useCapabilities();
 const { data: d, status, error } = useFetch("/api/departments", { query: f.query });
 
 const TIERS: SeriesDef[] = [
@@ -23,6 +24,9 @@ const trendSeries = computed<SeriesDef[]>(() =>
     .map((dep) => ({ key: dep, label: dep })),
 );
 const weekly = computed(() => (d.value?.weekly ?? []).map((w) => ({ ...w, day: String(w.week) })));
+// Without a member list (OpenTelemetry without a departments CSV), seats and adoption aren't real.
+const SEAT_COLUMNS = new Set(["seats", "adoption", "power", "light"]);
+const visibleColumns = computed(() => (caps.value.seats ? columns : columns.filter((c) => !SEAT_COLUMNS.has(c.key))));
 const columns: GridColumn<DepartmentRow>[] = [
   { key: "department", title: "Department", value: (r) => r.department },
   { key: "seats", title: "Seats", value: (r) => r.seats, numeric: true },
@@ -41,13 +45,20 @@ const columns: GridColumn<DepartmentRow>[] = [
   <div class="stack">
     <ApiState :pending="status === 'pending'" :error="error" />
     <template v-if="d">
-      <div class="kpi-grid">
+      <div v-if="caps.seats" class="kpi-grid">
         <KpiTile label="Org adoption" :value="fmtPct(d.totals.adoption)" :hint="`${fmtInt(d.totals.activeUsers)} of ${fmtInt(d.totals.seats)} seats active`" />
         <KpiTile label="Departments" :value="fmtInt(d.totals.departments)" />
         <KpiTile label="Power users" :value="fmtInt(d.totals.tiers.power)" hint="Active ≥60% of selected days" />
         <KpiTile label="Inactive seats" :value="fmtInt(d.totals.tiers.inactive)" />
       </div>
-      <div class="chart-grid">
+      <template v-else>
+        <div class="kpi-grid">
+          <KpiTile label="Departments" :value="fmtInt(d.totals.departments)" />
+          <KpiTile label="Active users" :value="fmtInt(d.totals.activeUsers)" />
+        </div>
+        <v-alert type="info" variant="tonal" density="compact" data-testid="departments-csv-note">Adoption and inactive seats need the full member list, not just people who've used Claude Code. Add a departments CSV (<code>DEPARTMENTS_FILE</code>) to see them.</v-alert>
+      </template>
+      <div v-if="caps.seats" class="chart-grid">
         <ChartCard title="Adoption by department" :subtitle="d.rows.length > 15 ? '15 lowest shown, lowest first' : 'Lowest first'">
           <HBarChart :data="lowest.map((r) => ({ key: r.department, value: r.adoption }))" :format="fmtPct" :max="15" :fold-other="false" />
         </ChartCard>
@@ -55,12 +66,12 @@ const columns: GridColumn<DepartmentRow>[] = [
           <StackedBarChart horizontal :rows="lowest.map((r) => ({ name: r.department, ...r.tiers }))" x-key="name" :series="TIERS" :format="fmtInt" />
         </ChartCard>
       </div>
-      <ChartCard title="Weekly adoption" subtitle="Share of seats active at least once that week · complete weeks · 8 largest departments">
+      <ChartCard v-if="caps.seats" title="Weekly adoption" subtitle="Share of seats active at least once that week · complete weeks · 8 largest departments">
         <TrendChart :rows="weekly" :series="trendSeries" :format="fmtPct" :height="300" />
       </ChartCard>
       <ChartCard title="All departments" subtitle="Click a row to filter the whole dashboard to that department">
         <DataGrid
-          :items="d.rows" :columns="columns" sort-key="adoption" :sort-desc="false" clickable data-testid="departments-table"
+          :items="d.rows" :columns="visibleColumns" :sort-key="caps.seats ? 'adoption' : 'activeUsers'" :sort-desc="!caps.seats" clickable data-testid="departments-table"
           @row-click="(r) => f.set({ department: r.department, tab: null })"
         />
       </ChartCard>

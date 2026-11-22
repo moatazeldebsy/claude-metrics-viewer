@@ -34,6 +34,7 @@ The plugins store nothing: no database tables, no migrations. Data comes from An
 - A Claude Console organization and an **Admin API key** (`sk-ant-admin…`, Console → Settings → Admin keys). Workspace API keys are rejected.
 - Outbound HTTPS from the Backstage backend to `api.anthropic.com`. The plugin doesn't configure an HTTP proxy.
 - Data covers Claude Code used through that Console organization. Usage under Pro, Max, Team or Enterprise subscriptions isn't in this API.
+- **No Admin key?** Use the OpenTelemetry source instead: Claude Code sends its metrics to Backstage, and you need neither a key nor egress. See [OpenTelemetry instead of the Admin API](#opentelemetry-instead-of-the-admin-api).
 
 **Optional**
 
@@ -255,6 +256,35 @@ Then open Claude Metrics: the header says `Data source: anthropic` and the Overv
 
 **Rotate it** by creating a new Admin key, updating the secret, restarting the backend (`kubectl rollout restart deploy/backstage -n backstage`), checking the page loads, and then revoking the old key in the Console.
 
+### OpenTelemetry instead of the Admin API
+
+With `dataSource: otel` the backend receives Claude Code's OpenTelemetry metrics and stores daily totals in the plugin's own database (SQLite in development, your Postgres in production; the plugin runs its migrations at startup). This covers subscription usage (Pro, Max, Team, Enterprise) and needs no Admin key. Cost & usage and Seats aren't available, and the API response tab is hidden; see [docs/opentelemetry.md](opentelemetry.md) for the full picture.
+
+```yaml
+claudeMetrics:
+  dataSource: otel
+  otel:
+    ingestTokens:
+      - ${CLAUDE_METRICS_INGEST_TOKEN}   # secret; add a second entry while rotating
+    retentionDays: 400                   # optional; 0 keeps everything
+  departmentsFile: /etc/claude-metrics/departments.csv   # optional; brings back Seats and adoption
+```
+
+- **Ingest URL:** `<backend base URL>/api/claude-metrics/otlp`. That's the value for Claude Code's `OTEL_EXPORTER_OTLP_ENDPOINT`; Claude Code appends `/v1/metrics`. The page shows the exact settings, with your URL, until the first data arrives.
+- **Auth:** this is the plugin's only route that doesn't need a signed-in Backstage user, because Claude Code can't get a Backstage token. The plugin registers it as `allow: 'unauthenticated'` and checks the bearer token against `otel.ingestTokens` instead. Without a token configured it answers `503` and stores nothing. It only accepts writes and returns no data; every dashboard route still needs `claude-metrics.dashboard.read`.
+- **Reachability:** Claude Code on developers' machines must reach that URL. If your Backstage sits behind SSO at an ingress or proxy, add an exception for `/api/claude-metrics/otlp` only.
+- **Request size:** up to 5 MB per export, gzip allowed. Claude Code's exports are a few kilobytes.
+- **Retention** runs once a day through the Backstage scheduler, so with several replicas only one prunes.
+
+Check it with the fixture from this repo (expect `200`):
+
+```bash
+curl -i -X POST https://<backstage>/api/claude-metrics/otlp/v1/metrics \
+  -H 'content-type: application/x-protobuf' \
+  -H "authorization: Bearer $CLAUDE_METRICS_INGEST_TOKEN" \
+  --data-binary @tests/fixtures/otlp/claude-code-metrics.pb
+```
+
 ## 4. Deploy
 
 **Image.** If you build with Backstage's standard backend Dockerfile, the `vendor/` tarballs must be in the image before `yarn install` runs: copy `vendor/` next to `yarn.lock` and `package.json`. With a private registry there's nothing extra.
@@ -380,6 +410,8 @@ This clause was tested in a fresh Backstage 1.57 app with the packed tarballs, a
 | Every tab shows a 503 with an Anthropic error | Wrong key type (workspace key instead of Admin key), revoked key, or no egress to `api.anthropic.com`. |
 | Everyone is **Unassigned** | No `departmentsFile`, a wrong path, or emails in the CSV don't match Console member emails (matching ignores case). |
 | Frontend error about routes or extensions on startup | The app uses the legacy frontend system. See Requirements. |
+| `dataSource: otel` and the page keeps showing *Waiting for the first data* | Claude Code isn't reaching `/api/claude-metrics/otlp`: check the endpoint, the token, and any SSO proxy in front of Backstage. [OpenTelemetry troubleshooting](opentelemetry.md#troubleshooting) has the details. |
+| Claude Code's debug log shows `401` from the ingest URL | The token isn't in `claudeMetrics.otel.ingestTokens`, or a proxy in front of Backstage requires its own login. |
 
 ## Updating and removing
 

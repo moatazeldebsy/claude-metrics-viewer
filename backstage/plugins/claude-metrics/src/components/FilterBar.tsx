@@ -25,7 +25,7 @@ export function FilterBar({
   const start = parseDay(f.from);
   const end = parseDay(f.to);
   const preset = (days: number) =>
-    f.set({ from: addDays(f.yesterday, -(days - 1)), to: f.yesterday });
+    f.set({ from: addDays(f.latest, -(days - 1)), to: f.latest });
 
   return (
     <Card data-testid="filters">
@@ -34,7 +34,7 @@ export function FilterBar({
           <DateRangePicker
             label="Date range"
             value={start && end ? { start, end } : null}
-            maxValue={parseDay(f.yesterday) ?? undefined}
+            maxValue={parseDay(f.latest) ?? undefined}
             onChange={range =>
               range &&
               f.set({ from: range.start.toString(), to: range.end.toString() })

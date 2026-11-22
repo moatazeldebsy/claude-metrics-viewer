@@ -14,4 +14,38 @@ export {
   userSearch,
   usersPage,
 } from './service';
-export { dataSourceName, getSource } from './sources';
+export {
+  dataSourceName,
+  getSource,
+  getTelemetryStore,
+  registerTelemetryStore,
+  sourceCapabilities,
+  telemetryStatus,
+} from './sources';
+export { OtelSource } from './sources/otel';
+export {
+  decodeOtlpJson,
+  decodeOtlpProtobuf,
+  OtlpDecodeError,
+  type AttrValue,
+  type OtlpPoint,
+} from './telemetry/otlp';
+export {
+  CumulativeTemporalityError,
+  TELEMETRY_COUNTERS,
+  toTelemetryBatch,
+  type TelemetryBatch,
+  type TelemetryCounter,
+  type TelemetryKey,
+  type TelemetryRow,
+  type TelemetryUser,
+} from './telemetry/rows';
+export { MemoryTelemetryStore, type TelemetryStore } from './telemetry/store';
+export {
+  checkIngestAuth,
+  handleOtlpIngest,
+  OTLP_MAX_BODY_BYTES,
+  readBodyCapped,
+  type IngestRequest,
+  type IngestResponse,
+} from './telemetry/ingest';

@@ -1,6 +1,6 @@
 import type { ClaudeCodeModelBreakdown, ClaudeCodeRecord } from "../anthropic-types";
 import { eachDay, isWeekend } from "../dates";
-import type { CostItem, CostGroupBy, CostQuery, Member, MetricsSource } from "./types";
+import { ALL_CAPABILITIES, type CostItem, type CostGroupBy, type CostQuery, type Member, type MetricsSource } from "./types";
 
 // Deterministic fake organization. Every value is derived from a seed so the
 // same day always yields the same records, and shapes match the real API.
@@ -208,6 +208,10 @@ const NULL_GROUP: CostItem["group"] = {
 };
 
 export class MockSource implements MetricsSource {
+  capabilities() {
+    return ALL_CAPABILITIES;
+  }
+
   async claudeCodeDay(day: string): Promise<ClaudeCodeRecord[]> {
     return generateDay(day);
   }

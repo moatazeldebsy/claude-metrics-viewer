@@ -1,4 +1,12 @@
-import { mockErrorHandler, mockServices } from '@backstage/backend-test-utils';
+import {
+  mockCredentials,
+  mockErrorHandler,
+  mockServices,
+} from '@backstage/backend-test-utils';
+import { MemoryTelemetryStore } from '@internal/claude-metrics-lib/server';
+import { readFileSync } from 'node:fs';
+import { gzipSync } from 'node:zlib';
+import { resolve } from 'node:path';
 import { AuthorizeResult } from '@backstage/plugin-permission-common';
 import express from 'express';
 import request from 'supertest';
@@ -32,6 +40,8 @@ describe('createRouter', () => {
       dataSource: 'mock',
       holidayCountry: 'US',
       departments: expect.any(Array),
+      capabilities: expect.any(Object),
+      telemetry: null,
     });
     expect(res.body.departments.length).toBeGreaterThan(5);
   });
@@ -168,5 +178,116 @@ describe('permission check', () => {
         }),
       },
     );
+  });
+});
+
+describe('OTLP ingest route', () => {
+  const fixture = readFileSync(
+    resolve(
+      __dirname,
+      '../../../../tests/fixtures/otlp/claude-code-metrics.json',
+    ),
+    'utf8', // supertest would JSON-encode a Buffer
+  );
+  const appWith = async (store = new MemoryTelemetryStore()) => {
+    const app = express();
+    app.use(
+      await createRouter({
+        logger: mockServices.logger.mock(),
+        httpAuth: mockServices.httpAuth(),
+        permissions: mockServices.permissions({ result: AuthorizeResult.DENY }),
+        telemetry: { tokens: ['ingest-token'], store },
+      }),
+    );
+    app.use(mockErrorHandler());
+    return { app, store };
+  };
+
+  it('accepts a valid ingest token without a Backstage token, even when the dashboard permission is denied', async () => {
+    const { app, store } = await appWith();
+    const res = await request(app)
+      .post('/otlp/v1/metrics')
+      .set('content-type', 'application/json')
+      .set('authorization', 'Bearer ingest-token')
+      .send(fixture);
+    expect(res.status).toBe(200);
+    expect((await store.users()).map(u => u.actor)).toEqual([
+      'ada.lovela@example.test',
+    ]);
+  });
+
+  it('accepts a gzip-compressed export (OTEL_EXPORTER_OTLP_COMPRESSION=gzip)', async () => {
+    const { app, store } = await appWith();
+    const res = await request(app)
+      .post('/otlp/v1/metrics')
+      .set('content-type', 'application/json')
+      .set('content-encoding', 'gzip')
+      .set('authorization', 'Bearer ingest-token')
+      .serialize(body => body) // send the gzip bytes as-is, not JSON-encoded
+      .send(gzipSync(fixture));
+    expect(res.status).toBe(200);
+    expect((await store.users()).map(u => u.actor)).toEqual([
+      'ada.lovela@example.test',
+    ]);
+  });
+
+  it('rejects a wrong ingest token with 401', async () => {
+    const { app } = await appWith();
+    const res = await request(app)
+      .post('/otlp/v1/metrics')
+      .set('content-type', 'application/json')
+      .set('authorization', mockCredentials.none.header())
+      .send(fixture);
+    expect(res.status).toBe(401);
+  });
+
+  it('keeps every dashboard route behind the permission', async () => {
+    const { app } = await appWith();
+    expect((await request(app).get('/meta')).status).toBe(403);
+  });
+
+  it('returns 404 when OpenTelemetry ingest is not configured', async () => {
+    const app = express();
+    app.use(
+      await createRouter({
+        logger: mockServices.logger.mock(),
+        httpAuth: mockServices.httpAuth(),
+        permissions: mockServices.permissions({
+          result: AuthorizeResult.ALLOW,
+        }),
+      }),
+    );
+    app.use(mockErrorHandler());
+    expect(
+      (
+        await request(app)
+          .post('/otlp/v1/metrics')
+          .set('content-type', 'application/json')
+          .send('{}')
+      ).status,
+    ).toBe(404);
+  });
+
+  it('reports source capabilities on /meta', async () => {
+    const app = express();
+    app.use(
+      await createRouter({
+        logger: mockServices.logger.mock(),
+        httpAuth: mockServices.httpAuth(),
+        permissions: mockServices.permissions({
+          result: AuthorizeResult.ALLOW,
+        }),
+      }),
+    );
+    app.use(mockErrorHandler());
+    const res = await request(app).get('/meta');
+    expect(res.body.capabilities).toEqual({
+      billedCost: true,
+      seats: true,
+      rawUpstream: true,
+      remoteSplit: true,
+      includesToday: false,
+    });
+    expect(res.body.telemetry).toBeNull();
   });
 });

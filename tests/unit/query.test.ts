@@ -8,6 +8,14 @@ describe("parseQuery", () => {
     expect(p("")).toMatchObject({ from: "2026-10-24", to: "2026-11-20", excludeWeekends: false, user: null });
   });
 
+  it("with includeToday (live sources), defaults to the 28 days ending today and allows today", () => {
+    const live = (q: string) => parseQuery(new URLSearchParams(q), "2026-11-21", { includeToday: true });
+    expect(live("")).toMatchObject({ from: "2026-10-25", to: "2026-11-21" });
+    expect(live("from=2026-11-21&to=2026-11-21")).toMatchObject({ from: "2026-11-21", to: "2026-11-21" });
+    expect(() => live("to=2026-11-22")).toThrow("to can't be in the future");
+    expect(() => p("to=2026-11-21")).toThrow(QueryError);
+  });
+
   it("rejects bad input", () => {
     expect(() => p("from=nope")).toThrow(QueryError);
     expect(() => p("from=2026-11-10&to=2026-11-01")).toThrow(QueryError);

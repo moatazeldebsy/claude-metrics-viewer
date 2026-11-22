@@ -42,6 +42,8 @@ Run the checks for every part you touched and quote their real output. CI (`.git
 - No framework imports. `.` (`src/index.ts`) must stay browser-safe; anything using the network, `fs` or env vars belongs behind `./server` (`src/server.ts`).
 - Use **relative** imports inside the package. A `#lib/...` import would be left unresolved in the built `dist/`. The Nuxt app and the root tests import the package as `#lib` through aliases in `nuxt.config.ts` and `vitest.config.mts`.
 - The package has its own self-contained `tsconfig.json`. Don't make it extend `@backstage/cli/config/tsconfig.json`: Vite compiles these files for the Nuxt app using the nearest tsconfig, and CI's root job has no `backstage/node_modules`.
+- `DATA_SOURCE=otel` needs a telemetry store, and the lib doesn't create one: each host calls `registerTelemetryStore()` at startup (Nitro plugin `server/plugins/telemetry.ts` with SQLite; backend `plugin.ts` with `KnexTelemetryStore`). The two stores must behave the same: atomic increments, latest department wins, prune by day.
+- What a source can show is `capabilities()` (`billedCost`, `seats`, `rawUpstream`, `remoteSplit`, `includesToday`), sent to the UIs on `/meta`. Gate tabs and KPIs on capabilities, never on the source name.
 - `@anthropic-ai/sdk` and `date-holidays` are pinned to the same exact versions as the root lockfile. The mock source's types follow the SDK, so bump both places together.
 - Mock data is seeded and deterministic. Tests, fixtures (`backstage/plugins/claude-metrics/src/__fixtures__/`, saved backend responses for 2026-10-24 to 2026-11-20) and the preview depend on it.
 
@@ -52,7 +54,7 @@ Run the checks for every part you touched and quote their real output. CI (`.git
 - Tests need `jest-canvas-mock` and a `ResizeObserver` stub (`src/setupTests.ts`). Without them Chart.js crashes in jsdom, and the error surfaces misleadingly as "A component suspended while responding to synchronous input".
 - `usePermission` caches decisions across renders in one test file, so a DENY test followed by an ALLOW test fails. Keep them in separate files.
 - Backend config: empty strings count as unset. Docker Compose's `${VAR:-}` passes `''`, and `getOptionalString` rejects it, which used to fail startup even on mock data.
-- Every backend route checks `claude-metrics.dashboard.read` (defined in `claude-metrics-common`). Keep new routes behind the same middleware in `router.ts`.
+- Every backend route checks `claude-metrics.dashboard.read` (defined in `claude-metrics-common`). Keep new routes behind the same middleware in `router.ts`. The one exception is `POST /otlp/v1/metrics` (OpenTelemetry ingest): it's registered before that middleware, marked `allow: 'unauthenticated'` in `plugin.ts`, and checks ingest tokens instead. It must never return dashboard data.
 - `backstage-cli` lint forbids relative imports across packages (`no-relative-monorepo-imports`). Depend on the package instead.
 - Errors surfaced to users should be the backend's own message: `ResponseError.message` is only "Request failed with 400"; read `error.body.error.message`.
 

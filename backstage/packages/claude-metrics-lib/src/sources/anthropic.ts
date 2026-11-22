@@ -1,12 +1,16 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { ClaudeCodeRecord, ClaudeCodeReportPage } from "../anthropic-types";
 import { addDays, splitRange, toDay } from "../dates";
-import type { CostItem, CostQuery, Member, MetricsSource } from "./types";
+import { ALL_CAPABILITIES, type CostItem, type CostQuery, type Member, type MetricsSource } from "./types";
 
 const MAX_COST_RANGE_DAYS = 31; // Usage & Cost Analytics API limit per request
 
 /** Reads real data with an Admin API key (sk-ant-admin...). Server-side only. */
 export class AnthropicSource implements MetricsSource {
+  capabilities() {
+    return ALL_CAPABILITIES;
+  }
+
   private client: Anthropic;
   private dayCache = new Map<string, ClaudeCodeRecord[]>();
   private membersCache?: { at: number; members: Promise<Member[]> };

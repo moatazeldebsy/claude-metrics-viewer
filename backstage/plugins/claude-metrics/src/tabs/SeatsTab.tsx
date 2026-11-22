@@ -6,6 +6,8 @@ import { ServerGrid, type PageRequest } from '../components/DataGrid';
 import { KpiTile } from '../components/KpiTile';
 import { KpiGrid, Stack } from '../components/layout';
 import { useFilters } from '../hooks/useFilters';
+import { useCapabilities } from '../hooks/useMeta';
+import { NotAvailable } from '../components/NotAvailable';
 import {
   fmtInt,
   fmtPct,
@@ -36,7 +38,7 @@ const columns: GridColumn<Member>[] = [
   },
 ];
 
-export const SeatsTab = () => {
+const Seats = () => {
   const api = useApi(claudeMetricsApiRef);
   const { query } = useFilters();
   const [summary, setSummary] = useState<SeatSummary>();
@@ -88,3 +90,13 @@ export const SeatsTab = () => {
     </Stack>
   );
 };
+
+export const SeatsTab = () =>
+  useCapabilities().seats ? (
+    <Seats />
+  ) : (
+    <NotAvailable
+      title="Seats aren't available with this data"
+      reason="Seats need a member list. Add a departments CSV (claudeMetrics.departmentsFile) to see members with no activity."
+    />
+  );

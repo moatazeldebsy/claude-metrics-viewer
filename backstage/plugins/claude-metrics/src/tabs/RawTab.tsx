@@ -37,7 +37,7 @@ export const RawTab = () => {
         <DatePicker
           label="Day"
           value={parseDay(day)}
-          maxValue={parseDay(f.yesterday) ?? undefined}
+          maxValue={parseDay(f.latest) ?? undefined}
           onChange={v => v && setDay(v.toString())}
         />
       </Flex>

@@ -7,6 +7,8 @@ import { KpiTile } from '../components/KpiTile';
 import { ChartGrid, KpiGrid, Stack } from '../components/layout';
 import { useDashboard } from '../hooks/useDashboard';
 import { useFilters } from '../hooks/useFilters';
+import { useCapabilities } from '../hooks/useMeta';
+import { NotAvailable } from '../components/NotAvailable';
 import { fmtUsd } from '@internal/claude-metrics-lib';
 
 const DIMS = {
@@ -25,7 +27,7 @@ interface CostSummary {
   by: Record<keyof typeof DIMS, { key: string; cents: number }[]>;
 }
 
-export const CostTab = () => {
+const BilledCost = () => {
   const f = useFilters();
   const filtered = Boolean(f.param('user') || f.param('department'));
   return (
@@ -89,3 +91,13 @@ export const CostTab = () => {
     </Stack>
   );
 };
+
+export const CostTab = () =>
+  useCapabilities().billedCost ? (
+    <BilledCost />
+  ) : (
+    <NotAvailable
+      title="Cost & usage isn't available with OpenTelemetry data"
+      reason="Billed cost comes from the Admin API. With OpenTelemetry data, Overview and Models show Claude Code's estimated cost."
+    />
+  );

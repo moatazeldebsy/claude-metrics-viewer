@@ -19,5 +19,6 @@ export type {
   CostQuery,
   Member,
   MetricsSource,
+  SourceCapabilities,
 } from './sources/types';
 export type { UserOption, UserPageQuery } from './users';

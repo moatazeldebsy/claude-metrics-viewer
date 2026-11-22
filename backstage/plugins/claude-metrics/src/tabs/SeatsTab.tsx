@@ -13,7 +13,7 @@ import {
   fmtPct,
   type GridColumn,
   type Member,
-} from '@internal/claude-metrics-lib';
+} from '@moatazeldebsy/claude-metrics-lib';
 
 interface SeatSummary {
   totalSeats: number;

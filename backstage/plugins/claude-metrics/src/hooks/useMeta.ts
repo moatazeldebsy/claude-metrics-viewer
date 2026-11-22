@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import type { SourceCapabilities } from '@internal/claude-metrics-lib';
+import type { SourceCapabilities } from '@moatazeldebsy/claude-metrics-lib';
 
 /** The backend's /meta response. */
 export interface Meta {

@@ -4,7 +4,7 @@ import {
   PermissionsService,
 } from '@backstage/backend-plugin-api';
 import { NotAllowedError } from '@backstage/errors';
-import { claudeMetricsReadPermission } from '@internal/backstage-plugin-claude-metrics-common';
+import { claudeMetricsReadPermission } from '@moatazeldebsy/backstage-plugin-claude-metrics-common';
 import { AuthorizeResult } from '@backstage/plugin-permission-common';
 import express from 'express';
 import Router from 'express-promise-router';
@@ -26,7 +26,7 @@ import {
   usersPage,
   type TelemetryStore,
   type UserRow,
-} from '@internal/claude-metrics-lib/server';
+} from '@moatazeldebsy/claude-metrics-lib/server';
 
 const SORTABLE = new Set<keyof UserRow>([
   'label',

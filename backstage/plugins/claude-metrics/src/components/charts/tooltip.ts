@@ -1,4 +1,4 @@
-import type { ChartColors } from '@internal/claude-metrics-lib';
+import type { ChartColors } from '@moatazeldebsy/claude-metrics-lib';
 
 export const tooltipColors = (c: ChartColors) => ({
   backgroundColor: c.surface,

@@ -9,7 +9,7 @@ By taking part you agree to the [Code of Conduct](CODE_OF_CONDUCT.md). Report se
 | Part | Path | Stack |
 |---|---|---|
 | Standalone dashboard | `app/`, `server/`, `nuxt.config.ts` | Nuxt 4, Vuetify 3, Chart.js |
-| Data layer (shared) | `backstage/packages/claude-metrics-lib/src/` | Framework-free TypeScript. The Nuxt app imports it as `#lib`; the Backstage plugins depend on it as `@internal/claude-metrics-lib` |
+| Data layer (shared) | `backstage/packages/claude-metrics-lib/src/` | Framework-free TypeScript. The Nuxt app imports it as `#lib`; the Backstage plugins depend on it as `@moatazeldebsy/claude-metrics-lib` |
 | Backstage plugins | `backstage/plugins/claude-metrics*` | Backstage new frontend and backend systems, Backstage UI |
 | Preview page | `backstage/preview/` | Static HTML generated from the data layer |
 | Docs | `README.md`, `backstage/README.md`, `docs/` | |

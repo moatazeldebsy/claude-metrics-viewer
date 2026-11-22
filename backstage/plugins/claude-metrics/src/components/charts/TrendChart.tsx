@@ -3,7 +3,7 @@ import { Line } from 'react-chartjs-2';
 import {
   isolatedPointRadius,
   type SeriesDef,
-} from '@internal/claude-metrics-lib';
+} from '@moatazeldebsy/claude-metrics-lib';
 import { registerCharts } from './register';
 import { tooltipColors } from './tooltip';
 import { useChartColors } from './useChartColors';

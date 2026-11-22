@@ -7,7 +7,7 @@ import departments from '../__fixtures__/departments.json';
 import rawCost from '../__fixtures__/raw-cost.json';
 import seats from '../__fixtures__/seats.json';
 import users from '../__fixtures__/users.json';
-import { fmtInt, fmtPct, fmtUsd } from '@internal/claude-metrics-lib';
+import { fmtInt, fmtPct, fmtUsd } from '@moatazeldebsy/claude-metrics-lib';
 import { fakeApi } from '../testUtils';
 import { CostTab } from './CostTab';
 import { DepartmentsTab } from './DepartmentsTab';

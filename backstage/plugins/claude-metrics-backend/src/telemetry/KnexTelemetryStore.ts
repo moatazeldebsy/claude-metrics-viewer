@@ -6,7 +6,7 @@ import {
   type TelemetryRow,
   type TelemetryStore,
   type TelemetryUser,
-} from '@internal/claude-metrics-lib/server';
+} from '@moatazeldebsy/claude-metrics-lib/server';
 import type { Knex } from 'knex';
 
 const ROWS = 'claude_metrics_telemetry_rows';
@@ -34,7 +34,7 @@ export class KnexTelemetryStore implements TelemetryStore {
   static async create(knex: Knex): Promise<KnexTelemetryStore> {
     await knex.migrate.latest({
       directory: resolvePackagePath(
-        '@internal/backstage-plugin-claude-metrics-backend',
+        '@moatazeldebsy/backstage-plugin-claude-metrics-backend',
         'migrations',
       ),
     });

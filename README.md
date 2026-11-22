@@ -189,7 +189,7 @@ Without Docker: `npm run build && node .output/server/index.mjs`.
 ```
 backstage/packages/claude-metrics-lib/src/
                     framework-free data layer (imported as #lib), shared by server routes, unit tests
-                    and the Backstage plugins (as @internal/claude-metrics-lib)
+                    and the Backstage plugins (as @moatazeldebsy/claude-metrics-lib)
   sources/          MetricsSource interface; mock.ts (seeded 1,200-person org) and anthropic.ts (Admin API)
   aggregate.ts      raw records → dashboard view models
   departments*.ts   department CSV parsing and per-department rollups

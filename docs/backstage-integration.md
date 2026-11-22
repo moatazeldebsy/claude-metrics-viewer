@@ -8,10 +8,10 @@ This guide is for the team that runs your Backstage. It covers what the plugin n
 
 | Package | Role | Adds |
 |---|---|---|
-| `@internal/backstage-plugin-claude-metrics` | frontend plugin | A **Claude Metrics** page at `/claude-metrics` with a sidebar entry: 10 tabs covering Claude Code adoption, departments, tool acceptance, environments, commits and PRs, models, org-wide cost, users, idle seats and raw API rows. Filters live in the URL, so views can be shared. |
-| `@internal/backstage-plugin-claude-metrics-backend` | backend plugin | `/api/claude-metrics/*`: 8 read-only routes that call the Anthropic Admin API (or a built-in mock org). |
-| `@internal/backstage-plugin-claude-metrics-common` | library | The `claude-metrics.dashboard.read` permission. Your permission policy imports it. |
-| `@internal/claude-metrics-lib` | library | The data layer both plugins use. It's installed as a dependency; you don't configure it. |
+| `@moatazeldebsy/backstage-plugin-claude-metrics` | frontend plugin | A **Claude Metrics** page at `/claude-metrics` with a sidebar entry: 10 tabs covering Claude Code adoption, departments, tool acceptance, environments, commits and PRs, models, org-wide cost, users, idle seats and raw API rows. Filters live in the URL, so views can be shared. |
+| `@moatazeldebsy/backstage-plugin-claude-metrics-backend` | backend plugin | `/api/claude-metrics/*`: 8 read-only routes that call the Anthropic Admin API (or a built-in mock org). |
+| `@moatazeldebsy/backstage-plugin-claude-metrics-common` | library | The `claude-metrics.dashboard.read` permission. Your permission policy imports it. |
+| `@moatazeldebsy/claude-metrics-lib` | library | The data layer both plugins use. It's installed as a dependency; you don't configure it. |
 
 The plugins store nothing: no database tables, no migrations. Data comes from Anthropic on request and is cached in memory.
 
@@ -64,55 +64,62 @@ Pick one per Backstage deployment. What decides it is how Claude Code is paid fo
 | A group for the people who may see it | For example an `engineering-managers` team, synced into the catalog as `group:default/engineering-managers` |
 | Egress to `api.anthropic.com:443` | `curl -sI https://api.anthropic.com` from a backend pod |
 
-## 1. Build the packages
+## 1. Get the packages
 
-In a checkout of this repository:
+The packages are on npm under `@moatazeldebsy`:
+
+| Package | |
+|---|---|
+| [`@moatazeldebsy/backstage-plugin-claude-metrics`](https://www.npmjs.com/package/@moatazeldebsy/backstage-plugin-claude-metrics) | Frontend plugin |
+| [`@moatazeldebsy/backstage-plugin-claude-metrics-backend`](https://www.npmjs.com/package/@moatazeldebsy/backstage-plugin-claude-metrics-backend) | Backend plugin |
+| [`@moatazeldebsy/backstage-plugin-claude-metrics-common`](https://www.npmjs.com/package/@moatazeldebsy/backstage-plugin-claude-metrics-common) | Permission, shared by both |
+| [`@moatazeldebsy/claude-metrics-lib`](https://www.npmjs.com/package/@moatazeldebsy/claude-metrics-lib) | Data layer, shared by both |
+
+You only add the frontend and backend plugins; the other two come in as their dependencies. Go to step 2.
+
+**Offline or air-gapped: build tarballs instead.** In a checkout of this repository:
 
 ```bash
 npm install                        # repo root (the standalone app's dependencies)
 cd backstage
 corepack enable && yarn install
-yarn tsc && yarn build             # type declarations, then dist/ for all three packages
+yarn tsc && yarn build             # type declarations, then dist/ for all four packages
 
 mkdir -p dist-packages
-yarn workspace @internal/claude-metrics-lib pack --out dist-packages/claude-metrics-lib.tgz
-yarn workspace @internal/backstage-plugin-claude-metrics-common pack --out dist-packages/backstage-plugin-claude-metrics-common.tgz
-yarn workspace @internal/backstage-plugin-claude-metrics-backend pack --out dist-packages/backstage-plugin-claude-metrics-backend.tgz
-yarn workspace @internal/backstage-plugin-claude-metrics pack --out dist-packages/backstage-plugin-claude-metrics.tgz
+yarn workspace @moatazeldebsy/claude-metrics-lib pack --out dist-packages/claude-metrics-lib.tgz
+yarn workspace @moatazeldebsy/backstage-plugin-claude-metrics-common pack --out dist-packages/backstage-plugin-claude-metrics-common.tgz
+yarn workspace @moatazeldebsy/backstage-plugin-claude-metrics-backend pack --out dist-packages/backstage-plugin-claude-metrics-backend.tgz
+yarn workspace @moatazeldebsy/backstage-plugin-claude-metrics pack --out dist-packages/backstage-plugin-claude-metrics.tgz
 ```
 
-`pack` rewrites each `package.json` to point at `dist/`, so the tarballs work outside this repo.
-
-**Private registry instead of tarballs.** To publish, set `"private": false` in the four `package.json` files, rename the `@internal` scope to one your registry owns (in package names and in the dependencies between them), add `publishConfig.registry`, and run `yarn npm publish` in each package after `yarn build`. Then skip the `resolutions` step below and add the packages by version.
-
-## 2. Install into your app
-
-Copy the four tarballs into your Backstage repository, for example under `vendor/`, and commit them. In the repository's root `package.json`, point the package names at them:
+`pack` rewrites each `package.json` to point at `dist/`, so the tarballs work outside this repo. Copy them into your Backstage repository, for example under `vendor/`, commit them, and point the package names at them in the repository's root `package.json`:
 
 ```json
 {
   "resolutions": {
-    "@internal/claude-metrics-lib": "file:./vendor/claude-metrics-lib.tgz",
-    "@internal/backstage-plugin-claude-metrics-common": "file:./vendor/backstage-plugin-claude-metrics-common.tgz",
-    "@internal/backstage-plugin-claude-metrics": "file:./vendor/backstage-plugin-claude-metrics.tgz",
-    "@internal/backstage-plugin-claude-metrics-backend": "file:./vendor/backstage-plugin-claude-metrics-backend.tgz"
+    "@moatazeldebsy/claude-metrics-lib": "file:./vendor/claude-metrics-lib.tgz",
+    "@moatazeldebsy/backstage-plugin-claude-metrics-common": "file:./vendor/backstage-plugin-claude-metrics-common.tgz",
+    "@moatazeldebsy/backstage-plugin-claude-metrics": "file:./vendor/backstage-plugin-claude-metrics.tgz",
+    "@moatazeldebsy/backstage-plugin-claude-metrics-backend": "file:./vendor/backstage-plugin-claude-metrics-backend.tgz"
   }
 }
 ```
 
-The lib and common packages need entries too: the plugins depend on them by name, and they aren't on the public registry.
+All four need entries, so the lib and common packages also resolve to your tarballs rather than npm.
+
+## 2. Install into your app
 
 **Frontend.** Add the dependency to `packages/app/package.json`:
 
 ```json
-"@internal/backstage-plugin-claude-metrics": "^0.1.0"
+"@moatazeldebsy/backstage-plugin-claude-metrics": "^0.1.0"
 ```
 
 With `app.packages: all`, nothing else is needed: the app picks up the plugin, mounts the page and lists **Claude Metrics** in the sidebar. If your app lists features explicitly instead:
 
 ```ts
 // packages/app/src/App.tsx
-import claudeMetricsPlugin from '@internal/backstage-plugin-claude-metrics';
+import claudeMetricsPlugin from '@moatazeldebsy/backstage-plugin-claude-metrics';
 
 export default createApp({
   features: [/* ...your plugins */, claudeMetricsPlugin],
@@ -124,13 +131,13 @@ If your sidebar picks items by hand (`nav.take(...)`), the page's nav id is `pag
 **Backend.** Add the dependency to `packages/backend/package.json`:
 
 ```json
-"@internal/backstage-plugin-claude-metrics-backend": "^0.1.0"
+"@moatazeldebsy/backstage-plugin-claude-metrics-backend": "^0.1.0"
 ```
 
 and register it in `packages/backend/src/index.ts`, before `backend.start()`:
 
 ```ts
-backend.add(import('@internal/backstage-plugin-claude-metrics-backend'));
+backend.add(import('@moatazeldebsy/backstage-plugin-claude-metrics-backend'));
 ```
 
 Then run `yarn install` at the repository root.
@@ -298,7 +305,7 @@ curl -i -X POST https://<backstage>/api/claude-metrics/otlp/v1/metrics \
 
 ## 4. Deploy
 
-**Image.** If you build with Backstage's standard backend Dockerfile, the `vendor/` tarballs must be in the image before `yarn install` runs: copy `vendor/` next to `yarn.lock` and `package.json`. With a private registry there's nothing extra.
+**Image.** Installed from npm, there's nothing extra. With the tarball route and Backstage's standard backend Dockerfile, the `vendor/` tarballs must be in the image before `yarn install` runs: copy `vendor/` next to `yarn.lock` and `package.json`.
 
 **Admin key.** See [The Anthropic Admin API key](#the-anthropic-admin-api-key) for Docker, Compose, Kubernetes, the Helm chart and External Secrets.
 
@@ -343,7 +350,7 @@ volumes:
 
 ## Access control
 
-The dashboard shows per-user activity and cost for the whole organization, so it's guarded by one permission, `claude-metrics.dashboard.read` (`claudeMetricsReadPermission` in `@internal/backstage-plugin-claude-metrics-common`).
+The dashboard shows per-user activity and cost for the whole organization, so it's guarded by one permission, `claude-metrics.dashboard.read` (`claudeMetricsReadPermission` in `@moatazeldebsy/backstage-plugin-claude-metrics-common`).
 
 - **Backend:** every `/api/claude-metrics/*` route asks your permission policy and returns `403` on deny, so the data is protected even from clients that skip the UI.
 - **Frontend:** the page asks the same question first. Users without it see *You don't have access to Claude Metrics* and nothing is loaded.
@@ -359,7 +366,7 @@ Give the permission to the members of a managers group and deny it to everyone e
 
 ```ts
 import { isPermission } from '@backstage/plugin-permission-common';
-import { claudeMetricsReadPermission } from '@internal/backstage-plugin-claude-metrics-common';
+import { claudeMetricsReadPermission } from '@moatazeldebsy/backstage-plugin-claude-metrics-common';
 
 /** Who may open Claude Metrics. Group refs from the catalog; user refs also work. */
 export const CLAUDE_METRICS_GROUPS = ['group:default/engineering-managers'];
@@ -375,7 +382,7 @@ if (isPermission(request.permission, claudeMetricsReadPermission)) {
 }
 ```
 
-Add `@internal/backstage-plugin-claude-metrics-common` to `packages/backend/package.json` for the import.
+Add `@moatazeldebsy/backstage-plugin-claude-metrics-common` to `packages/backend/package.json` for the import.
 
 `ownershipEntityRefs` holds the user's own ref and every group they're a member of in the catalog, so membership comes from wherever your groups come from (GitHub or Microsoft Entra ID org sync, LDAP, or YAML). Guest sign-in has no groups (it signs in as `user:development/guest`), so guests are always denied.
 
@@ -412,7 +419,7 @@ This clause was tested in a fresh Backstage 1.57 app with the packed tarballs, a
 | Symptom | Cause and fix |
 |---|---|
 | Backend exits with `claudeMetrics.adminKey is required…` | `dataSource: anthropic` with no key. Check that the secret reaches the pod as `ANTHROPIC_ADMIN_KEY`. |
-| `yarn install` can't find `@internal/claude-metrics-lib` | Missing `resolutions` entry for the lib tarball, or `vendor/` isn't in the Docker build context. |
+| `yarn install` can't find `@moatazeldebsy/claude-metrics-lib` | Tarball route only: missing `resolutions` entry for the lib tarball, or `vendor/` isn't in the Docker build context. |
 | No **Claude Metrics** in the sidebar | The app doesn't discover packages (`app.packages`), or your sidebar picks items by id. Add the plugin to `features`, or `nav.take('page:claude-metrics')`. |
 | A manager sees *You don't have access* | They aren't in the group yet (org sync can take up to its schedule, e.g. 30 minutes), or the policy clause comes after an earlier `return` that already decided. Check the user's groups on their catalog page. |
 | Everyone can open the page | `permission.enabled` is `false`, or the app still uses the allow-all policy module. |
@@ -426,5 +433,5 @@ This clause was tested in a fresh Backstage 1.57 app with the packed tarballs, a
 
 ## Updating and removing
 
-- **Update:** rebuild the four tarballs (or publish new versions), replace them in `vendor/`, run `yarn install`, and redeploy. There's nothing to migrate.
+- **Update:** bump the two plugin versions in `packages/app` and `packages/backend` (tarball route: rebuild the four tarballs and replace them in `vendor/`), run `yarn install`, and redeploy. There's nothing to migrate.
 - **Remove:** delete the two plugin dependencies, the `backend.add(...)` line, the policy clause, the `resolutions` entries and the `claudeMetrics` config block. Nothing is left behind.

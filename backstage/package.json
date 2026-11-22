@@ -17,7 +17,7 @@
       "new": {
         "globals": {
           "license": "MIT",
-          "namePrefix": "@internal/"
+          "namePrefix": "@moatazeldebsy/"
         }
       }
     }

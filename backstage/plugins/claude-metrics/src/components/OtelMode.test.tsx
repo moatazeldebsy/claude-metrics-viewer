@@ -1,7 +1,7 @@
 import { discoveryApiRef } from '@backstage/frontend-plugin-api';
 import { mockApis, renderInTestApp } from '@backstage/frontend-test-utils';
 import { screen, waitFor } from '@testing-library/react';
-import { toDay } from '@internal/claude-metrics-lib';
+import { toDay } from '@moatazeldebsy/claude-metrics-lib';
 import type { ReactNode } from 'react';
 import { claudeMetricsApiRef } from '../api';
 import claudeCode from '../__fixtures__/claude-code.json';

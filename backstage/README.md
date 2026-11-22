@@ -6,10 +6,10 @@ The Claude Metrics dashboard as a Backstage plugin: a **Claude Metrics** page in
 
 | Package | What it does |
 |---|---|
-| `plugins/claude-metrics` (`@internal/backstage-plugin-claude-metrics`) | Frontend plugin, built on Backstage's new frontend system and Backstage UI. Page at `/claude-metrics`, with a sidebar entry. |
-| `plugins/claude-metrics-backend` (`@internal/backstage-plugin-claude-metrics-backend`) | Backend plugin. Serves `/api/claude-metrics/*`, the same routes and JSON as the Nuxt app's `server/api`. |
-| `plugins/claude-metrics-common` (`@internal/backstage-plugin-claude-metrics-common`) | The `claude-metrics.dashboard.read` permission. The backend checks it on every route and the page checks it before loading; your permission policy decides who has it (for example, managers only). |
-| `packages/claude-metrics-lib` (`@internal/claude-metrics-lib`) | The data layer (Anthropic and mock sources, aggregation, departments, holidays, palette, formatters). The Nuxt app imports it as `#lib`; the plugins depend on it. `.` is browser-safe, `./server` is the Node entry. |
+| `plugins/claude-metrics` (`@moatazeldebsy/backstage-plugin-claude-metrics`) | Frontend plugin, built on Backstage's new frontend system and Backstage UI. Page at `/claude-metrics`, with a sidebar entry. |
+| `plugins/claude-metrics-backend` (`@moatazeldebsy/backstage-plugin-claude-metrics-backend`) | Backend plugin. Serves `/api/claude-metrics/*`, the same routes and JSON as the Nuxt app's `server/api`. |
+| `plugins/claude-metrics-common` (`@moatazeldebsy/backstage-plugin-claude-metrics-common`) | The `claude-metrics.dashboard.read` permission. The backend checks it on every route and the page checks it before loading; your permission policy decides who has it (for example, managers only). |
+| `packages/claude-metrics-lib` (`@moatazeldebsy/claude-metrics-lib`) | The data layer (Anthropic and mock sources, aggregation, departments, holidays, palette, formatters). The Nuxt app imports it as `#lib`; the plugins depend on it. `.` is browser-safe, `./server` is the Node entry. |
 | `preview/index.html` | A static page showing how the plugin looks inside Backstage, filled with mock data. Open it straight from disk. |
 
 The Admin API key is read only by the backend plugin. Every route requires a signed-in Backstage user **and** the `claude-metrics.dashboard.read` permission, so you can limit the dashboard to managers in your permission policy. See [Access control](../docs/backstage-integration.md#access-control).
@@ -33,16 +33,23 @@ The dev harness uses port 3001 so it can run next to the Nuxt app on 3000.
 
 ## Install into a Backstage app
 
-See the [integration guide](../docs/backstage-integration.md): requirements, building and packing the three packages, installing them into an existing app and backend, configuration, Kubernetes secrets and the departments CSV, checks and troubleshooting.
-
-In short:
+The packages are on npm. In your Backstage repository:
 
 ```bash
-yarn tsc && yarn build                 # in backstage/
-yarn workspace @internal/claude-metrics-lib pack --out dist-packages/claude-metrics-lib.tgz
-# ...same for the two plugins, then in your app: resolutions → vendor/*.tgz,
-# add the frontend to packages/app, the backend to packages/backend + backend.add(import(...))
+yarn --cwd packages/app add @moatazeldebsy/backstage-plugin-claude-metrics
+yarn --cwd packages/backend add @moatazeldebsy/backstage-plugin-claude-metrics-backend
 ```
+
+```ts
+// packages/backend/src/index.ts, before backend.start()
+backend.add(import('@moatazeldebsy/backstage-plugin-claude-metrics-backend'));
+```
+
+With `app.packages: all` the frontend needs nothing else. See the [integration guide](../docs/backstage-integration.md) for configuration, access control (managers only), Kubernetes secrets and the departments CSV, the offline tarball route, checks and troubleshooting.
+
+## Publish a release
+
+Bump `version` in the four `package.json` files (and the `^` ranges between them), then push a tag: `git tag backstage-v0.1.0 && git push origin backstage-v0.1.0`. The `Release Backstage packages` workflow builds and publishes them to npm. It needs an `NPM_TOKEN` repository secret with publish rights on the `@moatazeldebsy` scope.
 
 ## Check
 
@@ -52,7 +59,7 @@ yarn tsc && yarn lint && yarn test   # in backstage/
 
 ## Preview page
 
-`preview/index.html` is generated from `preview/template.html` and real `@internal/claude-metrics-lib` output on the mock org (28 days ending 2026-11-20):
+`preview/index.html` is generated from `preview/template.html` and real `@moatazeldebsy/claude-metrics-lib` output on the mock org (28 days ending 2026-11-20):
 
 ```bash
 npx tsx backstage/scripts/build-preview.ts                     # from the repo root

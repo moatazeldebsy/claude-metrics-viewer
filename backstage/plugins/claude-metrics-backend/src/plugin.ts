@@ -7,10 +7,10 @@ import {
   dataSourceName,
   registerTelemetryStore,
   toDay,
-} from '@internal/claude-metrics-lib/server';
+} from '@moatazeldebsy/claude-metrics-lib/server';
 import { applyConfig } from './config';
 import { KnexTelemetryStore } from './telemetry/KnexTelemetryStore';
-import { claudeMetricsPermissions } from '@internal/backstage-plugin-claude-metrics-common';
+import { claudeMetricsPermissions } from '@moatazeldebsy/backstage-plugin-claude-metrics-common';
 import { createRouter } from './router';
 
 const readTokens = (value: unknown): string[] =>

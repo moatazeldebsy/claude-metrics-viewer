@@ -9,7 +9,7 @@ import {
   fmtUsd,
   type GridColumn,
   type UserRow,
-} from '@internal/claude-metrics-lib';
+} from '@moatazeldebsy/claude-metrics-lib';
 
 type Row = UserRow & { department: string | null };
 

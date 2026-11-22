@@ -10,7 +10,7 @@ import {
   Tabs,
 } from '@backstage/ui';
 import { useApi } from '@backstage/frontend-plugin-api';
-import { claudeMetricsReadPermission } from '@internal/backstage-plugin-claude-metrics-common';
+import { claudeMetricsReadPermission } from '@moatazeldebsy/backstage-plugin-claude-metrics-common';
 import { usePermission } from '@backstage/plugin-permission-react';
 import { useEffect } from 'react';
 import useAsyncRetry from 'react-use/esm/useAsyncRetry';

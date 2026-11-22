@@ -6,7 +6,7 @@ import {
   parseQuery,
   sourceCapabilities,
   QueryError,
-} from '@internal/claude-metrics-lib/server';
+} from '@moatazeldebsy/claude-metrics-lib/server';
 
 /** Search params of a request, as the Nuxt routes saw them. */
 const searchParams = (req: Request) =>

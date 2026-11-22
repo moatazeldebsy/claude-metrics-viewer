@@ -1,0 +1,35 @@
+name: Release MCP server
+
+# Push a tag like mcp-v0.1.0 to publish mcp/ to npm as @moatazeldebsy/claude-metrics-mcp.
+on:
+  push:
+    tags: ["mcp-v*"]
+
+permissions:
+  contents: read
+  id-token: write # npm provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mcp
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: Tag matches package version
+        run: |
+          tag="${GITHUB_REF_NAME#mcp-v}"
+          v=$(node -p "require('./package.json').version")
+          [ "$v" = "$tag" ] || { echo "::error::mcp/package.json is $v, tag is $tag"; exit 1; }
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - name: Publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public --provenance

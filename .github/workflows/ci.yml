@@ -61,6 +61,29 @@ jobs:
           npx -y @anthropic-ai/claude-code@2.1.330 plugin validate . --strict
           npx -y @anthropic-ai/claude-code@2.1.330 plugin validate ./claude-plugin --strict --profile directory
 
+  mcp:
+    name: MCP server
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            mcp/package-lock.json
+      # The root app is the dashboard the integration tests run against (mock data).
+      - run: npm ci && npm run build
+      - name: Typecheck, build
+        working-directory: mcp
+        run: npm ci && npm run typecheck && npm run build
+      - name: Unit and integration tests
+        run: |
+          PORT=3000 node .output/server/index.mjs &
+          for i in $(seq 1 30); do curl -sf -o /dev/null http://localhost:3000/api/meta && break; sleep 1; done
+          cd mcp && CLAUDE_METRICS_URL=http://localhost:3000 npm test
+
   backstage:
     name: Backstage plugins
     runs-on: ubuntu-latest

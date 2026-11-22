@@ -17,6 +17,7 @@ export {
 export {
   dataSourceName,
   getSource,
+  getTelemetryStore,
   registerTelemetryStore,
   sourceCapabilities,
   telemetryStatus,

@@ -1,5 +1,6 @@
 import type { H3Event } from "h3";
 import { parseQuery, QueryError, type DashboardQuery } from "#lib/query";
+import { sourceCapabilities } from "#lib/sources";
 
 /** Wrap a handler: parse filters, map validation errors to 400 and upstream failures to 502. */
 export function defineDashboardHandler<T>(fn: (q: DashboardQuery, sp: URLSearchParams, event: H3Event) => Promise<T>) {
@@ -7,7 +8,7 @@ export function defineDashboardHandler<T>(fn: (q: DashboardQuery, sp: URLSearchP
     const sp = getRequestURL(event).searchParams;
     let q: DashboardQuery;
     try {
-      q = parseQuery(sp);
+      q = parseQuery(sp, undefined, { includeToday: sourceCapabilities().includesToday });
     } catch (e) {
       if (e instanceof QueryError) throw createError({ statusCode: 400, message: e.message });
       throw e;

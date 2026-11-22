@@ -23,7 +23,11 @@ export function isWeekend(day: string): boolean {
 }
 
 /** Split an inclusive day range into chunks of at most `maxDays` days. */
-export function splitRange(from: string, to: string, maxDays: number): { from: string; to: string }[] {
+export function splitRange(
+  from: string,
+  to: string,
+  maxDays: number,
+): { from: string; to: string }[] {
   const out: { from: string; to: string }[] = [];
   for (let start = from; start <= to; start = addDays(start, maxDays)) {
     const end = addDays(start, maxDays - 1);
@@ -39,8 +43,8 @@ export interface DayFilter {
 }
 
 export function filterDays(days: string[], f: DayFilter): string[] {
-  const hol = new Set(f.excludeHolidays ? (f.holidays ?? []) : []);
-  return days.filter((d) => !(f.excludeWeekends && isWeekend(d)) && !hol.has(d));
+  const hol = new Set(f.excludeHolidays ? f.holidays ?? [] : []);
+  return days.filter(d => !(f.excludeWeekends && isWeekend(d)) && !hol.has(d));
 }
 
 /** Monday of the UTC week containing `day`. */

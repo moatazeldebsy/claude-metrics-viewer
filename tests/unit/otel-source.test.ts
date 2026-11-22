@@ -64,7 +64,7 @@ describe("OtelSource", () => {
 
   it("reports seats only when a CSV is configured", () => {
     const store = new MemoryTelemetryStore();
-    expect(new OtelSource(store, new Map()).capabilities()).toEqual({ billedCost: false, seats: false, rawUpstream: false, remoteSplit: false });
+    expect(new OtelSource(store, new Map()).capabilities()).toEqual({ billedCost: false, seats: false, rawUpstream: false, remoteSplit: false, includesToday: true });
     expect(new OtelSource(store, new Map([["a@x.test", "D"]])).capabilities().seats).toBe(true);
   });
 
@@ -108,7 +108,7 @@ describe("source wiring", () => {
   });
 
   it("mock and anthropic sources report every capability", async () => {
-    const all = { billedCost: true, seats: true, rawUpstream: true, remoteSplit: true };
+    const all = { billedCost: true, seats: true, rawUpstream: true, remoteSplit: true, includesToday: false };
     expect(new MockSource().capabilities()).toEqual(all);
     expect(new AnthropicSource("sk-ant-admin-test").capabilities()).toEqual(all);
     registerTelemetryStore(undefined);

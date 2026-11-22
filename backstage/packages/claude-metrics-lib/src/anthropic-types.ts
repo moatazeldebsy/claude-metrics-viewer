@@ -2,8 +2,8 @@
 // Not wrapped by @anthropic-ai/sdk 1.5.0, so typed here from the API docs.
 
 export type ClaudeCodeActor =
-  | { type: "user_actor"; email_address: string }
-  | { type: "api_actor"; api_key_name: string };
+  | { type: 'user_actor'; email_address: string }
+  | { type: 'api_actor'; api_key_name: string };
 
 export interface ToolCounts {
   accepted: number;
@@ -12,17 +12,22 @@ export interface ToolCounts {
 
 export interface ClaudeCodeModelBreakdown {
   model: string;
-  tokens: { input: number; output: number; cache_read: number; cache_creation: number };
-  estimated_cost: { currency: "USD"; amount: number }; // cents
+  tokens: {
+    input: number;
+    output: number;
+    cache_read: number;
+    cache_creation: number;
+  };
+  estimated_cost: { currency: 'USD'; amount: number }; // cents
 }
 
 export interface ClaudeCodeRecord {
   date: string; // RFC 3339, UTC midnight
   actor: ClaudeCodeActor;
   organization_id: string;
-  customer_type: "api" | "subscription";
+  customer_type: 'api' | 'subscription';
   terminal_type: string;
-  subscription_type: "enterprise" | "team" | null;
+  subscription_type: 'enterprise' | 'team' | null;
   is_remote: boolean;
   core_metrics: {
     num_sessions: number;
@@ -45,5 +50,10 @@ export interface ClaudeCodeReportPage {
   next_page: string | null;
 }
 
-export type ToolName = keyof ClaudeCodeRecord["tool_actions"];
-export const TOOL_NAMES: ToolName[] = ["edit_tool", "multi_edit_tool", "write_tool", "notebook_edit_tool"];
+export type ToolName = keyof ClaudeCodeRecord['tool_actions'];
+export const TOOL_NAMES: ToolName[] = [
+  'edit_tool',
+  'multi_edit_tool',
+  'write_tool',
+  'notebook_edit_tool',
+];

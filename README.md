@@ -4,7 +4,7 @@
 
 A dashboard for your Anthropic organization's **Claude Code adoption** and **Claude API usage & cost**.
 
-It runs on deterministic mock data out of the box. Point it at a real organization by setting two environment variables.
+It runs on deterministic mock data out of the box. Point it at a real organization with an Admin API key, or have Claude Code send its usage straight to the dashboard over OpenTelemetry, which also works for one person on a Pro or Max plan.
 
 Built with **Nuxt 4** (Vue 3), **Vuetify 3**, **Chart.js** via `vue-chartjs`, and `date-holidays`.
 
@@ -93,6 +93,20 @@ The dashboard also ships as a Backstage frontend and backend plugin pair in [`ba
 
 ![Departments tab inside Backstage, dark theme](docs/screenshots/backstage-departments-dark.png)
 
+## Data sources
+
+| | `mock` (default) | `anthropic` | `otel` |
+|---|---|---|---|
+| Who it's for | Trying it out, demos | Organizations with a Claude Console Admin key | Anyone using Claude Code: one person on Pro/Max, or a team on any plan |
+| Where data comes from | A seeded 1,200-person org | Anthropic's Admin API (Claude Code Analytics, Usage & Cost) | Claude Code's OpenTelemetry metrics, sent to the dashboard |
+| Claude Code covered | — | Usage billed to the Console organization | Every machine you configure, including subscription usage |
+| Cost | Mock | Billed cost and Claude Code estimates | Claude Code's estimate |
+| Tabs | All | All | All except Cost & usage, Seats (needs a departments CSV) and API response |
+| Today's data | No | No (lags up to a day) | Yes |
+| Setup | None | `ANTHROPIC_ADMIN_KEY` | `OTEL_INGEST_TOKENS` plus a few env vars per machine |
+
+The two real sources aren't combined: pick one per deployment. See [docs/opentelemetry.md](docs/opentelemetry.md) for the OpenTelemetry setup, privacy notes and troubleshooting.
+
 ## Run it
 
 ```bash
@@ -114,6 +128,22 @@ Things to know about the upstream data:
 - **Claude Code Analytics** (`/v1/organizations/usage_report/claude_code`) covers Claude Code usage authenticated against your Console organization. Usage under Pro/Max/Team/Enterprise subscriptions isn't included; that's in the Claude Enterprise Analytics API or the claude.ai analytics page. It returns one day per request, so a 90-day view makes 90+ calls. Past days are cached in memory.
 - **Usage & Cost Analytics** (`/v1/organizations/analytics/cost`) starts at 2026-01-01, looks back at most 365 days, and lags 4–24 hours. Requests are split into 31-day chunks automatically.
 - "Estimated cost" on the Claude Code tabs is Anthropic's per-model estimate. "Cost & usage" shows billed amounts after discounts, before credits.
+
+### Without an Admin key: OpenTelemetry
+
+```bash
+DATA_SOURCE=otel OTEL_INGEST_TOKENS=local npm run dev
+```
+
+Then, in the shell where you run Claude Code:
+
+```bash
+export CLAUDE_CODE_ENABLE_TELEMETRY=1 OTEL_METRICS_EXPORTER=otlp
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:3000
+export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer local"
+```
+
+The dashboard shows a setup panel until the first export arrives, then fills in within a minute. Data is kept in `./.data/telemetry.db`. Team rollout, departments, retention and what's stored: [docs/opentelemetry.md](docs/opentelemetry.md).
 
 ## Test
 

@@ -1,0 +1,17 @@
+{
+  "name": "metrics-viewer",
+  "owner": {
+    "name": "Moataz Nabil",
+    "url": "https://github.com/moatazeldebsy"
+  },
+  "metadata": {
+    "description": "Claude Code plugin for Claude Metrics, the dashboard for Claude Code adoption and Claude API usage and cost."
+  },
+  "plugins": [
+    {
+      "name": "metrics-viewer",
+      "source": "./claude-plugin",
+      "description": "Connect Claude Code's OpenTelemetry export to a Claude Metrics dashboard."
+    }
+  ]
+}

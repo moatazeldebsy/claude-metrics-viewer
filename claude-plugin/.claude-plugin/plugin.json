@@ -1,0 +1,13 @@
+{
+  "name": "metrics-viewer",
+  "version": "0.1.0",
+  "description": "Connect Claude Code's OpenTelemetry export to a Claude Metrics dashboard (standalone or Backstage).",
+  "author": {
+    "name": "Moataz Nabil",
+    "url": "https://github.com/moatazeldebsy"
+  },
+  "homepage": "https://github.com/moatazeldebsy/claude-metrics-viewer/tree/main/claude-plugin#readme",
+  "repository": "https://github.com/moatazeldebsy/claude-metrics-viewer",
+  "license": "MIT",
+  "keywords": ["claude-code", "opentelemetry", "telemetry", "metrics", "dashboard", "backstage"]
+}

@@ -21,7 +21,7 @@
     "date-holidays": "^3.39.2",
     "nuxt": "^4.6.4",
     "vue": "^3.5.45",
-    "vue-chartjs": "^5.3.4",
+    "vue-chartjs": "^5.3.5",
     "vuetify": "^3.13.7",
     "vuetify-nuxt-module": "^0.19.5"
   },

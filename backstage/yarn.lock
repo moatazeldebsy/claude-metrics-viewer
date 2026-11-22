@@ -3484,6 +3484,7 @@ __metadata:
     "@types/supertest": "npm:^2.0.12"
     express: "npm:^4.22.1"
     express-promise-router: "npm:^4.1.0"
+    knex: "npm:^3.1.0"
     supertest: "npm:^6.2.4"
   languageName: unknown
   linkType: soft
@@ -15474,7 +15475,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"knex@npm:^3.0.0":
+"knex@npm:^3.0.0, knex@npm:^3.1.0":
   version: 3.3.0
   resolution: "knex@npm:3.3.0"
   dependencies:

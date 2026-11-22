@@ -4,6 +4,7 @@ import { Request, RequestHandler } from 'express';
 import {
   DashboardQuery,
   parseQuery,
+  sourceCapabilities,
   QueryError,
 } from '@internal/claude-metrics-lib/server';
 
@@ -23,7 +24,9 @@ export function dashboard(
     const sp = searchParams(req);
     let q: DashboardQuery;
     try {
-      q = parseQuery(sp);
+      q = parseQuery(sp, undefined, {
+        includeToday: sourceCapabilities().includesToday,
+      });
     } catch (e) {
       if (e instanceof QueryError) throw new InputError(e.message);
       throw e;

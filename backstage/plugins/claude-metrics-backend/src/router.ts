@@ -17,10 +17,14 @@ import {
   departmentList,
   departmentSummary,
   getSource,
+  handleOtlpIngest,
   holidayCountry,
   seatSummary,
+  sourceCapabilities,
+  telemetryStatus,
   userSearch,
   usersPage,
+  type TelemetryStore,
   type UserRow,
 } from '@internal/claude-metrics-lib/server';
 
@@ -42,12 +46,49 @@ export async function createRouter({
   logger,
   httpAuth,
   permissions,
+  telemetry,
 }: {
   logger: LoggerService;
   httpAuth: HttpAuthService;
   permissions: PermissionsService;
+  /** Set when claudeMetrics.dataSource is otel: enables the OTLP ingest route. */
+  telemetry?: { tokens: string[]; store: TelemetryStore };
 }): Promise<express.Router> {
   const router = Router();
+
+  // OTLP/HTTP ingest for Claude Code. It sits before the permission check: Claude Code has no
+  // Backstage token, so this route is unauthenticated in Backstage's auth policy (see plugin.ts)
+  // and checks its own ingest tokens instead.
+  router.post(
+    '/otlp/v1/metrics',
+    express.raw({ type: () => true, limit: '6mb' }),
+    async (req, res) => {
+      if (!telemetry) {
+        res.status(404).json({
+          message:
+            'OTLP ingest is only available with claudeMetrics.dataSource: otel.',
+        });
+        return;
+      }
+      const result = await handleOtlpIngest(
+        {
+          body: new Uint8Array(
+            Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0),
+          ),
+          contentType: req.header('content-type'),
+          contentEncoding: req.header('content-encoding'),
+          authorization: req.header('authorization'),
+        },
+        telemetry,
+      );
+      res.status(result.status).type(result.contentType);
+      res.send(
+        typeof result.body === 'string'
+          ? result.body
+          : Buffer.from(result.body),
+      );
+    },
+  );
 
   // Every route shows organization-wide per-user data: the permission policy decides who may see it.
   router.use(async (req, _res, next) => {
@@ -70,6 +111,8 @@ export async function createRouter({
     dataSource: dataSourceName(),
     holidayCountry: holidayCountry(),
     departments: await departmentList(),
+    capabilities: sourceCapabilities(),
+    telemetry: await telemetryStatus(),
   }));
 
   route('/claude-code', q => claudeCodeSummary(q));

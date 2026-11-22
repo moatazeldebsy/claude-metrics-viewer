@@ -52,7 +52,9 @@ test("hides the local/remote split on Environments", async ({ page }) => {
 
 test("hides seat-based department numbers without a departments CSV", async ({ page }) => {
   await page.goto("/?tab=departments");
-  await expect(page.getByText("Add a departments CSV to see adoption and inactive seats.")).toBeVisible();
+  await expect(page.getByTestId("departments-csv-note")).toHaveText(
+    "Adoption and inactive seats need the full member list, not just people who've used Claude Code. Add a departments CSV (DEPARTMENTS_FILE) to see them.",
+  );
   await expect(page.getByText("Org adoption", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Inactive seats", { exact: true })).toHaveCount(0);
 });

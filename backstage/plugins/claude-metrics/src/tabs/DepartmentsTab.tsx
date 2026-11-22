@@ -127,7 +127,7 @@ export const DepartmentsTab = () => {
                 <Alert
                   status="info"
                   icon
-                  description="Add a departments CSV to see adoption and inactive seats."
+                  description="Adoption and inactive seats need the full member list, not just people who've used Claude Code. Add a departments CSV (claudeMetrics.departmentsFile) to see them."
                 />
               </>
             )}

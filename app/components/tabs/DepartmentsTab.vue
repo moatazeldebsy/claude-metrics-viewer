@@ -56,7 +56,7 @@ const columns: GridColumn<DepartmentRow>[] = [
           <KpiTile label="Departments" :value="fmtInt(d.totals.departments)" />
           <KpiTile label="Active users" :value="fmtInt(d.totals.activeUsers)" />
         </div>
-        <v-alert type="info" variant="tonal" density="compact" data-testid="departments-csv-note">Add a departments CSV to see adoption and inactive seats.</v-alert>
+        <v-alert type="info" variant="tonal" density="compact" data-testid="departments-csv-note">Adoption and inactive seats need the full member list, not just people who've used Claude Code. Add a departments CSV (<code>DEPARTMENTS_FILE</code>) to see them.</v-alert>
       </template>
       <div v-if="caps.seats" class="chart-grid">
         <ChartCard title="Adoption by department" :subtitle="d.rows.length > 15 ? '15 lowest shown, lowest first' : 'Lowest first'">

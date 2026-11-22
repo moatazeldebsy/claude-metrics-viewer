@@ -110,7 +110,7 @@ describe('OpenTelemetry mode', () => {
     });
     expect(
       await screen.findByText(
-        'Add a departments CSV to see adoption and inactive seats.',
+        "Adoption and inactive seats need the full member list, not just people who've used Claude Code. Add a departments CSV (claudeMetrics.departmentsFile) to see them.",
       ),
     ).toBeInTheDocument();
     expect(screen.queryByText('Org adoption')).not.toBeInTheDocument();

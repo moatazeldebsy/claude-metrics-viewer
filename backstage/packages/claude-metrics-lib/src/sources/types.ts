@@ -1,8 +1,8 @@
 import type {
   BetaAnalyticsCostGroupBy,
   BetaAnalyticsCostItem,
-} from '@anthropic-ai/sdk/resources/beta/organization/analytics/cost';
-import type { ClaudeCodeRecord } from '../anthropic-types';
+} from "@anthropic-ai/sdk/resources/beta/organization/analytics/cost";
+import type { ClaudeCodeRecord } from "../anthropic-types";
 
 export type CostItem = BetaAnalyticsCostItem;
 export type CostGroupBy = BetaAnalyticsCostGroupBy;
@@ -38,13 +38,7 @@ export interface SourceCapabilities {
   includesToday: boolean;
 }
 
-export const ALL_CAPABILITIES: SourceCapabilities = {
-  billedCost: true,
-  seats: true,
-  rawUpstream: true,
-  remoteSplit: true,
-  includesToday: false,
-};
+export const ALL_CAPABILITIES: SourceCapabilities = { billedCost: true, seats: true, rawUpstream: true, remoteSplit: true, includesToday: false };
 
 export interface MetricsSource {
   capabilities(): SourceCapabilities;

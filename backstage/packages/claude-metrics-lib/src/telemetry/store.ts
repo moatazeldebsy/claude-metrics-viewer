@@ -1,4 +1,4 @@
-import type { TelemetryBatch, TelemetryRow, TelemetryUser } from './rows';
+import type { TelemetryBatch, TelemetryRow, TelemetryUser } from "./rows";
 
 /**
  * Durable storage for daily telemetry totals. Hosts provide an implementation (SQLite in the
@@ -17,8 +17,7 @@ export interface TelemetryStore {
   prune(beforeDay: string): Promise<void>;
 }
 
-const rowKey = (r: TelemetryRow) =>
-  JSON.stringify([r.day, r.actorKind, r.actor, r.terminal, r.model]);
+const rowKey = (r: TelemetryRow) => JSON.stringify([r.day, r.actorKind, r.actor, r.terminal, r.model]);
 const userKey = (u: TelemetryUser) => `${u.actorKind}:${u.actor}`;
 
 /** In-memory store, for tests and short-lived experiments. */
@@ -32,31 +31,24 @@ export class MemoryTelemetryStore implements TelemetryStore {
       const key = rowKey(r);
       const cur = this.rows.get(key) ?? { ...r, counters: {} };
       for (const [k, v] of Object.entries(r.counters)) {
-        const c = k as keyof TelemetryRow['counters'];
+        const c = k as keyof TelemetryRow["counters"];
         cur.counters[c] = (cur.counters[c] ?? 0) + (v ?? 0);
       }
       this.rows.set(key, cur);
     }
     for (const u of batch.users) {
       const prev = this.people.get(userKey(u));
-      if (!prev || u.lastSeen >= prev.lastSeen)
-        this.people.set(userKey(u), {
-          ...u,
-          department: u.department ?? prev?.department ?? null,
-        });
+      if (!prev || u.lastSeen >= prev.lastSeen) this.people.set(userKey(u), { ...u, department: u.department ?? prev?.department ?? null });
     }
-    if (!this.received || receivedAt > this.received)
-      this.received = receivedAt;
+    if (!this.received || receivedAt > this.received) this.received = receivedAt;
   }
 
   async records(day: string): Promise<TelemetryRow[]> {
-    return [...this.rows.values()]
-      .filter(r => r.day === day)
-      .map(r => ({ ...r, counters: { ...r.counters } }));
+    return [...this.rows.values()].filter((r) => r.day === day).map((r) => ({ ...r, counters: { ...r.counters } }));
   }
 
   async users(): Promise<TelemetryUser[]> {
-    return [...this.people.values()].map(u => ({ ...u }));
+    return [...this.people.values()].map((u) => ({ ...u }));
   }
 
   async lastReceivedAt(): Promise<string | null> {
@@ -65,7 +57,6 @@ export class MemoryTelemetryStore implements TelemetryStore {
 
   async prune(beforeDay: string): Promise<void> {
     for (const [k, r] of this.rows) if (r.day < beforeDay) this.rows.delete(k);
-    for (const [k, u] of this.people)
-      if (u.lastSeen < beforeDay) this.people.delete(k);
+    for (const [k, u] of this.people) if (u.lastSeen < beforeDay) this.people.delete(k);
   }
 }

@@ -1,4 +1,4 @@
-import Holidays from 'date-holidays';
+import Holidays from "date-holidays";
 
 const cache = new Map<string, Set<string>>();
 
@@ -12,17 +12,12 @@ export function holidaysFor(country: string, years: number[]): Set<string> {
     const key = `${country}|${year}`;
     let days = cache.get(key);
     if (!days) {
-      const [c, state] = country.split('-');
+      const [c, state] = country.split("-");
       const hd = new Holidays();
       const known = c !== undefined && c in hd.getCountries();
       if (known) hd.init(c, state);
       days = new Set(
-        known
-          ? hd
-              .getHolidays(year)
-              .filter(h => h.type === 'public' || h.type === 'bank')
-              .map(h => h.date.slice(0, 10))
-          : [],
+        known ? hd.getHolidays(year).filter((h) => h.type === "public" || h.type === "bank").map((h) => h.date.slice(0, 10)) : [],
       );
       cache.set(key, days);
     }
@@ -31,4 +26,4 @@ export function holidaysFor(country: string, years: number[]): Set<string> {
   return out;
 }
 
-export const holidayCountry = () => process.env.HOLIDAY_COUNTRY || 'US';
+export const holidayCountry = () => process.env.HOLIDAY_COUNTRY || "US";

@@ -1,5 +1,5 @@
-import { addDays, eachDay, filterDays, toDay } from './dates';
-import { holidayCountry, holidaysFor } from './holidays';
+import { addDays, eachDay, filterDays, toDay } from "./dates";
+import { holidayCountry, holidaysFor } from "./holidays";
 
 export interface DashboardQuery {
   from: string;
@@ -19,42 +19,27 @@ export class QueryError extends Error {}
  * Parse and validate dashboard filters. Defaults to the last 28 complete UTC days. With
  * includeToday (live sources such as OpenTelemetry), the range may end today and defaults to it.
  */
-export function parseQuery(
-  sp: URLSearchParams,
-  today = toDay(new Date()),
-  opts: { includeToday?: boolean } = {},
-): DashboardQuery {
-  const to = sp.get('to') ?? (opts.includeToday ? today : addDays(today, -1));
-  const from = sp.get('from') ?? addDays(to, -27);
-  if (!DAY_RE.test(from) || !DAY_RE.test(to))
-    throw new QueryError('from/to must be YYYY-MM-DD');
-  if (from > to) throw new QueryError('from must be on or before to');
+export function parseQuery(sp: URLSearchParams, today = toDay(new Date()), opts: { includeToday?: boolean } = {}): DashboardQuery {
+  const to = sp.get("to") ?? (opts.includeToday ? today : addDays(today, -1));
+  const from = sp.get("from") ?? addDays(to, -27);
+  if (!DAY_RE.test(from) || !DAY_RE.test(to)) throw new QueryError("from/to must be YYYY-MM-DD");
+  if (from > to) throw new QueryError("from must be on or before to");
   if (opts.includeToday) {
     if (to > today) throw new QueryError("to can't be in the future (UTC)");
-  } else if (to >= today)
-    throw new QueryError(
-      "to must be before today (UTC); today's data is incomplete",
-    );
-  if (eachDay(from, to).length > MAX_RANGE_DAYS)
-    throw new QueryError(`range is limited to ${MAX_RANGE_DAYS} days`);
+  } else if (to >= today) throw new QueryError("to must be before today (UTC); today's data is incomplete");
+  if (eachDay(from, to).length > MAX_RANGE_DAYS) throw new QueryError(`range is limited to ${MAX_RANGE_DAYS} days`);
   return {
     from,
     to,
-    excludeWeekends: sp.get('excludeWeekends') === 'true',
-    excludeHolidays: sp.get('excludeHolidays') === 'true',
-    user: sp.get('user') || null,
-    department: sp.get('department') || null,
+    excludeWeekends: sp.get("excludeWeekends") === "true",
+    excludeHolidays: sp.get("excludeHolidays") === "true",
+    user: sp.get("user") || null,
+    department: sp.get("department") || null,
   };
 }
 
-export function selectedDays(
-  q: DashboardQuery,
-  country = holidayCountry(),
-): string[] {
+export function selectedDays(q: DashboardQuery, country = holidayCountry()): string[] {
   const days = eachDay(q.from, q.to);
-  const years = [...new Set(days.map(d => Number(d.slice(0, 4))))];
-  return filterDays(days, {
-    ...q,
-    holidays: q.excludeHolidays ? [...holidaysFor(country, years)] : [],
-  });
+  const years = [...new Set(days.map((d) => Number(d.slice(0, 4))))];
+  return filterDays(days, { ...q, holidays: q.excludeHolidays ? [...holidaysFor(country, years)] : [] });
 }

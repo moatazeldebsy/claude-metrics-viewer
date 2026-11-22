@@ -1,16 +1,7 @@
-import Anthropic from '@anthropic-ai/sdk';
-import type {
-  ClaudeCodeRecord,
-  ClaudeCodeReportPage,
-} from '../anthropic-types';
-import { addDays, splitRange, toDay } from '../dates';
-import {
-  ALL_CAPABILITIES,
-  type CostItem,
-  type CostQuery,
-  type Member,
-  type MetricsSource,
-} from './types';
+import Anthropic from "@anthropic-ai/sdk";
+import type { ClaudeCodeRecord, ClaudeCodeReportPage } from "../anthropic-types";
+import { addDays, splitRange, toDay } from "../dates";
+import { ALL_CAPABILITIES, type CostItem, type CostQuery, type Member, type MetricsSource } from "./types";
 
 const MAX_COST_RANGE_DAYS = 31; // Usage & Cost Analytics API limit per request
 
@@ -40,12 +31,9 @@ export class AnthropicSource implements MetricsSource {
     const records: ClaudeCodeRecord[] = [];
     let page: string | null = null;
     do {
-      const res: ClaudeCodeReportPage = await this.client.get(
-        '/v1/organizations/usage_report/claude_code',
-        {
-          query: { starting_at: day, limit: 1000, ...(page ? { page } : {}) },
-        },
-      );
+      const res: ClaudeCodeReportPage = await this.client.get("/v1/organizations/usage_report/claude_code", {
+        query: { starting_at: day, limit: 1000, ...(page ? { page } : {}) },
+      });
       records.push(...res.data);
       page = res.has_more ? res.next_page : null;
     } while (page);
@@ -62,13 +50,7 @@ export class AnthropicSource implements MetricsSource {
         starting_at: `${chunk.from}T00:00:00Z`,
         ending_at: `${addDays(chunk.to, 1)}T00:00:00Z`,
         group_by: groupBy,
-        ...(daily
-          ? {
-              time_bucket_width: '1d' as const,
-              order_by: 'time' as const,
-              order: 'asc' as const,
-            }
-          : {}),
+        ...(daily ? { time_bucket_width: "1d" as const, order_by: "time" as const, order: "asc" as const } : {}),
         limit: 1000,
       });
       for await (const row of rows) out.push(row);
@@ -88,15 +70,9 @@ export class AnthropicSource implements MetricsSource {
 
   private async fetchMembers(): Promise<Member[]> {
     const out: Member[] = [];
-    for await (const u of this.client.beta.organization.users.list({
-      limit: 100,
-    })) {
+    for await (const u of this.client.beta.organization.users.list({ limit: 100 })) {
       out.push({
-        id: u.id,
-        email: u.email,
-        name: u.name,
-        role: u.role,
-        added_at: u.added_at,
+        id: u.id, email: u.email, name: u.name, role: u.role, added_at: u.added_at,
         department: this.departments.get(u.email.toLowerCase()) ?? null,
       });
     }

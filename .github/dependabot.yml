@@ -13,6 +13,10 @@ updates:
       # Kept at the same exact version as backstage/packages/claude-metrics-lib, whose types
       # (the mock source's cost rows) follow it. Bump both together, by hand.
       - dependency-name: "@anthropic-ai/sdk"
+      # 5.3.6 breaks the Nuxt build (Rolldown can't resolve "vue-chartjs"; #21, #29). Skip only
+      # this release; the next one will be proposed. Remove once a newer version is out.
+      - dependency-name: "vue-chartjs"
+        versions: ["5.3.6"]
 
   # Backstage workspace (Yarn 4)
   - package-ecosystem: npm

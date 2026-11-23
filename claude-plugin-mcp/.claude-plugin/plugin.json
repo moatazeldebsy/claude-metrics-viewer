@@ -1,0 +1,26 @@
+{
+  "name": "metrics-viewer-mcp",
+  "version": "0.1.0",
+  "description": "Ask Claude about a Claude Metrics dashboard: Claude Code adoption, departments, cost, seats and users, through a local read-only MCP server.",
+  "author": {
+    "name": "Moataz Nabil",
+    "url": "https://github.com/moatazeldebsy"
+  },
+  "homepage": "https://github.com/moatazeldebsy/claude-metrics-viewer/tree/main/claude-plugin-mcp#readme",
+  "repository": "https://github.com/moatazeldebsy/claude-metrics-viewer",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "mcp",
+    "metrics",
+    "dashboard"
+  ],
+  "userConfig": {
+    "dashboard_url": {
+      "type": "string",
+      "title": "Dashboard URL",
+      "description": "Origin of your Claude Metrics dashboard (the standalone app), e.g. http://localhost:3000.",
+      "default": "http://localhost:3000"
+    }
+  }
+}

@@ -95,17 +95,18 @@ The dashboard also ships as a Backstage frontend and backend plugin pair in [`ba
 
 ## Claude Code plugin
 
-This repository is also a Claude Code plugin marketplace. The `metrics-viewer` plugin does two things:
+This repository is also a Claude Code plugin marketplace with two plugins:
 
-- connects your Claude Code's OpenTelemetry export to a running dashboard: it tests the endpoint and token, writes the settings and checks that data arrives;
-- lets you ask Claude about the dashboard's numbers through an [MCP server](mcp/README.md), for example "which departments have the lowest adoption this month?"
+- **`metrics-viewer`** connects your Claude Code's OpenTelemetry export to a running dashboard. It tests the endpoint and token, writes the settings and checks that data arrives. Run `/metrics-viewer:connect-telemetry`.
+- **`metrics-viewer-mcp`** lets you ask Claude about the dashboard's numbers through a local [MCP server](mcp/README.md), for example "which departments have the lowest adoption this month?"
 
 ```text
 /plugin marketplace add moatazeldebsy/claude-metrics-viewer
 /plugin install metrics-viewer@metrics-viewer
+/plugin install metrics-viewer-mcp@metrics-viewer
 ```
 
-Then run `/metrics-viewer:connect-telemetry`, or ask about your metrics. See [`claude-plugin/`](claude-plugin/README.md).
+See [`claude-plugin/`](claude-plugin/README.md) and [`claude-plugin-mcp/`](claude-plugin-mcp/README.md).
 
 ## Which setup is for me
 
@@ -215,7 +216,8 @@ backstage/packages/claude-metrics-lib/src/
 backstage/          Backstage plugins, preview page and the package above (see backstage/README.md)
 server/api/         Nitro routes: claude-code, departments, users, user-search, seats, cost, meta, raw
 .claude-plugin/     Claude Code marketplace manifest
-claude-plugin/      the metrics-viewer Claude Code plugin (connect-telemetry skill, MCP server config)
+claude-plugin/      the metrics-viewer Claude Code plugin (connect-telemetry skill)
+claude-plugin-mcp/  the metrics-viewer-mcp Claude Code plugin (runs the MCP server below)
 mcp/                MCP server over the dashboard's /api/* routes (@moatazeldebsy/claude-metrics-mcp)
 app/
   pages/index.vue   tabs + filter bar; filters live in the URL

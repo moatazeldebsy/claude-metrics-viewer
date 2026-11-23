@@ -1,7 +1,7 @@
 {
   "name": "metrics-viewer",
-  "version": "0.2.1",
-  "description": "Connect Claude Code's OpenTelemetry export to a Claude Metrics dashboard, and ask Claude about your org's Claude Code adoption, departments, cost and users.",
+  "version": "0.3.0",
+  "description": "Connect Claude Code's OpenTelemetry export to a Claude Metrics dashboard (standalone or Backstage).",
   "author": {
     "name": "Moataz Nabil",
     "url": "https://github.com/moatazeldebsy"
@@ -15,15 +15,6 @@
     "telemetry",
     "metrics",
     "dashboard",
-    "backstage",
-    "mcp"
-  ],
-  "userConfig": {
-    "dashboard_url": {
-      "type": "string",
-      "title": "Dashboard URL",
-      "description": "Origin of your Claude Metrics dashboard (the standalone app), e.g. http://localhost:3000.",
-      "default": "http://localhost:3000"
-    }
-  }
+    "backstage"
+  ]
 }

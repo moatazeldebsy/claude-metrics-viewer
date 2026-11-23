@@ -12,6 +12,11 @@
       "name": "metrics-viewer",
       "source": "./claude-plugin",
       "description": "Connect Claude Code's OpenTelemetry export to a Claude Metrics dashboard."
+    },
+    {
+      "name": "metrics-viewer-mcp",
+      "source": "./claude-plugin-mcp",
+      "description": "Ask Claude about a Claude Metrics dashboard through a local read-only MCP server."
     }
   ]
 }

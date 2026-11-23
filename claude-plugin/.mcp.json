@@ -2,7 +2,7 @@
   "mcpServers": {
     "claude-metrics": {
       "command": "npx",
-      "args": ["-y", "@moatazeldebsy/claude-metrics-mcp@0.1"],
+      "args": ["-y", "@moatazeldebsy/claude-metrics-mcp@0.1.0"],
       "env": {
         "CLAUDE_METRICS_URL": "${user_config.dashboard_url}"
       }

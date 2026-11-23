@@ -32,6 +32,8 @@ The dashboard needs `DATA_SOURCE=otel` (standalone) or `claudeMetrics.dataSource
   From then on, Claude Code itself exports usage metrics (counts of sessions, lines, commits, PRs, tokens, cost and tool decisions, plus your user and account identifiers as attributes) to the dashboard you chose. It doesn't send prompts or code. To undo, remove those keys.
 - **No data goes to the plugin author** or any third party. Everything goes to dashboards you run.
 
+Full details: [PRIVACY.md](PRIVACY.md).
+
 ## License
 
 MIT

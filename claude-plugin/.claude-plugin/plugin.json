@@ -1,6 +1,6 @@
 {
   "name": "metrics-viewer",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Connect Claude Code's OpenTelemetry export to a Claude Metrics dashboard (standalone or Backstage).",
   "author": {
     "name": "Moataz Nabil",

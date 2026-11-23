@@ -23,7 +23,7 @@ The easiest way is the Claude Code plugin, which sets this up and asks for the d
 
 ```text
 /plugin marketplace add moatazeldebsy/claude-metrics-viewer
-/plugin install metrics-viewer@metrics-viewer
+/plugin install metrics-viewer-mcp@metrics-viewer
 ```
 
 Or add it to any MCP client directly:

@@ -60,6 +60,7 @@ jobs:
         run: |
           npx -y @anthropic-ai/claude-code@2.1.330 plugin validate . --strict
           npx -y @anthropic-ai/claude-code@2.1.330 plugin validate ./claude-plugin --strict --profile directory
+          npx -y @anthropic-ai/claude-code@2.1.330 plugin validate ./claude-plugin-mcp --strict
 
   mcp:
     name: MCP server
